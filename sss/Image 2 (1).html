@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OFFGRID | VALERIE_K</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#d43f00",
+                        "primary-fixed-dim": "#ffb59e",
+                        "outline": "#916f65",
+                        "surface-container-low": "#fff1e8",
+                        "secondary-container": "#bdf200",
+                        "on-secondary-container": "#526b00",
+                        "on-primary-fixed": "#3a0b00",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary": "#4f6600",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#fae4d5",
+                        "on-primary-fixed-variant": "#852400",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#ae3200",
+                        "tertiary-fixed": "#ede0d9",
+                        "inverse-primary": "#ffb59e",
+                        "secondary-fixed": "#c0f500",
+                        "on-surface-variant": "#5c4037",
+                        "inverse-on-surface": "#ffeee2",
+                        "tertiary-container": "#7d736d",
+                        "tertiary": "#635a55",
+                        "surface-variant": "#f4dfcf",
+                        "on-surface": "#241910",
+                        "surface-container": "#ffeadb",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#a8d700",
+                        "background": "#fff8f5",
+                        "surface-bright": "#fff8f5",
+                        "on-background": "#241910",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "primary": "#aa3000",
+                        "on-secondary-fixed-variant": "#3b4d00",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#3a2e24",
+                        "primary-fixed": "#ffdbd0",
+                        "on-tertiary-fixed-variant": "#4d4540",
+                        "surface-dim": "#ebd6c7",
+                        "outline-variant": "#e6beb2",
+                        "on-secondary-fixed": "#161f00",
+                        "on-tertiary-fixed": "#211a16",
+                        "surface": "#fff8f5",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#f4dfcf",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#d1c4bd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "xxl": "64px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "xl": "40px",
+                        "gutter": "20px",
+                        "lg": "24px",
+                        "margin-desktop": "48px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-lg": ["Syne"],
+                        "headline-md": ["Syne"],
+                        "headline-lg-mobile": ["Syne"],
+                        "label-sm": ["Inter"],
+                        "display-md": ["Syne"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Syne"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["10px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "display-md": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "1", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background: linear-gradient(180deg, #fff8f5 0%, #fae4d5 50%, #ebd6c7 100%);
+            min-height: 100vh;
+        }
+        .sunset-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+            background-image: 
+                radial-gradient(at 0% 0%, #ffdbd0 0px, transparent 50%),
+                radial-gradient(at 100% 0%, #ffb59e 0px, transparent 50%),
+                radial-gradient(at 100% 100%, #aa3000 0px, transparent 50%),
+                radial-gradient(at 0% 100%, #ffdbd0 0px, transparent 50%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .offset-shadow {
+            box-shadow: 4px 4px 0px 0px #aa3000;
+        }
+        .offset-shadow-hover:hover {
+            box-shadow: 6px 6px 0px 0px #aa3000;
+            transform: translate(-2px, -2px);
+        }
+        .editorial-accent {
+            border-left: 4px solid #bdf200;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background">
+<div class="sunset-mesh"></div>
+<!-- Top Navigation Bar -->
+<header class="w-full sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant">
+<div class="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-20 max-w-[1200px] mx-auto">
+<a class="font-headline-lg text-headline-lg font-bold tracking-tighter text-primary" href="#">OFFGRID</a>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Shop</a>
+<a class="font-body-lg text-body-lg text-primary border-b-2 border-primary pb-1" href="#">Creators</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Drops</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">About</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="p-base hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-on-surface">search</span>
+</button>
+<button class="p-base hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined text-on-surface">shopping_cart</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="p-base hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-on-surface">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin-desktop py-xl">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center mb-xxl">
+<div class="md:col-span-5 relative">
+<div class="aspect-square bg-white p-base border border-outline-variant offset-shadow overflow-hidden">
+<img alt="Valerie K Profile" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" data-alt="A high-fashion editorial portrait of a creative woman named Valerie, with sharp avant-garde styling and warm sunset lighting. She has short, sleek hair and wears architectural jewelry. The background is a minimalist studio with soft, long shadows, reflecting a luxury streetwear aesthetic. The colors are warm, featuring peaches, burnt oranges, and soft creams, aligned with a high-contrast editorial design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEmwM5fVTVXcozjRKGZYuycxJcEnMqAXw3OIrABLCTsxxatm9H7fNRmsOooeux2X6WOWoWkPSlIWn4ZS2acJwCc_sJcaaM_y26kouhIFUlcXtFc8ICjB0j-DiZA6YQTs51cyYr0PDqlahhCo39xWqJkIu24sR4DDoN9XVOukCzvHyq7CRvBctHAkkm0DZxvzkxLtAkHi-mmbLti_6LJ1KoqzzzsNFQDpeFQDxXNhHrvt2SmokCSmzXhOmNFRJxiUOj2_mNX5ULV-Ur"/>
+</div>
+<div class="absolute -bottom-4 -right-4 bg-secondary-container px-lg py-sm border border-on-secondary-container">
+<span class="font-label-lg text-label-lg text-on-secondary-container uppercase">Verified Creator</span>
+</div>
+</div>
+<div class="md:col-span-7 flex flex-col items-start gap-lg mt-xl md:mt-0">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-xs">Multidisciplinary Artist</span>
+<h1 class="font-display-md text-display-md text-on-surface leading-none mb-sm">VALERIE_K</h1>
+</div>
+<div class="editorial-accent pl-lg max-w-xl">
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Exploring the intersection of digital decay and high-performance streetwear. Based between Berlin and Tokyo, building tactile artifacts for the modern nomad.
+                    </p>
+</div>
+<div class="flex flex-wrap gap-md mt-sm">
+<button class="bg-primary text-on-primary px-xxl py-md font-label-lg text-label-lg uppercase border border-primary hover:bg-primary-container transition-all offset-shadow active:translate-y-1 active:shadow-none">
+                        Follow Creator
+                    </button>
+<button class="bg-transparent text-on-surface px-xl py-md font-label-lg text-label-lg uppercase border border-on-surface hover:bg-surface-container-low transition-all">
+                        Message
+                    </button>
+</div>
+<div class="flex gap-xl mt-md">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">12.4K</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Collectors</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">42</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Works</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">8.2 ETH</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Volume</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Product Filter/Navigation -->
+<div class="flex items-center justify-between border-b border-outline-variant pb-md mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface uppercase tracking-tight">Collected Works</h2>
+<div class="flex gap-md">
+<button class="font-label-lg text-label-lg text-primary border-b-2 border-primary pb-1">Latest</button>
+<button class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors">Popular</button>
+<button class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors">Archives</button>
+</div>
+</div>
+<!-- Bento Grid for Works -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Card 1 (Large) -->
+<div class="md:col-span-8 group">
+<div class="bg-white border border-outline-variant p-lg offset-shadow-hover transition-all h-full flex flex-col">
+<div class="aspect-[16/9] overflow-hidden mb-lg relative">
+<img alt="Work 001" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A detailed macro shot of high-tech textile material featuring intricate orange and gray weaves. The fabric looks futuristic and high-performance, with sharp lighting highlighting the texture. This aesthetic fits a luxury streetwear brand called OFFGRID, emphasizing durability and avant-garde design. The overall mood is professional, crisp, and high-contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDI0L3GcMV_Vw3YHc2iMe3gdDuukyiLuPquyKmMVPlP94dKi2mbrSKqhcliibKk9Y-PwUuXB2eF3C_HZjEhM0tReiHIa0q4utaEmvp59j6hoVVQ2YKHwLF3nG9_wP5nHBG70JY7g2WibcZmNwq463QRk7IwK7vJ4mTOd7IjORwE1ztX_AVaIYyuxdXWMKscgWj0SChRHr4Hul90U-TVeHYhYw-qaOY5GY6zk2AphwP3-uXyqk2PsquUwMSijBcL1W77Ab7qAGsUy6I9"/>
+<div class="absolute top-md left-md bg-secondary text-on-secondary px-sm py-xs font-label-sm uppercase">Exclusive Drop</div>
+</div>
+<div class="flex justify-between items-end mt-auto">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase">Drop 001 / Edition of 10</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-xs">KINETIC MONOLITH PARKA</h3>
+</div>
+<div class="text-right">
+<span class="block font-label-sm text-label-sm text-on-surface-variant uppercase">Current Floor</span>
+<span class="font-headline-md text-headline-md text-primary">0.85 ETH</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 (Small) -->
+<div class="md:col-span-4 group">
+<div class="bg-white border border-outline-variant p-lg offset-shadow-hover transition-all h-full flex flex-col">
+<div class="aspect-square overflow-hidden mb-lg bg-surface-container">
+<img alt="Work 002" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A minimalist fashion accessory, a sleek metallic modular bag, presented on a stone pedestal against a warm orange-tinted background. The lighting is soft and directional, creating dramatic shadows that emphasize the geometric form of the product. The style is editorial and high-end, fitting a luxury digital marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALNhH3cDJX-JjBLhxdeAPra6UHNOQnJkhEVYMJIzU3qDdr-LoymhTUpQV2-BgIdy8toM5ZiAv-qw-mYsD5HE9wqvWaVIFbZVcXhFlJOLycGam-fvnSwAYT9qSstMAZ0HKeY7OJaHbW_8juwtB2ezWIkeHV2cHmSh7h_iqR7FnKx-C9uF386rVq4GdAfLVAlaL6WVPyYpQYSTNjIRuZoxIBeEEpqNQecRNJGfiYV_sfOKtR1jnG260OrSoZXuDn9tocLu7PHcKPZU2f"/>
+</div>
+<div class="mt-auto">
+<span class="font-label-sm text-label-sm text-primary uppercase">Archive</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-xs">MODULAR SLING V2</h3>
+<div class="flex justify-between items-center mt-md">
+<span class="font-label-lg text-label-lg text-on-surface">Sold Out</span>
+<button class="text-primary hover:underline underline-offset-4 font-label-lg text-label-lg">View Secondary</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3 (Small) -->
+<div class="md:col-span-4 group">
+<div class="bg-white border border-outline-variant p-lg offset-shadow-hover transition-all flex flex-col">
+<div class="aspect-square overflow-hidden mb-lg relative">
+<img alt="Work 003" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant yellow and orange streetwear piece styled on a faceless mannequin in a high-contrast environment. The image is sharply focused with deep shadows and bright highlights, mimicking a sunset photography style. The textile details are visible, emphasizing the premium quality of the OFFGRID marketplace creators." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh5KA8A0yOAiXWg3CpjpM1xDvEkWok8E-WlCuHLUrQrvo-mOMCLLwpGmo6fkk5Rwb1SoODCr-91DMttqDP5ea5PY5DvVqt_3xZW_Gl8ayAYK4u-BPdLtUrxk7O7eZ3Wh26f9pJuA-oaxEshtR-F3c5L6jxzY1axlQgXB3Q0Ehq0rjer-05EOL-z1MZUDNsZAmbAOmY38SCRbVmGpzSziJdaJAHsuHQsojlwNsSVxxHVKsbs3XZZ_XT9H3SsuzsTUyz9g-a2fbGvqmG"/>
+<div class="absolute top-md right-md bg-primary-container text-on-primary-container p-xs">
+<span class="material-symbols-outlined text-[20px]">bolt</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase">Collaborative</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-xs">THERMAL SHELL L1</h3>
+<div class="flex justify-between items-center mt-md">
+<span class="font-headline-md text-headline-md text-primary">0.42 ETH</span>
+<button class="bg-on-surface text-surface px-md py-sm font-label-sm text-label-sm uppercase hover:bg-primary transition-colors">Bid</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4 (Small) -->
+<div class="md:col-span-4 group">
+<div class="bg-white border border-outline-variant p-lg offset-shadow-hover transition-all flex flex-col">
+<div class="aspect-square overflow-hidden mb-lg">
+<img alt="Work 004" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A pair of vibrant red performance sneakers placed on a reflective surface. The lighting is low-key with a warm glow, creating a sophisticated and energetic mood. The image focuses on the sleek silhouette and technical materials of the footwear, tailored for an avant-garde creative audience interested in high-end design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUf3QI5qPW4v3JTeSYFFUL_ek0Y1-0j8_c1r5bbhojXF9y7313S56IjITCX_d7mvq6MEJwKBu3RbvzGM4VUn8_HI8HmbBQBUrUlyQuwK-0U0i0p2jbPRNIOrn-8IKgU-ReefAueJFwDkuOPHMVHyO-JOamDD2QwUI90ySx9OLfyJtAaA9bCzHd6k9WxvDYqoVf5ttwBVdiXSO3CpLaNIp9IHE5y_DLN0FwkzD3bMiUqpNOoKOEwjrRWnLXodnL4KJUjvxHpSaNe4fE"/>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase">Edition of 50</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-xs">VECTORS SPRINT</h3>
+<div class="flex justify-between items-center mt-md">
+<span class="font-headline-md text-headline-md text-primary">0.15 ETH</span>
+<button class="bg-on-surface text-surface px-md py-sm font-label-sm text-label-sm uppercase hover:bg-primary transition-colors">Buy</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5 (Small) -->
+<div class="md:col-span-4 group">
+<div class="bg-white border border-outline-variant p-lg offset-shadow-hover transition-all flex flex-col">
+<div class="aspect-square overflow-hidden mb-lg relative">
+<img alt="Work 005" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Abstract digital render of a glowing orange fabric flowing in a dark space. The light sources are warm, suggesting a sunset glow. The composition is artistic and minimalist, focusing on the interplay of light, shadow, and texture, perfectly matching the Valeriek creator persona on the OFFGRID marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7RQzsjLKPKgLvIQCLo_hPF2ai63s0y4a7nBm5zr7_dBCLesvWvJ9swz10e5RT2nqoQmN2aGU-knEbGxzILeiznyNIysGxj0T1f2i353uo99uePXtV0mZPSnNtpVuiLCa-K_BGP7SvnqBDvHZdic3kthbTX6iLCEKkGLvJb4ifPgxITMyBGBInnc_VNy6XxQe6fig-XSZWbSDmVUtQVyeCMdhTbGY2L2RBbiGcYIWPD29M1dgs9lyoYREA4W_1L1R0XxnrjksL7Hks"/>
+<div class="absolute bottom-md right-md bg-secondary-container px-sm py-xs">
+<span class="font-label-sm text-on-secondary-container">Coming Soon</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase">Conceptual</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-xs">VOID WEAVE TEE</h3>
+<div class="flex justify-between items-center mt-md">
+<span class="font-headline-md text-headline-md text-on-surface-variant opacity-50">-- ETH</span>
+<button class="border border-on-surface text-on-surface px-md py-sm font-label-sm text-label-sm uppercase hover:bg-on-surface hover:text-surface transition-colors">Alert Me</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Callout -->
+<section class="mt-xxl bg-surface-container-high p-xl md:p-xxl flex flex-col md:flex-row items-center gap-xl border border-outline-variant relative overflow-hidden">
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-primary rounded-full blur-[100px] opacity-20"></div>
+<div class="relative z-10 md:w-1/2">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-[0.2em] mb-md block">Behind the process</span>
+<h2 class="font-display-md text-display-md text-on-surface mb-lg">REDEFINING TEXTILE TOPOLOGY.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xl">
+                    Every piece in the 001 Drop was crafted using procedural generation algorithms mapped onto traditional Japanese weaving patterns. The result is a garment that breathes like a second skin.
+                </p>
+<a class="text-on-surface font-label-lg text-label-lg uppercase border-b-2 border-primary pb-1 inline-block" href="#">Read the Manifesto</a>
+</div>
+<div class="md:w-1/2 relative aspect-square">
+<img alt="Studio View" class="w-full h-full object-cover border border-outline-variant offset-shadow" data-alt="A minimalist workshop interior with architectural models and rolls of orange and gray fabric. The sun is setting, casting long, dramatic shadows across the clean floor. A large window shows a city skyline at dusk. The overall atmosphere is quiet, focused, and professional, echoing a creator's dedicated workspace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwJfoAdEKkehtQcirmbm0lR-zlr7qil0gnhnLyii3O6xvxUMf-SxVdb0EVbpkHcuUwoyCoJxXk8wFmITVJy4PWAHKlSynmr09erCZc6wYlzWJu8nik55qJsFGfTbgwtJNHO1nsdubOGwCZXJXQa3SeUUCqesK8PGoHxaOO0uTeOO5B1JP9hmBk_-x-a7GbygEumRiMt7Ri2WtqdgcdW-_jE2vi3HbHmeKnbvRV1wGO88O__4TY67lvnWdv0khlQ6U2FWskS0kcSZFi"/>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-xxl border-t border-outline-variant bg-surface-container-low">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-xl max-w-[1200px] mx-auto">
+<div class="flex flex-col gap-md">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">OFFGRID</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The future of creative ownership and physical-digital artifacts.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-lg text-label-lg text-primary uppercase">Explore</span>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Marketplace</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Creators</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Sitemap</a>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-lg text-label-lg text-primary uppercase">Community</span>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Instagram</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">TikTok</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Newsletter</a>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-lg text-label-lg text-primary uppercase">Support</span>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">FAQ</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline-offset-4 hover:underline" href="#">Privacy Policy</a>
+</div>
+</div>
+<div class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin-desktop py-lg border-t border-outline-variant flex justify-between items-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">© 2024 OFFGRID Marketplace. All rights reserved.</p>
+<div class="flex gap-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">language</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">payments</span>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('.offset-shadow-hover').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Potential for more complex animations
+            });
+        });
+
+        // Floating Action Button logic (Conditional suppression applied)
+        // Since this is a Profile/Storefront page, we suppress the global FAB to prioritize content focus.
+    </script>
+</body></html>

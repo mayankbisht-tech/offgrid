@@ -1,0 +1,326 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import express from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { GoogleGenAI } from '@google/genai';
+import { 
+  products, 
+  designs, 
+  orders, 
+  capabilities, 
+  manufacturers, 
+  createProduct, 
+  createDesign, 
+  createOrder, 
+  updateOrderStatus, 
+  updateCapabilityCost 
+} from './server_db.js';
+import { initDb, pool } from './server_pg.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+// -------------------------------------------------------------
+// POSTGRES AUTH & CREDENTIALS ENDPOINTS
+// -------------------------------------------------------------
+app.post('/api/auth/login', async (req: express.Request, res: express.Response) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      res.status(400).json({ error: 'Email and password are required.' });
+      return;
+    }
+
+    const { rows } = await pool.query(
+      'SELECT id, email, password, name, role, username FROM offgrid_users WHERE email = $1',
+      [email.toLowerCase().trim()]
+    );
+
+    if (rows.length === 0) {
+      res.status(401).json({ error: 'User does not exist in Neon PostgreSQL.' });
+      return;
+    }
+
+    const dbUser = rows[0];
+    if (dbUser.password !== password) {
+      res.status(401).json({ error: 'Incorrect password entered.' });
+      return;
+    }
+
+    res.json({
+      user: {
+        id: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name,
+        role: dbUser.role,
+        username: dbUser.username || undefined
+      }
+    });
+  } catch (error: any) {
+    console.error('Login database error:', error);
+    res.status(500).json({ error: 'Database authentication error: ' + error.message });
+  }
+});
+
+app.post('/api/auth/register', async (req: express.Request, res: express.Response) => {
+  try {
+    const { email, password, name, role, username } = req.body;
+    if (!email || !password || !name || !role) {
+      res.status(400).json({ error: 'Required signup credentials are missing.' });
+      return;
+    }
+
+    const id = `usr-${Date.now()}`;
+    await pool.query(
+      `INSERT INTO offgrid_users (id, email, password, name, role, username)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [id, email.toLowerCase().trim(), password, name, role, username || null]
+    );
+
+    res.status(201).json({
+      user: {
+        id,
+        email,
+        name,
+        role,
+        username
+      }
+    });
+  } catch (error: any) {
+    console.error('Registration database error:', error);
+    if (error.code === '23505') {
+      res.status(409).json({ error: 'An account with this email already exists in Neon PostgreSQL.' });
+    } else {
+      res.status(500).json({ error: 'Database signup error: ' + error.message });
+    }
+  }
+});
+
+
+// -------------------------------------------------------------
+// SECURE GEMINI AI PROXY
+// -------------------------------------------------------------
+app.post('/api/generate', async (req: express.Request, res: express.Response) => {
+  try {
+    const { model, prompt, systemInstruction, temperature, searchGrounding } = req.body;
+
+    if (!prompt) {
+      res.status(400).json({ error: 'Prompt is required' });
+      return;
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+      res.status(500).json({
+        error: 'GEMINI_API_KEY is not defined in the environment. Please add it in the Secrets panel (Settings > Secrets) in AI Studio.'
+      });
+      return;
+    }
+
+    const ai = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+
+    const config: any = {};
+    if (systemInstruction) config.systemInstruction = systemInstruction;
+    if (typeof temperature === 'number') config.temperature = temperature;
+    if (searchGrounding) config.tools = [{ googleSearch: {} }];
+
+    const response = await ai.models.generateContent({
+      model: model || 'gemini-3.5-flash',
+      contents: prompt,
+      config,
+    });
+
+    res.json({
+      text: response.text || '',
+      groundingChunks: response.candidates?.[0]?.groundingMetadata?.groundingChunks || null,
+      webSearchQueries: response.candidates?.[0]?.groundingMetadata?.webSearchQueries || null,
+    });
+  } catch (error: any) {
+    console.error('Gemini API Error:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
+
+// -------------------------------------------------------------
+// OFFGRID FULL-STACK APIS
+// -------------------------------------------------------------
+
+// Active product list
+app.get('/api/products', (req: express.Request, res: express.Response) => {
+  res.json(products);
+});
+
+// Single product details
+app.get('/api/products/:id', (req: express.Request, res: express.Response) => {
+  const product = products.find(p => p.id === req.params.id);
+  if (!product) {
+    res.status(404).json({ error: 'Product not found' });
+    return;
+  }
+  res.json(product);
+});
+
+// Dynamic design submission
+app.post('/api/designs', (req: express.Request, res: express.Response) => {
+  try {
+    const { designerId, designerName, title, description, fileUrl, fileType, tags } = req.body;
+    if (!title || !fileUrl) {
+      res.status(400).json({ error: 'Title and artwork file are required elements.' });
+      return;
+    }
+    const newDesign = createDesign({
+      designerId: designerId || 'dsg-1',
+      designerName: designerName || 'Karan Singh',
+      title,
+      description,
+      fileUrl,
+      fileType: fileType || 'PNG',
+      tags: tags || []
+    });
+    res.status(201).json(newDesign);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Dynamic listed product launch
+app.post('/api/products', (req: express.Request, res: express.Response) => {
+  try {
+    const { designId, designerId, designerName, title, description, productType, image, baseCostINR, designerPriceINR } = req.body;
+    if (!designId || !title || !productType) {
+      res.status(400).json({ error: 'Required config elements (designId, title, productType) are missing.' });
+      return;
+    }
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newProduct = createProduct({
+      designId,
+      designerId: designerId || 'dsg-1',
+      designerName: designerName || 'Karan Singh',
+      slug,
+      title,
+      description,
+      productType,
+      image: image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop',
+      baseCostINR: baseCostINR || 300,
+      designerPriceINR: designerPriceINR || 400,
+      active: true,
+      featured: false
+    });
+    res.status(201).json(newProduct);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Orders active feed
+app.get('/api/orders', (req: express.Request, res: express.Response) => {
+  res.json(orders);
+});
+
+// Submit a new order
+app.post('/api/orders', (req: express.Request, res: express.Response) => {
+  try {
+    const { consumerId, consumerName, consumerEmail, items, shippingAddress, subtotalINR, shippingINR, totalINR, paymentMethod } = req.body;
+    if (!items || items.length === 0 || !shippingAddress) {
+      res.status(400).json({ error: 'Orders require selected items and shipping coordinates.' });
+      return;
+    }
+    const orderObj = createOrder({
+      consumerId: consumerId || 'usr-6',
+      consumerName: consumerName || 'Mayank Bisht',
+      consumerEmail: consumerEmail || 'mayankbisht1107@gmail.com',
+      status: 'PAYMENT_CONFIRMED',
+      items,
+      shippingAddress,
+      subtotalINR,
+      shippingINR,
+      totalINR,
+      paymentMethod: paymentMethod || 'razorpay'
+    });
+    res.status(201).json(orderObj);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update order status (Fulfillment actions)
+app.patch('/api/orders/:id', (req: express.Request, res: express.Response) => {
+  try {
+    const { status, trackingNumber, courierName } = req.body;
+    const updated = updateOrderStatus(req.params.id, status, trackingNumber, courierName);
+    if (!updated) {
+      res.status(404).json({ error: 'Active Order not spotted.' });
+      return;
+    }
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Capabilities configurations APIs
+app.get('/api/capabilities', (req: express.Request, res: express.Response) => {
+  res.json(capabilities);
+});
+
+app.patch('/api/capabilities/:id', (req: express.Request, res: express.Response) => {
+  try {
+    const { baseCostINR } = req.body;
+    if (typeof baseCostINR !== 'number') {
+      res.status(400).json({ error: 'Base cost must be configured as a valid numeric amount.' });
+      return;
+    }
+    updateCapabilityCost(req.params.id, baseCostINR);
+    res.json({ success: true, capabilities });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// -------------------------------------------------------------
+// CLIENT ASSETS WEB HOSTING
+// -------------------------------------------------------------
+
+async function startServer() {
+  // Initialize Neon PostgreSQL database
+  await initDb();
+
+  if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa'
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req: express.Request, res: express.Response) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Full-Stack server active at http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error('Error starting full-stack server:', err);
+});

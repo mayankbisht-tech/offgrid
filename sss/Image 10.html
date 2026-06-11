@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OFFGRID | Art That Lives Nowhere Else</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#d43f00",
+                        "primary-fixed-dim": "#ffb59e",
+                        "outline": "#916f65",
+                        "surface-container-low": "#fff1e8",
+                        "secondary-container": "#bdf200",
+                        "on-secondary-container": "#526b00",
+                        "on-primary-fixed": "#3a0b00",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary": "#4f6600",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#fae4d5",
+                        "on-primary-fixed-variant": "#852400",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#ae3200",
+                        "tertiary-fixed": "#ede0d9",
+                        "inverse-primary": "#ffb59e",
+                        "secondary-fixed": "#c0f500",
+                        "on-surface-variant": "#5c4037",
+                        "inverse-on-surface": "#ffeee2",
+                        "tertiary-container": "#7d736d",
+                        "tertiary": "#635a55",
+                        "surface-variant": "#f4dfcf",
+                        "on-surface": "#241910",
+                        "surface-container": "#ffeadb",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#a8d700",
+                        "background": "#fff8f5",
+                        "surface-bright": "#fff8f5",
+                        "on-background": "#241910",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "primary": "#aa3000",
+                        "on-secondary-fixed-variant": "#3b4d00",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#3a2e24",
+                        "primary-fixed": "#ffdbd0",
+                        "on-tertiary-fixed-variant": "#4d4540",
+                        "surface-dim": "#ebd6c7",
+                        "outline-variant": "#e6beb2",
+                        "on-secondary-fixed": "#161f00",
+                        "on-tertiary-fixed": "#211a16",
+                        "surface": "#fff8f5",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#f4dfcf",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#d1c4bd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "xxl": "64px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "xl": "40px",
+                        "gutter": "20px",
+                        "lg": "24px",
+                        "margin-desktop": "48px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-lg": ["Syne"],
+                        "headline-md": ["Syne"],
+                        "headline-lg-mobile": ["Syne"],
+                        "label-sm": ["Inter"],
+                        "display-md": ["Syne"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Syne"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["10px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "display-md": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "1", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .sunset-gradient {
+            background: linear-gradient(180deg, #aa3000 0%, #fff8f5 100%);
+        }
+        .custom-shadow-primary {
+            box-shadow: 4px 4px 0px 0px #aa3000;
+        }
+        .custom-shadow-primary:active {
+            box-shadow: 0px 0px 0px 0px #aa3000;
+            transform: translate(4px, 4px);
+        }
+        .ghost-border {
+            border: 1px solid #EDE4D8;
+        }
+        .editorial-accent {
+            border-left: 4px solid #bdf200;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fff8f5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aa3000;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="w-full sticky top-0 z-50 bg-background border-b border-outline-variant flex items-center justify-between px-margin-desktop h-20 max-w-[1200px] mx-auto">
+<div class="flex items-center gap-xl">
+<h1 class="font-headline-lg text-headline-lg font-bold tracking-tighter text-primary">OFFGRID</h1>
+<div class="hidden md:flex gap-lg items-center">
+<a class="font-body-lg text-body-lg text-primary border-b-2 border-primary pb-1" href="#">Shop</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Creators</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Drops</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">About</a>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity">search</button>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity">shopping_cart</button>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity">person</button>
+</div>
+</nav>
+<main>
+<!-- Editorial Hero Section -->
+<section class="relative min-h-[870px] flex items-center sunset-gradient px-margin-desktop overflow-hidden">
+<div class="max-w-[1200px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-xl items-center z-10">
+<div class="flex flex-col gap-lg">
+<span class="font-label-sm uppercase tracking-[0.2em] text-on-primary-fixed-variant">New Season / 2024</span>
+<h2 class="font-display-lg text-display-lg text-white drop-shadow-sm leading-none">Art That Lives Nowhere Else</h2>
+<p class="font-body-lg text-body-lg text-white/90 max-w-md">Discover the vanguard of streetwear and digital collectibles. Exclusive drops from the world's most reclusive creators, curated for the bold.</p>
+<div class="flex gap-md mt-md">
+<button class="bg-primary text-white font-label-lg px-xl py-lg rounded shadow-none hover:bg-primary-container transition-all custom-shadow-primary active:translate-y-1">
+                            EXPLORE SHOP
+                        </button>
+<button class="border-2 border-white text-white font-label-lg px-xl py-lg rounded hover:bg-white/10 transition-all">
+                            VIEW CREATORS
+                        </button>
+</div>
+</div>
+<div class="relative group hidden lg:block">
+<div class="absolute inset-0 bg-secondary-container/20 -rotate-3 scale-105 rounded-xl z-0"></div>
+<img class="relative z-10 w-full h-[600px] object-cover rounded shadow-2xl border-4 border-white" data-alt="A high-fashion avant-garde photograph featuring a model in architectural streetwear, standing against a stark sunset horizon. The lighting is dramatic and warm, with long shadows stretching across a minimalist desert landscape. The color palette is dominated by burnt oranges, deep blacks, and a pop of lime green. The aesthetic is editorial, high-contrast, and modern, mimicking a luxury fashion magazine cover." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTrvM5OFAOO3S83rrSGrHFZe3EsVWgZe-F2R8-cMclvtpnTbk5n2tdAAVOUSD-Xd8O8_g1HhUB44Ytub3Ia5ZMq5wFyLmTOnQyjWC5mpbX5kR6MJpM2AQ6j44-CuO62GNvSOGz6E9y6ly7lXIfQtKLizi31onv_2NR-mo515BOFy-LdiDhhSSyWcIIaD695Vy6RNLBkMNAYrR_GRziFZa2pKTM3BNGPBcZ9a3ktRRbszp2pAnpydbVOqGt2nTJv96GDfqSlmhFHom"/>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute -bottom-20 -right-20 w-96 h-96 bg-secondary-container rounded-full blur-[120px] opacity-30"></div>
+</section>
+<!-- Category Strip -->
+<div class="w-full bg-on-surface text-surface py-md overflow-hidden whitespace-nowrap">
+<div class="inline-block animate-[scroll_30s_linear_infinite] flex items-center gap-xxl">
+<span class="font-label-lg uppercase italic">GEN-Z FUTURISM</span>
+<span class="material-symbols-outlined">star</span>
+<span class="font-label-lg uppercase italic">BRUTALIST WEAR</span>
+<span class="material-symbols-outlined">star</span>
+<span class="font-label-lg uppercase italic">DIGITAL NOMAD GEAR</span>
+<span class="material-symbols-outlined">star</span>
+<span class="font-label-lg uppercase italic">AVANT-GARDE ARCHIVE</span>
+<span class="material-symbols-outlined">star</span>
+<span class="font-label-lg uppercase italic">NEO-STREETWEAR</span>
+<span class="material-symbols-outlined">star</span>
+</div>
+</div>
+<style>
+            @keyframes scroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+        </style>
+<!-- Trending Products Bento -->
+<section class="max-w-[1200px] mx-auto px-margin-desktop py-xxl">
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h3 class="font-headline-lg text-headline-lg">Trending Products</h3>
+<div class="w-20 h-1 bg-primary mt-sm"></div>
+</div>
+<a class="font-label-lg text-primary underline underline-offset-4 uppercase" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<!-- Main Product -->
+<div class="md:col-span-2 md:row-span-2 relative group bg-surface-container-low ghost-border overflow-hidden rounded-lg">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A large-scale detailed product shot of a futuristic puffer jacket with high-contrast burnt orange and matte black panels. The lighting is sharp, creating deep shadows that emphasize the unique texture of the fabric. The jacket is presented in a minimalist, high-key studio environment that reflects a modern streetwear brand aesthetic. The composition is dynamic and angled." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADgxvzHd61N6RIh2ttE_bLgsGavcHwil-TDyk5aHJBVWroPMN8K_LE4zYBZPeh3ueeNPUppFfNVQK0uia5DZjNhGmYmCfL_qmcPUzYcuFmqKEluw2aqcxP1ROIYkUPhjHIUziNSni_p0ZclOM98eo5yTmRJQeyVpIkZJbSIq1MlK37k-VrX1opY0oxM5GPt_6_LVJN9UnYETuoZhmZ9-jl8SG9PA1k1ytAB39LPpo7C47jVJLcoEIsQDFQiWBJeYIB86-OQRoRlWaH"/>
+<div class="absolute bottom-0 left-0 w-full p-lg bg-gradient-to-t from-black/80 to-transparent">
+<span class="bg-secondary-container text-on-secondary-container px-sm py-xs font-label-sm uppercase rounded mb-sm inline-block">Best Seller</span>
+<h4 class="font-headline-md text-white">Void-Walker Parka</h4>
+<p class="text-white/80 font-body-sm mb-md">$450.00</p>
+<button class="bg-white text-on-surface font-label-lg px-lg py-sm rounded-sm hover:bg-primary hover:text-white transition-colors">QUICK ADD</button>
+</div>
+</div>
+<!-- Small Products -->
+<div class="bg-white ghost-border p-md group">
+<div class="overflow-hidden rounded h-64 mb-md">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Minimalist black ceramic designer glasses resting on a cream-colored surface. The lighting is soft but high-contrast, highlighting the sharp geometric edges of the eyewear. The style is sophisticated and futuristic, consistent with a luxury streetwear accessory line. The background is clean and slightly warm to match the OFFGRID brand colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWMXOEAzkd2nYMIo-s-CDXx56op7e5tDqvRPKCQo7zBD-XpnfaG4hI9hqIioCSgiAUw1cdZbpQ_lTtHPM46tZkdYF9OUmlwLc3B_Fi79l_Hb0oQn4jcYY-a6ywKJU45sfnwyQDnlT_-SqkjIkegDmjEziSD-VHkP4tD-hdVGEBpcIsXmttR-zPeOUPTkKvbU4IHgPxb3GqCWuiRURYUDJhm35xCHJE7l26ziLzqtuiRs0n9c9vge3sUX-VQiiN5a0rwYmp5eF-uuJb"/>
+</div>
+<h5 class="font-label-lg text-on-surface">Neural Frames 01</h5>
+<p class="text-on-surface-variant font-body-sm">$120.00</p>
+</div>
+<div class="bg-white ghost-border p-md group">
+<div class="overflow-hidden rounded h-64 mb-md">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A pair of vibrant orange high-top sneakers with complex, multi-layered sole designs. The sneakers are shot in an editorial style, with dramatic top lighting creating strong highlights on the primary orange color. The background is a clean, neutral gray that makes the orange pop. The aesthetic is high-energy, athletic, and contemporary." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdB2cCYz60pAQNh_Z8fUSr63kA_Q6GE8qogXxUuyeqgwpyiEnSWcc7-TbY1qwWx87DLcUGEH0fZKK-CUSLlVQAJSbaMFJDr_NKn274yvEynids_JVrNrOxacLsQZc9gEXnRbTjdJ6HDcr9uO7zjz-1H7X8ZqSgt5NVAnLyATIg3DqLZ67mv4vPTNHX-tdRq2nu7719Y-IasXtaVbfHgUK0umZr3gTzr1iKv_ZRoVRruy-CpJ6M_nnoSk6QZQRlEh70Onv0Bmsjacc4"/>
+</div>
+<h5 class="font-label-lg text-on-surface">Kinetic Soles L2</h5>
+<p class="text-on-surface-variant font-body-sm">$280.00</p>
+</div>
+<div class="md:col-span-2 bg-secondary-container/10 border-2 border-secondary-container p-xl flex flex-col justify-center items-center text-center">
+<h5 class="font-headline-md text-on-background mb-sm">Exclusive Creator Drop</h5>
+<p class="font-body-md text-on-surface-variant mb-lg">Limited to 50 pieces worldwide. Each item comes with a verified digital twin.</p>
+<button class="bg-on-surface text-surface font-label-lg px-xl py-lg rounded hover:bg-primary transition-all">SIGN UP FOR ALERTS</button>
+</div>
+</div>
+</section>
+<!-- Creator Spotlight -->
+<section class="bg-surface-container-high py-xxl overflow-hidden">
+<div class="max-w-[1200px] mx-auto px-margin-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xxl items-center">
+<div class="relative">
+<div class="editorial-accent pl-lg">
+<span class="font-label-lg text-primary uppercase mb-xs inline-block">Creator Spotlight</span>
+<h3 class="font-display-md text-display-md mb-md">Elara Void</h3>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xl leading-relaxed">
+                            "Architecture is just clothing for space. My designs aim to be space for the human body to redefine itself." <br/><br/>
+                            Void's collection, <strong class="text-on-surface">Subterranean Echoes</strong>, explores the intersection of brutalist shapes and soft textiles.
+                        </p>
+<div class="flex gap-lg">
+<div class="text-center">
+<span class="block font-headline-md text-primary">12</span>
+<span class="font-label-sm uppercase text-on-surface-variant">Drops</span>
+</div>
+<div class="text-center">
+<span class="block font-headline-md text-primary">4.8k</span>
+<span class="font-label-sm uppercase text-on-surface-variant">Holders</span>
+</div>
+<div class="text-center">
+<span class="block font-headline-md text-primary">Top 1%</span>
+<span class="font-label-sm uppercase text-on-surface-variant">Rank</span>
+</div>
+</div>
+</div>
+<div class="relative">
+<img class="w-full h-[500px] object-cover rounded-sm grayscale hover:grayscale-0 transition-all duration-1000 shadow-xl border border-outline" data-alt="A portrait of a minimalist creator with striking lighting, dressed in experimental fabric textures. The lighting is high-contrast, casting deep shadows while illuminating the sharp features of the subject. The style is inspired by modern luxury editorial photography, using a warm neutral palette with a sharp lime green accent in the background. The mood is creative, focused, and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHJaZCh4KbmnEcG56xeB95hHYTN-eYBoM2PZC1rBrP3fzB7I9zAEEvUfAI0ogrz-NAw1a46gstVSJeBeXYd0Ebpzzsa6nF97kt_Qx20KlHsI_tLEmMe0O7liI2ZefU8dHOTuwxaFwxALjQxNV56PAraAgMwuJYUcFUL1B481MBYFHfxC1RuXY_8j39c2b7Eb2krsoJNniKhkE4_5lDUVM25zr_NrY9kVdR2v_MV7b5MaDYKVDt2mjHauWXOHrpIygjcm4RdhdxgNY0"/>
+<div class="absolute -top-10 -right-10 bg-secondary-container w-32 h-32 flex items-center justify-center rounded-full rotate-12 p-md shadow-lg">
+<span class="text-on-secondary-container font-label-sm text-center leading-tight">OFFGRID EXCLUSIVE ARTIST</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- "This Week in OffGrid" Collection -->
+<section class="max-w-[1200px] mx-auto px-margin-desktop py-xxl">
+<h3 class="font-headline-lg text-headline-lg text-center mb-xl italic tracking-tight">"This Week in OffGrid"</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-xl">
+<div class="flex flex-col gap-md p-lg bg-white ghost-border hover:shadow-lg transition-shadow">
+<img class="aspect-square object-cover rounded grayscale hover:grayscale-0 transition-all" data-alt="A flat lay photograph of luxury fashion accessories, including a high-end watch, minimalist wallet, and a single bold ring. The lighting is bright and clean, emphasizing the metallic textures and premium materials. The background is a soft beige color, creating a warm, modern light-mode look. The arrangement is carefully composed for a magazine-style editorial layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCAXtdikV2ymX0wXwDjiSBy19LD8HKxIgk6nA8ihymYHM9LPI71kSQ52OKxVTqsiiIUAnb8Bt6mYBoaGxpeOGR8A7IwOB1qJ-tR3MiYRyquT_VuAuJmS0aGMUk3xEfKLF-xYVYSz1K6qZDbrN90jLx6o4XP6tCo7YwzVuuQjp4oMeiprkwu_dCrpOCZfPx1W1WarZjzAabl9zl8WdzF2B-X442zQPUjwifdC4fvMqbkbEqze5FaEWnBxERHiypmvr_PJUS9X8bZJV8"/>
+<span class="font-label-sm uppercase text-primary">Curation 01</span>
+<h4 class="font-headline-md">Minimalist Rigor</h4>
+<p class="font-body-sm text-on-surface-variant">A collection focused on the removal of the unnecessary. Pure form, pure function.</p>
+</div>
+<div class="flex flex-col gap-md p-lg bg-white ghost-border hover:shadow-lg transition-shadow scale-105 z-10 border-primary">
+<img class="aspect-square object-cover rounded" data-alt="A vibrant full-body fashion shot of a person wearing an oversized neon-yellow streetwear outfit. The background is a stark white studio environment, creating extreme contrast. The lighting is diffused but strong, capturing the movement of the fabric. This image represents the 'Electric Pulse' editorial theme of high-energy, modern street style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSLtgCzM38VU14xR9xiB1cEkgvGk9TFkO1IJdptbJ0VUXGBWSlv7Jnv6czPc7U8cqaa1DONuCjkpB5D15qRWVxkVVsiKGN7BVYafPtsa93OR17l9Z77gsDOSoi6PBSnfYMpJYRT4UWW01VBPHkonydCVg4ORsd3KH5O67edvoAq1dP5IRAkxJrdaOO_NihUC_fySuXqaEsYAEVIrQU5LkUUhvXP0u1A5NAsnzLUMwfE93WLCPubYO8cSPh7_E51H9OSCRjoFOdCKnC"/>
+<span class="font-label-sm uppercase text-primary">Curation 02</span>
+<h4 class="font-headline-md">Electric Pulse</h4>
+<p class="font-body-sm text-on-surface-variant">The boldest colors in our inventory, curated for those who refuse to blend in.</p>
+</div>
+<div class="flex flex-col gap-md p-lg bg-white ghost-border hover:shadow-lg transition-shadow">
+<img class="aspect-square object-cover rounded grayscale hover:grayscale-0 transition-all" data-alt="An editorial shot of high-end fashion layered textures, featuring knits, leather, and technical fabrics in shades of charcoal and deep orange. The composition is a tight detail shot, emphasizing the craftsmanship and materiality of the clothing. The lighting is soft and moody, reflecting a high-contrast luxury aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpX9Hnjs8jyeruj7z4b4t2Epe63UA-QOezX83gp-4UpfeMdhmvoa6cMEKjphWA6osGsSuqDWfUevF9FXYZBhK2gVDTP3-UHEBA9bhcRYckLCqExnwkMB5GK_ZWCyqh-Y9DITQKQ35QWAauRa2P-1oW0Pmi1FrRFL4tLLXkydVOJUY2cVdIKo3blAGz2X7zQL-0UYuLcFkY6Rzo2xlqmwMQic4XmdaM59v-cf1_ZiZyzz0LmdrIKnHEwEm6ihYvv5_SqQdApke965D8"/>
+<span class="font-label-sm uppercase text-primary">Curation 03</span>
+<h4 class="font-headline-md">The Over-Layer</h4>
+<p class="font-body-sm text-on-surface-variant">Mastering the art of technical layering for the urban nomad.</p>
+</div>
+</div>
+</section>
+<!-- Social Proof -->
+<section class="bg-on-surface text-surface py-xxl">
+<div class="max-w-[1200px] mx-auto px-margin-desktop grid grid-cols-1 md:grid-cols-3 gap-xl">
+<div class="border-l border-white/20 pl-lg">
+<div class="flex text-secondary-container mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-lg italic mb-lg">"OFFGRID isn't just a store; it's a statement. The quality of the limited parka I received is unparalleled."</p>
+<span class="font-label-lg uppercase">— Julian R., Tokyo</span>
+</div>
+<div class="border-l border-white/20 pl-lg">
+<div class="flex text-secondary-container mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-lg italic mb-lg">"The creator transparency here is something else. Knowing the story behind the piece makes it worth so much more."</p>
+<span class="font-label-lg uppercase">— Sarah M., Berlin</span>
+</div>
+<div class="border-l border-white/20 pl-lg">
+<div class="flex text-secondary-container mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-lg italic mb-lg">"The digital twin verification is genius. I can prove my gear is authentic in both the physical and digital worlds."</p>
+<span class="font-label-lg uppercase">— Leo K., New York</span>
+</div>
+</div>
+</section>
+<!-- Newsletter -->
+<section class="max-w-[1200px] mx-auto px-margin-desktop py-xxl">
+<div class="bg-primary p-xxl rounded-xl flex flex-col md:flex-row items-center gap-xl text-white">
+<div class="flex-1">
+<h3 class="font-headline-lg text-headline-lg mb-md">Join the Inner Circle</h3>
+<p class="font-body-lg">Get early access to drops, creator interviews, and secret showroom events.</p>
+</div>
+<div class="flex-1 w-full max-w-md">
+<form class="flex flex-col sm:flex-row gap-md">
+<input class="flex-1 bg-white/10 border border-white/30 text-white placeholder-white/60 p-lg rounded focus:outline-none focus:ring-2 focus:ring-secondary-container" placeholder="YOUR EMAIL ADDRESS" type="email"/>
+<button class="bg-secondary-container text-on-secondary-container font-label-lg px-xl py-lg rounded hover:opacity-90 transition-opacity" type="submit">SUBSCRIBE</button>
+</form>
+<p class="font-label-sm mt-md text-white/60">Respecting your inbox since 2024.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-xxl bg-surface-container-low border-t border-outline-variant">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop py-xl max-w-[1200px] mx-auto">
+<div class="flex flex-col gap-md">
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">OFFGRID</h2>
+<p class="font-body-sm text-on-surface-variant">Defining the visual language of the digital underground. Independent, community-driven, and forward-focused.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-lg text-on-surface mb-sm">Shop</h4>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">New Arrivals</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">All Products</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Collaborations</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Digital Wearables</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-lg text-on-surface mb-sm">Company</h4>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">About Us</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Creators Program</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Sitemap</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Newsletter</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-lg text-on-surface mb-sm">Connect</h4>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Instagram</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">TikTok</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Twitter</a>
+<a class="font-body-sm text-on-surface-variant hover:text-primary underline underline-offset-4 transition-all" href="#">Discord</a>
+</div>
+</div>
+<div class="max-w-[1200px] mx-auto px-margin-desktop py-lg border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
+<p class="font-body-sm text-on-surface-variant">© 2024 OFFGRID Marketplace. All rights reserved.</p>
+<div class="flex gap-lg">
+<a class="font-label-sm text-on-surface-variant hover:text-primary transition-all" href="#">Privacy Policy</a>
+<a class="font-label-sm text-on-surface-variant hover:text-primary transition-all" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple parallax effect for the hero image
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const heroImage = document.querySelector('section img');
+            if (heroImage && window.innerWidth > 1024) {
+                heroImage.style.transform = `translateY(${scrolled * 0.1}px)`;
+            }
+        });
+
+        // Intersection observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section > div').forEach(section => {
+            section.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(section);
+        });
+    </script>
+</body></html>

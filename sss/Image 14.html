@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OFFGRID | Browse All Art</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#d43f00",
+                    "primary-fixed-dim": "#ffb59e",
+                    "outline": "#916f65",
+                    "surface-container-low": "#fff1e8",
+                    "secondary-container": "#bdf200",
+                    "on-secondary-container": "#526b00",
+                    "on-primary-fixed": "#3a0b00",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary": "#4f6600",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#fae4d5",
+                    "on-primary-fixed-variant": "#852400",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#ae3200",
+                    "tertiary-fixed": "#ede0d9",
+                    "inverse-primary": "#ffb59e",
+                    "secondary-fixed": "#c0f500",
+                    "on-surface-variant": "#5c4037",
+                    "inverse-on-surface": "#ffeee2",
+                    "tertiary-container": "#7d736d",
+                    "tertiary": "#635a55",
+                    "surface-variant": "#f4dfcf",
+                    "on-surface": "#241910",
+                    "surface-container": "#ffeadb",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#a8d700",
+                    "background": "#fff8f5",
+                    "surface-bright": "#fff8f5",
+                    "on-background": "#241910",
+                    "on-error": "#ffffff",
+                    "on-primary-container": "#fffbff",
+                    "on-error-container": "#93000a",
+                    "primary": "#aa3000",
+                    "on-secondary-fixed-variant": "#3b4d00",
+                    "error-container": "#ffdad6",
+                    "inverse-surface": "#3a2e24",
+                    "primary-fixed": "#ffdbd0",
+                    "on-tertiary-fixed-variant": "#4d4540",
+                    "surface-dim": "#ebd6c7",
+                    "outline-variant": "#e6beb2",
+                    "on-secondary-fixed": "#161f00",
+                    "on-tertiary-fixed": "#211a16",
+                    "surface": "#fff8f5",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#f4dfcf",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#d1c4bd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "xxl": "64px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "xl": "40px",
+                    "gutter": "20px",
+                    "lg": "24px",
+                    "margin-desktop": "48px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "headline-lg": ["Syne"],
+                    "headline-md": ["Syne"],
+                    "headline-lg-mobile": ["Syne"],
+                    "label-sm": ["Inter"],
+                    "display-md": ["Syne"],
+                    "body-sm": ["Inter"],
+                    "display-lg": ["Syne"],
+                    "body-md": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "fontWeight": "700"}],
+                    "display-md": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "1", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sunset-gradient {
+            background: linear-gradient(135deg, #FFF8F5 0%, #FFD0B0 50%, #FFB59E 100%);
+        }
+        .editorial-shadow {
+            box-shadow: 4px 4px 0px 0px #aa3000;
+        }
+        .card-hover:hover {
+            box-shadow: 4px 4px 0px 0px #aa3000;
+            transform: translate(-2px, -2px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md transition-colors duration-500 sunset-gradient min-h-screen">
+<!-- TopNavBar -->
+<header class="w-full sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant">
+<div class="flex items-center justify-between px-margin-desktop h-20 max-w-[1200px] mx-auto">
+<div class="font-headline-lg text-headline-lg font-bold tracking-tighter text-primary">OFFGRID</div>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="font-body-lg text-body-lg text-primary border-b-2 border-primary pb-1" href="#">Shop</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Creators</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Drops</a>
+<a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors" href="#">About</a>
+</nav>
+<div class="flex items-center gap-lg">
+<button class="material-symbols-outlined text-on-surface hover:opacity-80 transition-opacity">search</button>
+<button class="material-symbols-outlined text-on-surface hover:opacity-80 transition-opacity">shopping_cart</button>
+<button class="material-symbols-outlined text-on-surface hover:opacity-80 transition-opacity">account_circle</button>
+</div>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto px-margin-desktop py-xl">
+<div class="flex flex-col md:flex-row gap-gutter">
+<!-- Side Navigation / Filters -->
+<aside class="w-full md:w-64 space-y-xl">
+<div>
+<h3 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-lg">Categories</h3>
+<ul class="space-y-sm">
+<li><a class="flex items-center justify-between font-label-lg text-label-lg py-sm px-md bg-primary-container text-white rounded" href="#">T-Shirts <span class="material-symbols-outlined text-[16px]">chevron_right</span></a></li>
+<li><a class="flex items-center justify-between font-label-lg text-label-lg py-sm px-md hover:bg-surface-container-high transition-all rounded" href="#">Hoodies <span class="material-symbols-outlined text-[16px]">chevron_right</span></a></li>
+<li><a class="flex items-center justify-between font-label-lg text-label-lg py-sm px-md hover:bg-surface-container-high transition-all rounded" href="#">Accessories <span class="material-symbols-outlined text-[16px]">chevron_right</span></a></li>
+<li><a class="flex items-center justify-between font-label-lg text-label-lg py-sm px-md hover:bg-surface-container-high transition-all rounded" href="#">Art Prints <span class="material-symbols-outlined text-[16px]">chevron_right</span></a></li>
+<li><a class="flex items-center justify-between font-label-lg text-label-lg py-sm px-md hover:bg-surface-container-high transition-all rounded" href="#">Collectibles <span class="material-symbols-outlined text-[16px]">chevron_right</span></a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-lg">Filter by Price</h3>
+<div class="space-y-sm">
+<label class="flex items-center gap-md group cursor-pointer">
+<input class="w-4 h-4 rounded-sm border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="font-body-sm text-body-sm group-hover:text-primary transition-colors">$0 - $50</span>
+</label>
+<label class="flex items-center gap-md group cursor-pointer">
+<input checked="" class="w-4 h-4 rounded-sm border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-primary font-bold">$50 - $150</span>
+</label>
+<label class="flex items-center gap-md group cursor-pointer">
+<input class="w-4 h-4 rounded-sm border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="font-body-sm text-body-sm group-hover:text-primary transition-colors">$150+</span>
+</label>
+</div>
+</div>
+<div>
+<h3 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-lg">Filter by Style</h3>
+<div class="flex flex-wrap gap-sm">
+<button class="bg-secondary-container text-on-secondary-container font-label-md text-label-md px-md py-xs rounded-full border border-secondary transition-all hover:bg-secondary hover:text-white">Minimalist</button>
+<button class="bg-surface-container-lowest text-on-surface font-label-md text-label-md px-md py-xs rounded-full border border-outline-variant transition-all hover:bg-primary hover:text-white">Cyberpunk</button>
+<button class="bg-surface-container-lowest text-on-surface font-label-md text-label-md px-md py-xs rounded-full border border-outline-variant transition-all hover:bg-primary hover:text-white">Retro</button>
+<button class="bg-primary-container text-white font-label-md text-label-md px-md py-xs rounded-full border border-primary transition-all">Abstract</button>
+<button class="bg-surface-container-lowest text-on-surface font-label-md text-label-md px-md py-xs rounded-full border border-outline-variant transition-all hover:bg-primary hover:text-white">Brutalist</button>
+</div>
+</div>
+</aside>
+<!-- Product Grid -->
+<div class="flex-1">
+<div class="flex items-baseline justify-between mb-xl border-l-4 border-secondary-container pl-lg">
+<h1 class="font-display-md text-display-md text-on-surface">Browse All Art</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Showing 24 of 142 results</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Product Card 1 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A high-end editorial fashion photo of a person wearing a luxury oversized white t-shirt with a bold burnt orange abstract graphic print. The setting is a minimalist architectural space with soft sunset lighting casting long shadows across the scene. The aesthetic is contemporary streetwear with a sophisticated, avant-garde edge and a warm, high-contrast color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEOHEEUuGH2qRlpG5NEokTi5MQkg3eswmiQQWwgtskqNnMwk6ecVv0ensn2u2b60vS8rbOJVFZTSoTRF6g8pjGZ2f9JJQuLT9nRXE-oA5QE1FuPlkBhQ6vuYFiQ9L6MAbbKdu40ujQ6VRB5bbpIHJHevd5EcOaxb6f9M38-dK_kx90qQEuU1eC1PjPCmY0Kj-v_0hdAwqBSk8S5JW7U5HHGNHdCo3PpndDbbu7NS3uMdCJ-xEMuzK7ONYT7R6YztjvBl3kTa3ApdSa"/>
+<span class="absolute top-sm right-sm bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-sm py-[2px] rounded uppercase">New Drop</span>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Neural Mesh Tee</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$75.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Close up of a premium heavy cotton hoodie in a deep charcoal grey with a vibrant lime green embroidered logo on the chest. The fabric texture is rich and detailed. Background is a warm sunset gradient with sharp geometric shadows. The lighting is dramatic, accentuating the high-contrast editorial style of the brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4pS-wAj4gmo3LB_8g6fdwlUvyuHlVo31qjrMmVflcOHS-A3fO44jhNxuGTTEGKRH5UpGt75lvSvy1O-odKE92ZS_n2u7p8dJPLW37HqjUfGmu0IG87TpAR-FGIUuWA20sO3GgMecf_IqQW9JP6kqafKZ8OOnJJ4JQwpXpcwIY3QYVLRhdjy2dWAb5GCPmG0eLuQxQxtTSNX3xhrXxkBEVNpFc3KM5TkM5x5JG-cOj8HwTjSE6q3WCp8rHUUFw8cX5GMUG6Qm1WZdN"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Kinetica Hoodie</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$120.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Modern digital art print showing a complex generative pattern in shades of orange and lime green against a pitch black background. The print is displayed in a minimalist black frame hanging on a creamy white gallery wall. The warm sunset lighting creates a high-energy yet sophisticated ambiance, reflecting the avant-garde personality of the brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd0kUjsr3Siow4zVo7mnPLODpTMbifM33Mf3lT1On0X5B4c-58xZ1VE5nt6o3aQxyYeuJwTerEs9teT2_RaUobaQXzkYuPSOe35khhm96cvXD5Is5Wc7YsBOjO6kz0zYjHT2GOTfjxMfKkkcEjmVyisipwzk6ImnrT7TTNH-6xvZtFZqnXfaU5q6mk8oeih2V9fYYKOcvg359cT7aRIn7RTCP-nx9TJ8bth7oJ6xrbeiUZqYsrWy6qWmXAHjWHWfnZnzEs7QlOilji"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Onyx Pulse Print</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$55.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Lifestyle shot of a minimalist black ceramic vase with a jagged brutalist design, sitting on a designer table in a luxury loft apartment. The background features floor-to-ceiling windows showing a hazy sunset. The overall mood is high-contrast and intellectual, using a palette of deep blacks and warm oranges to create a sense of modern luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyoGqRWWPLVikT1VolywJrAIaOxUMi7BDgkv6pJ54bQe5_vlIaTSr4G5IGoUGNj_9nRyYirPpPEPzyE5sKDVUAyemQXgEAliiV8i2C0HOHwvDuWDGz5IkBsy2ZkrxdrWODo30IkxGIHvVKSvNaIZnXsSj1U1RU9nbi0viFX8iMR_ELdf1LRon8sj3EgR3EuDCaJr4dWEJb5WWKwdop5xBeCAuzHc-bvsoqk2NfmcEq3YutMsS4KORVpEfNbYimj1j-A0HDfwWzKX0Y"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Brutalist Vessel 01</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$180.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A detailed shot of an abstract graphic t-shirt featuring a high-contrast black and white distorted typography design. The shirt is draped elegantly over a mid-century modern chair in a room flooded with warm orange sunset light. The composition is artistic and editorial, emphasizing the bold, unapologetic brand identity and high-end creative audience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMTSoVRKi5Os7IJ9le6x-Wq7TPoUZ0WuFxR3kebhenFMCFe7180POKUNb-pI38ADxIo5bvNsPes4OktfhuMUb4EXaO2t-c8r5xnYLqnHqJQSg8vOSrGxJYJqYSaHDUssGQDENawwljXWdXGiMC6rORIu4H8pIvY6XvfugMf4KXoiMTZewiIj4MINjGsCFtW3tXEUTr5Xk0ccV9e1YDCjp4x3718WfXlLqO2cG0SLIrJh-bgdEkV9TrpA4_j9saFe-ubmg2-rA8Cn1e"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Syntax Error Tee</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$68.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Creative product photography of a premium designer cap with a minimalist embroidered sun icon. The cap is suspended in mid-air against a vibrant sunset sky. The lighting is high-key and golden, highlighting the fine stitching and material quality. The scene captures an avant-garde, youthful energy synonymous with modern luxury streetwear." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDer3_dV9kzLinELsKYT2rIiwfOmLEGEJT0ryqTPFe4VXcIMe2Swp6BE9ORPKTPXRauT8XR4MJ4GyOVmvXUheKIRelkMy42_S5iyk0MQPc4Zz-Cjl-RLS1jXYsPozx7LxF3Sc2yY7q0Z1zJm7p3ottCaWmwx9fud1CLn7zU0J7xBnV0QQ2MkfE2SCKxgAclXnVG8FJAv0mTZXVu45OoXMoeqgKl20oVDO7g1rsK_9bjdCztX1SfSrz7v5b7tjjq3QS_DKaufxugDBnQ"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Horizon Cap</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$45.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 7 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A full-length editorial shot of a model wearing tech-wear inspired joggers and a high-contrast lime green t-shirt. The model is standing in a concrete industrial environment during the golden hour. The lighting creates sharp highlights and deep, warm shadows. The look is unapologetically bold and targets a creative audience that values high-energy visual impact." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLSG1xXRTmGwDv87AOwu5fjGK02y06FWsqwlcXIvJGVuHFSJT8RbltItpWTmlnFykwd-kccKvkoTMX5YGGcJpNYo9dWunqL9OuZvwr-68x4vPLmFF8zqFcm7FZYr91lLQMZihAksRJgwuHIHb3_o9xgqrMbadlUweiyrl4rZE5rBWHug_c9dST0nKNJhv4MgIAkC_RN6JOPFFMFglM89ZfuUpm07s3g7gYrOZfnXcl55-XbdFYt45IoVW4ir4sdQj-iw7beABTcqKG"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Neo-Utility Pants</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$145.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+<!-- Product Card 8 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded p-md transition-all duration-300 card-hover">
+<div class="relative overflow-hidden aspect-[3/4] mb-md bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A collection of premium lifestyle accessories, including a designer leather wallet and a minimalist silver keychain, arranged on a piece of raw volcanic rock. The background is a soft, out-of-focus sunset gradient in shades of orange and cream. The scene embodies the brand's 'High-Contrast Editorial' aesthetic, blending luxury textures with raw, edgy elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-8QxvMHlkkzyO3fARMpuxdiuZIuIdhLfid1j9Wbr1WU1GmPYlvLnWvD4NZ_iemPNAUOx6hcGr2VKnoeLB6gt_sDOgIX-4NNE0dgdcASxBmCCmvt6KuWoME0pLB194xy6GwZVLfkvoDgOMkm1hapzyQ876lK5eyckXO79VCOSy4tfBsjo8uhn2NH7a7xlOOHVpcTDIrH4ns4uPTZYSLXxXMeDcA3BpUT7BX1e1dD4ppNsx3RDKHB3VHrwkWqG-9Wwq7rUSnY0_yxJ9"/>
+</div>
+<h4 class="font-headline-md text-[18px] text-on-surface mb-xs">Static Wallet</h4>
+<div class="flex items-center justify-between">
+<span class="font-body-lg text-body-lg text-primary font-bold">$90.00</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">favorite</button>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-xxl flex justify-center gap-md">
+<button class="w-12 h-12 flex items-center justify-center border border-outline-variant rounded hover:bg-primary hover:text-white transition-all">1</button>
+<button class="w-12 h-12 flex items-center justify-center border border-primary bg-primary text-white rounded editorial-shadow font-bold">2</button>
+<button class="w-12 h-12 flex items-center justify-center border border-outline-variant rounded hover:bg-primary hover:text-white transition-all">3</button>
+<button class="w-12 h-12 flex items-center justify-center border border-outline-variant rounded hover:bg-primary hover:text-white transition-all"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-xxl bg-surface-container-low border-t border-outline-variant transition-all duration-300">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop py-xl max-w-[1200px] mx-auto">
+<div class="col-span-1 md:col-span-1">
+<div class="font-headline-md text-headline-md font-bold text-on-surface mb-lg">OFFGRID</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The intersection of luxury publishing and contemporary streetwear. Unapologetically bold.</p>
+</div>
+<div>
+<h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-lg">Marketplace</h4>
+<ul class="space-y-sm">
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">Shop All</a></li>
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">Creators</a></li>
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">New Drops</a></li>
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">Sitemap</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-lg">Social</h4>
+<ul class="space-y-sm">
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">Instagram</a></li>
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">TikTok</a></li>
+<li><a class="font-body-sm text-body-sm text-on-tertiary-fixed-variant hover:text-primary underline underline-offset-4" href="#">Discord</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-lg">Newsletter</h4>
+<div class="flex flex-col gap-sm">
+<input class="bg-surface-variant border-outline-variant font-label-md text-label-md p-md focus:ring-primary focus:border-primary" placeholder="JOIN THE LIST" type="email"/>
+<button class="bg-primary text-white font-label-lg text-label-lg py-md rounded hover:opacity-90 transition-opacity">SUBSCRIBE</button>
+</div>
+</div>
+</div>
+<div class="max-w-[1200px] mx-auto px-margin-desktop py-lg border-t border-outline-variant/30 flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 OFFGRID Marketplace. All rights reserved.</span>
+<div class="flex gap-lg">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+<!-- Interactive Sunset Hover Script -->
+<script>
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Subtle micro-interaction handled by CSS, logic can be added here for more complex effects
+            });
+        });
+
+        // Filter toggle simulation
+        const filterButtons = document.querySelectorAll('aside button');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('bg-primary-container');
+                btn.classList.toggle('text-white');
+            });
+        });
+    </script>
+</body></html>

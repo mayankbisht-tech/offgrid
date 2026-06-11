@@ -1,0 +1,6 @@
+{
+  "name": "Gemini Sandbox",
+  "description": "An interactive, full-stack developer workspace for exploring and building with the modern Gemini TypeScript SDK, featuring live API requests, Search Grounding, custom configs, and copyable raw code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

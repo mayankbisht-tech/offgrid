@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#ffeadb",
+                    "tertiary-fixed": "#ede0d9",
+                    "surface-dim": "#ebd6c7",
+                    "on-tertiary-fixed-variant": "#4d4540",
+                    "inverse-surface": "#3a2e24",
+                    "background": "#fff8f5",
+                    "outline": "#916f65",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-tint": "#ae3200",
+                    "on-tertiary-fixed": "#211a16",
+                    "tertiary-container": "#7d736d",
+                    "tertiary": "#635a55",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#d1c4bd",
+                    "primary-fixed": "#ffdbd0",
+                    "inverse-primary": "#ffb59e",
+                    "primary-fixed-dim": "#ffb59e",
+                    "surface-container-low": "#fff1e8",
+                    "on-primary-fixed": "#3a0b00",
+                    "primary": "#aa3000",
+                    "outline-variant": "#e6beb2",
+                    "secondary-fixed": "#c0f500",
+                    "primary-container": "#d43f00",
+                    "surface": "#fff8f5",
+                    "surface-container-high": "#fae4d5",
+                    "on-secondary": "#ffffff",
+                    "on-surface": "#241910",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#f4dfcf",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#f4dfcf",
+                    "on-secondary-fixed-variant": "#3b4d00",
+                    "on-secondary-container": "#526b00",
+                    "secondary-fixed-dim": "#a8d700",
+                    "on-background": "#241910",
+                    "on-primary-container": "#fffbff",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#161f00",
+                    "secondary": "#4f6600",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#ffeee2",
+                    "secondary-container": "#bdf200",
+                    "surface-bright": "#fff8f5",
+                    "on-surface-variant": "#5c4037",
+                    "on-primary-fixed-variant": "#852400",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "xs": "4px",
+                    "xxl": "64px",
+                    "md": "16px",
+                    "margin-desktop": "48px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "xl": "40px",
+                    "margin-mobile": "16px",
+                    "gutter": "20px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "headline-lg": ["Syne"],
+                    "headline-md": ["Syne"],
+                    "display-md": ["Syne"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Syne"],
+                    "display-lg": ["Syne"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "display-md": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .ghost-border { border: 1px solid #EDE4D8; }
+        .active-shadow { box-shadow: 4px 4px 0px 0px #aa3000; }
+        .sunset-gradient {
+            background: linear-gradient(135deg, #fff8f5 0%, #ffeadb 100%);
+        }
+        .editorial-callout { border-left: 4px solid #c0f500; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+<!-- TopNavBar (Shell Suppression: Not suppressed because it is the main navigation container for the Flow) -->
+<nav class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-margin-desktop h-20 max-w-7xl mx-auto sticky top-0 z-50">
+<div class="font-display-md text-display-md font-bold text-primary">OffGrid</div>
+<div class="hidden md:flex items-center space-x-lg">
+<a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Earnings</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Marketplace</a>
+</div>
+<div class="flex items-center space-x-md">
+<button class="material-symbols-outlined text-on-surface-variant">notifications</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYy7YAgoIr8lMSRLcZA5mRorQVHINWsRekLy6SjDE0FOVIXKrWIv63ajxKkpK80c_qIIs_jCe4x_JCe_IJs8xFtz0SZH_q3pcxjqyh1TVrPNDauZ-s0Th_zBiBdNcL0Ac_lriiRROduRJuabVaMttP8zdFCr6I1xxiONnc3HkUVWM2aZk1utW9b0d6_ZMeEqOwsOyNf4sv_1oUxV_icO37fNPXooZx6C73r-rOSHhEe_KfE673gixW-fP-Cu3Dz2gl3EbSpjVQce4C"/>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-xl">
+<!-- Progress Bar Section -->
+<div class="mb-xxl max-w-2xl mx-auto">
+<div class="flex justify-between items-end mb-sm">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Step 1 of 3</span>
+<h1 class="font-headline-lg text-headline-lg mt-xs">Upload Artwork</h1>
+</div>
+<div class="text-right">
+<span class="font-label-lg text-label-lg text-on-surface-variant">33% Complete</span>
+</div>
+</div>
+<div class="w-full h-1 bg-surface-variant rounded-full overflow-hidden">
+<div class="w-1/3 h-full bg-primary transition-all duration-700 ease-out"></div>
+</div>
+</div>
+<!-- High-Contrast Bento Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg items-start">
+<!-- Left Column: Upload Zone (7 Columns) -->
+<div class="md:col-span-7 space-y-lg">
+<!-- Main Upload Card -->
+<div class="bg-surface-container-lowest ghost-border rounded-lg p-xl transition-all duration-300 hover:border-primary border-dashed border-2 flex flex-col items-center justify-center min-h-[400px] text-center cursor-pointer group" id="drop-zone">
+<div class="w-16 h-16 bg-primary-fixed rounded-full flex items-center justify-center mb-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+</div>
+<h2 class="font-headline-md text-headline-md mb-sm">Drag &amp; drop artwork</h2>
+<p class="font-body-md text-on-surface-variant max-w-sm mx-auto mb-xl">
+                        High-resolution PNG or SVG files preferred. Max file size: 50MB. Minimum dimensions: 3000px.
+                    </p>
+<button class="bg-primary text-on-primary font-label-lg text-label-lg px-xl py-md rounded active-shadow hover:brightness-110 transition-all">
+                        Browse Files
+                    </button>
+<input accept=".png,.svg" class="hidden" id="file-input" type="file"/>
+</div>
+<!-- Editorial Info Block -->
+<div class="editorial-callout bg-surface-container-low p-lg rounded-lg">
+<p class="font-body-md text-on-surface italic">
+                        "Your creation is the soul of the garment. Ensure your vectors are clean and your raster images are at 300 DPI for the best physical reproduction."
+                    </p>
+<div class="mt-md flex gap-sm">
+<span class="bg-secondary-container text-on-secondary-container px-sm py-xs font-label-sm text-label-sm rounded uppercase">Quality Guide</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-xs font-label-sm text-label-sm rounded uppercase">SVG Tips</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Mockup Preview (5 Columns) -->
+<div class="md:col-span-5 sticky top-24">
+<div class="bg-surface-container rounded-xl overflow-hidden ghost-border relative aspect-[4/5]">
+<!-- Mockup Image with Prompt -->
+<img class="w-full h-full object-cover mix-blend-multiply" data-alt="A high-end studio product photograph of a premium, heavy-cotton oversized hoodie in a minimalist cream color. The lighting is soft and directional, creating subtle shadows that emphasize the high-quality fabric texture. The setting is an avant-garde editorial studio with warm, sunset-toned ambient light. The overall aesthetic is bold, minimalist, and luxury streetwear." id="mockup-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAKRWuqlsyB_RJiU0Tnqxo2IvJaOQ56Z9yKcXFBHsUOk2BCcukKwUDLBbGq5488AfWr98I0fVk16VfE-eQ9bSlHka1BBBI8ACISAfQTfPDdRYmzTOatF-IzmKGLOK8NqEAooE_Zp7B5SrvOm-dxZWbhVwWBZDow8KW7Iq6EdrF5lnuU1FuynKvJBENn4z14rGkANiGE6N3zfryA3H_T_MkLVev3yJHOB3nXoz0JrGiGS6ZL6m8Lk0zHtX_sOhuE_YgYIyPZVXKhYM7"/>
+<!-- Artwork Placement Overlay (Hidden until upload) -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50" id="artwork-overlay">
+<div class="border-2 border-primary border-dashed w-48 h-64 flex items-center justify-center">
+<span class="font-label-sm text-label-sm text-primary uppercase">Artwork Area</span>
+</div>
+</div>
+<!-- Floating Indicator -->
+<div class="absolute bottom-lg left-lg right-lg bg-surface/90 backdrop-blur-md p-md rounded border border-outline-variant flex items-center justify-between">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Preview</p>
+<p class="font-label-lg text-label-lg">Heavyweight Hoodie</p>
+</div>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-[#1A1410] border border-white"></div>
+<div class="w-6 h-6 rounded-full bg-[#EDE4D8] border border-white"></div>
+<div class="w-6 h-6 rounded-full bg-[#FF4D00] border border-white"></div>
+</div>
+</div>
+</div>
+<div class="mt-lg flex gap-md">
+<button class="flex-1 bg-surface-container-highest border border-outline-variant text-on-surface font-label-lg text-label-lg py-md rounded hover:bg-surface-dim transition-colors">
+                        Save Draft
+                    </button>
+<button class="flex-1 bg-primary text-on-primary font-label-lg text-label-lg py-md rounded active-shadow opacity-50 cursor-not-allowed">
+                        Continue to Step 2
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- SideNavBar (Mobile Bottom Pivot) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low border-t border-outline-variant flex justify-around items-center h-16 z-50">
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-[10px]">Dashboard</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">palette</span>
+<span class="font-label-sm text-[10px]">Designs</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-label-sm text-[10px]">Upload</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm text-[10px]">Analytics</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-[10px]">Settings</span>
+</button>
+</nav>
+<script>
+        // Micro-interactions for Drag and Drop
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('bg-primary-fixed');
+                dropZone.classList.add('scale-[1.01]');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('bg-primary-fixed');
+                dropZone.classList.remove('scale-[1.01]');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                console.log('File uploaded:', files[0].name);
+                // In a real app, logic for preview would go here
+                alert('Artwork "' + files[0].name + '" detected. Generating preview...');
+            }
+        }
+    </script>
+</body></html>

@@ -1,0 +1,150 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Surface Colors */
+  --color-surface: #fff8f5;
+  --color-surface-dim: #ebd6c7;
+  --color-surface-bright: #fff8f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1e8;
+  --color-surface-container: #ffeadb;
+  --color-surface-container-high: #fae4d5;
+  --color-surface-container-highest: #f4dfcf;
+  --color-on-surface: #241910;
+  --color-on-surface-variant: #5c4037;
+  --color-inverse-surface: #3a2e24;
+  --color-inverse-on-surface: #ffeee2;
+  
+  /* Outline Colors */
+  --color-outline: #916f65;
+  --color-outline-variant: #e6beb2;
+  --color-surface-tint: #ae3200;
+  
+  /* Primary Colors */
+  --color-primary: #aa3000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d43f00;
+  --color-on-primary-container: #fffbff;
+  --color-inverse-primary: #ffb59e;
+  
+  /* Secondary Colors */
+  --color-secondary: #4f6600;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #bdf200;
+  --color-on-secondary-container: #526b00;
+  
+  /* Tertiary Colors */
+  --color-tertiary: #635a55;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #7d736d;
+  --color-on-tertiary-container: #fffbff;
+  
+  /* Error Colors */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  /* Background */
+  --color-background: #fff8f5;
+  --color-on-background: #241910;
+
+  /* Fonts */
+  --font-display: "Syne", sans-serif;
+  --font-headline: "Syne", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  background: linear-gradient(180deg, #fff8f5 0%, #fae4d5 50%, #ebd6c7 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: var(--font-body);
+  background: linear-gradient(180deg, #fff8f5 0%, #fae4d5 50%, #ebd6c7 100%);
+  color: var(--color-on-surface);
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: #aa3000;
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ffeadb;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #aa3000;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d43f00;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Material Design 3 utility classes */
+.offset-shadow {
+  box-shadow: 4px 4px 0px 0px #aa3000;
+}
+
+.offset-shadow-hover:hover {
+  box-shadow: 6px 6px 0px 0px #aa3000;
+  transform: translate(-2px, -2px);
+}
+
+.editorial-accent {
+  border-left: 4px solid #bdf200;
+}
+
+.sunset-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.4;
+  background-image: 
+    radial-gradient(at 0% 0%, #ffdbd0 0px, transparent 50%),
+    radial-gradient(at 100% 0%, #ffb59e 0px, transparent 50%),
+    radial-gradient(at 100% 100%, #aa3000 0px, transparent 50%),
+    radial-gradient(at 0% 100%, #ffdbd0 0px, transparent 50%);
+}
