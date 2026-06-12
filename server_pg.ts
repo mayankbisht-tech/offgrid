@@ -5,7 +5,7 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_wq0uACO5BhlV@ep-green-scene-ap4gg0sy-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const connectionString = process.env.DATABASE_URL || "";
 
 // Ensure the connection uses SSL as required by Neon
 export const pool = new Pool({
