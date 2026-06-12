@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 
 // ─────────────────────────────────────────────
@@ -8,6 +8,7 @@ type Page = 'home' | 'shop' | 'product' | 'creator' | 'dashboard' | 'studio-uplo
 
 interface CartItem { name: string; price: string; gradient: string; qty: number; }
 type AuthMode = 'signin' | 'signup';
+type UserRole = 'consumer' | 'designer' | 'manufacturer';
 
 // ─────────────────────────────────────────────
 // Shared helpers
@@ -128,131 +129,310 @@ const TopNav = ({
 );
 
 // ─────────────────────────────────────────────
-// AUTH MODAL  (Sign In / Sign Up)
+// AUTH MODAL
 // ─────────────────────────────────────────────
-const AuthModal = ({ onClose }: { onClose: () => void }) => {
-  const [mode, setMode] = useState<AuthMode>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+const FIELD = ({
+  label, type = 'text', value, onChange, placeholder, required = false, hint,
+}: {
+  label: string; type?: string; value: string;
+  onChange: (v: string) => void; placeholder?: string; required?: boolean; hint?: string;
+}) => (
+  <div>
+    <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>
+      {label}{required && <span className="text-[#aa3000] ml-0.5">*</span>}
+    </label>
+    <input
+      type={type} required={required} value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-white border border-[#e6beb2] px-4 py-3 text-[14px] focus:outline-none focus:border-[#aa3000] transition-colors rounded"
+      style={{ fontFamily: 'Inter, sans-serif' }}
+    />
+    {hint && <p className="text-[11px] text-[#5c4037] mt-1 opacity-70" style={{ fontFamily: 'Inter, sans-serif' }}>{hint}</p>}
+  </div>
+);
+
+const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: Page) => void }) => {
+  const [mode, setMode]         = useState<AuthMode>('signin');
+  const [step, setStep]         = useState(1);   // signup only: 1=role, 2=basic, 3=role-specific
+  const [role, setRole]         = useState<UserRole>('consumer');
+  // sign-in fields
+  const [siEmail, setSiEmail]   = useState('');
+  const [siPass, setSiPass]     = useState('');
+  // sign-up step 2
+  const [name, setName]         = useState('');
+  const [email, setEmail]       = useState('');
+  const [pass, setPass]         = useState('');
+  const [passConf, setPassConf] = useState('');
+  // designer step 3
+  const [username, setUsername] = useState('');
+  const [dCity, setDCity]       = useState('');
+  const [portfolio, setPortfolio] = useState('');
+  // manufacturer step 3
+  const [bizName, setBizName]   = useState('');
+  const [mCity, setMCity]       = useState('');
+  const [gst, setGst]           = useState('');
+  const [prints, setPrints]     = useState<string[]>([]);
+
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Close on backdrop click
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) onClose();
-  };
-
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const switchMode = (m: AuthMode) => { setMode(m); setStep(1); };
+
+  /* ── SIGN IN submit ── */
+  const handleSignIn = (e: FormEvent) => {
     e.preventDefault();
-    // Simulate auth — in a real app this would call your API
-    alert(mode === 'signin' ? `Signed in as ${email}` : `Account created for ${name} (${email})`);
     onClose();
   };
+
+  /* ── SIGN UP step navigation ── */
+  const totalSteps = role === 'consumer' ? 2 : 3;
+
+  const handleNext = (e: FormEvent) => {
+    e.preventDefault();
+    if (step < totalSteps) { setStep(s => s + 1); return; }
+    // final submit
+    onClose();
+    if (role === 'designer' || role === 'manufacturer') navigate('dashboard');
+  };
+
+  const togglePrint = (t: string) =>
+    setPrints(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+
+  const roleCards: { id: UserRole; icon: string; label: string; desc: string }[] = [
+    { id: 'consumer',     icon: 'shopping_bag',           label: 'Shopper',      desc: 'Browse & buy exclusive drops' },
+    { id: 'designer',     icon: 'palette',                label: 'Designer',     desc: 'Upload art & earn royalties' },
+    { id: 'manufacturer', icon: 'precision_manufacturing', label: 'Manufacturer', desc: 'Fulfill print orders' },
+  ];
+
+  const inputCls = 'w-full bg-white border border-[#e6beb2] px-4 py-3 text-[14px] focus:outline-none focus:border-[#aa3000] transition-colors rounded';
+  const labelCls = 'text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider';
+  const font = { fontFamily: 'Inter, sans-serif' };
+
+  /* ── step labels ── */
+  const stepLabels = role === 'consumer'
+    ? ['Choose role', 'Account info']
+    : role === 'designer'
+    ? ['Choose role', 'Account info', 'Creator profile']
+    : ['Choose role', 'Account info', 'Business details'];
 
   return (
     <div
       ref={overlayRef}
-      onClick={handleOverlayClick}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#241910]/60 backdrop-blur-sm"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#241910]/60 backdrop-blur-sm overflow-y-auto py-6 px-4"
     >
-      <div className="relative w-full max-w-md bg-[#fff8f5] border border-[#e6beb2] p-10 shadow-[8px_8px_0px_0px_#aa3000] mx-4">
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 grid h-8 w-8 place-items-center text-[#5c4037] hover:text-[#aa3000] transition-colors"
-          aria-label="Close"
-        >
-          <Icon name="close" size={20} />
-        </button>
+      <div className="relative w-full max-w-lg bg-[#fff8f5] border border-[#e6beb2] shadow-[8px_8px_0px_0px_#aa3000]">
 
-        {/* Brand */}
-        <div className="mb-8">
-          <span className="text-[32px] font-bold tracking-tighter text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif' }}>OFFGRID</span>
-          <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-medium mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-            {mode === 'signin' ? 'Welcome back' : 'Join the collective'}
-          </p>
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-8 pt-7 pb-5 border-b border-[#e6beb2]">
+          <div>
+            <span className="text-[26px] font-bold tracking-tighter text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif' }}>OFFGRID</span>
+            <p className="text-[11px] uppercase tracking-widest text-[#5c4037] font-semibold mt-0.5" style={font}>
+              {mode === 'signin' ? 'Welcome back' : stepLabels[step - 1]}
+            </p>
+          </div>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center text-[#5c4037] hover:text-[#aa3000] hover:bg-[#ffeadb] rounded-full transition-colors" aria-label="Close">
+            <Icon name="close" size={20} />
+          </button>
         </div>
 
-        {/* Mode toggle */}
-        <div className="flex border border-[#e6beb2] rounded mb-8 overflow-hidden">
+        {/* ── Mode tabs ── */}
+        <div className="flex border-b border-[#e6beb2]">
           {(['signin', 'signup'] as AuthMode[]).map(m => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`flex-1 py-3 text-[14px] font-semibold uppercase tracking-wider transition-colors ${mode === m ? 'bg-[#aa3000] text-white' : 'bg-white text-[#5c4037] hover:bg-[#fff1e8]'}`}
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
+            <button key={m} onClick={() => switchMode(m)}
+              className={`flex-1 py-3 text-[13px] font-semibold uppercase tracking-wider transition-colors ${mode === m ? 'bg-[#aa3000] text-white' : 'bg-white text-[#5c4037] hover:bg-[#fff1e8]'}`}
+              style={font}>
               {m === 'signin' ? 'Sign In' : 'Sign Up'}
             </button>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {mode === 'signup' && (
-            <div>
-              <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block" style={{ fontFamily: 'Inter, sans-serif' }}>Full Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Your name"
-                className="w-full bg-white border border-[#e6beb2] px-4 py-3 text-[14px] focus:outline-none focus:border-[#aa3000] transition-colors rounded"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              />
-            </div>
-          )}
-          <div>
-            <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block" style={{ fontFamily: 'Inter, sans-serif' }}>Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full bg-white border border-[#e6beb2] px-4 py-3 text-[14px] focus:outline-none focus:border-[#aa3000] transition-colors rounded"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block" style={{ fontFamily: 'Inter, sans-serif' }}>Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-white border border-[#e6beb2] px-4 py-3 text-[14px] focus:outline-none focus:border-[#aa3000] transition-colors rounded"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            />
-          </div>
-          <button
-            type="submit"
-            className="mt-2 w-full bg-[#aa3000] text-white py-4 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] transition-colors rounded"
-            style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}
-          >
-            {mode === 'signin' ? 'Sign In' : 'Create Account'}
-          </button>
-          {mode === 'signin' && (
-            <button type="button" className="text-center text-[12px] text-[#5c4037] hover:text-[#aa3000] transition-colors underline underline-offset-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Forgot password?
-            </button>
-          )}
-        </form>
+        <div className="px-8 py-7">
 
-        <p className="mt-6 text-center text-[12px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>
-          {mode === 'signin' ? "Don't have an account? " : 'Already a member? '}
-          <button onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')} className="text-[#aa3000] font-semibold underline underline-offset-4">
-            {mode === 'signin' ? 'Sign Up' : 'Sign In'}
-          </button>
-        </p>
+          {/* ══════════════════════════════════════
+              SIGN IN — simple, no role picker
+          ══════════════════════════════════════ */}
+          {mode === 'signin' && (
+            <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+              <div>
+                <label className={labelCls} style={font}>Email</label>
+                <input type="email" required value={siEmail} onChange={e => setSiEmail(e.target.value)}
+                  placeholder="you@example.com" className={inputCls} style={font} />
+              </div>
+              <div>
+                <label className={labelCls} style={font}>Password</label>
+                <input type="password" required value={siPass} onChange={e => setSiPass(e.target.value)}
+                  placeholder="••••••••" className={inputCls} style={font} />
+              </div>
+              <button type="button" className="text-right text-[12px] text-[#5c4037] hover:text-[#aa3000] transition-colors underline underline-offset-4" style={font}>
+                Forgot password?
+              </button>
+              <button type="submit"
+                className="w-full bg-[#aa3000] text-white py-4 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded mt-1"
+                style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}>
+                Sign In
+              </button>
+              <p className="text-center text-[12px] text-[#5c4037]" style={font}>
+                Don't have an account?{' '}
+                <button type="button" onClick={() => switchMode('signup')} className="text-[#aa3000] font-semibold underline underline-offset-4">Sign Up</button>
+              </p>
+            </form>
+          )}
+
+          {/* ══════════════════════════════════════
+              SIGN UP — 3 steps
+          ══════════════════════════════════════ */}
+          {mode === 'signup' && (
+            <>
+              {/* Step indicator */}
+              <div className="flex items-center gap-2 mb-7">
+                {Array.from({ length: totalSteps }, (_, i) => (
+                  <React.Fragment key={i}>
+                    <div className={`flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold border-2 transition-all ${
+                      step > i + 1 ? 'bg-[#aa3000] border-[#aa3000] text-white'
+                      : step === i + 1 ? 'border-[#aa3000] text-[#aa3000] bg-white'
+                      : 'border-[#e6beb2] text-[#5c4037] bg-white'
+                    }`} style={font}>
+                      {step > i + 1 ? <Icon name="check" size={14} className="text-white" /> : i + 1}
+                    </div>
+                    {i < totalSteps - 1 && (
+                      <div className={`flex-1 h-0.5 transition-all ${step > i + 1 ? 'bg-[#aa3000]' : 'bg-[#e6beb2]'}`} />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              <form onSubmit={handleNext} className="flex flex-col gap-4">
+
+                {/* ── STEP 1: Role picker ── */}
+                {step === 1 && (
+                  <>
+                    <p className="text-[12px] text-[#5c4037] mb-1" style={font}>How do you want to use OFFGRID?</p>
+                    <div className="grid grid-cols-1 gap-3">
+                      {roleCards.map(r => (
+                        <button key={r.id} type="button" onClick={() => setRole(r.id)}
+                          className={`flex items-center gap-4 p-4 border-2 rounded text-left transition-all ${
+                            role === r.id
+                              ? 'border-[#aa3000] bg-[#ffeadb]'
+                              : 'border-[#e6beb2] bg-white hover:border-[#aa3000]/40 hover:bg-[#fff8f5]'
+                          }`}>
+                          <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${role === r.id ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`}>
+                            <Icon name={r.icon} size={22} className={role === r.id ? 'text-white' : 'text-[#aa3000]'} />
+                          </div>
+                          <div>
+                            <p className="text-[14px] font-bold text-[#241910]" style={font}>{r.label}</p>
+                            <p className="text-[12px] text-[#5c4037]" style={font}>{r.desc}</p>
+                          </div>
+                          {role === r.id && <Icon name="check_circle" size={20} className="text-[#aa3000] ml-auto shrink-0" fill={1} />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* ── STEP 2: Basic account info (all roles) ── */}
+                {step === 2 && (
+                  <>
+                    <FIELD label="Full Name" value={name} onChange={setName} placeholder="Your full name" required />
+                    <FIELD label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" required />
+                    <FIELD label="Password" type="password" value={pass} onChange={setPass} placeholder="Min. 8 characters" required
+                      hint="Use a mix of letters, numbers and symbols." />
+                    <FIELD label="Confirm Password" type="password" value={passConf} onChange={setPassConf} placeholder="Re-enter password" required />
+                    {pass && passConf && pass !== passConf && (
+                      <p className="text-[12px] text-[#ba1a1a] -mt-2" style={font}>Passwords don't match.</p>
+                    )}
+                  </>
+                )}
+
+                {/* ── STEP 3 — DESIGNER ── */}
+                {step === 3 && role === 'designer' && (
+                  <>
+                    <div className="flex items-center gap-2 mb-1 pl-3" style={{ borderLeft: '3px solid #bdf200' }}>
+                      <p className="text-[12px] font-bold text-[#aa3000] uppercase tracking-wider" style={font}>Creator Profile</p>
+                    </div>
+                    <FIELD label="Creator Username" value={username} onChange={setUsername} placeholder="e.g. KENTA_OFF"
+                      required hint="This is your public handle on the marketplace." />
+                    <FIELD label="City / Base" value={dCity} onChange={setDCity} placeholder="e.g. Tokyo, Berlin" />
+                    <FIELD label="Portfolio URL" value={portfolio} onChange={setPortfolio} placeholder="https://yoursite.com or Behance link" />
+                    <div className="bg-[#ffeadb] border border-[#e6beb2] rounded p-4">
+                      <p className="text-[11px] text-[#5c4037] leading-relaxed" style={font}>
+                        Once registered you can upload artwork, set pricing, and start earning royalties on every sale — no inventory needed.
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* ── STEP 3 — MANUFACTURER ── */}
+                {step === 3 && role === 'manufacturer' && (
+                  <>
+                    <div className="flex items-center gap-2 mb-1 pl-3" style={{ borderLeft: '3px solid #bdf200' }}>
+                      <p className="text-[12px] font-bold text-[#aa3000] uppercase tracking-wider" style={font}>Business Details</p>
+                    </div>
+                    <FIELD label="Business / Studio Name" value={bizName} onChange={setBizName}
+                      placeholder="e.g. PrintNode Mumbai" required />
+                    <FIELD label="City" value={mCity} onChange={setMCity} placeholder="e.g. Mumbai" required />
+                    <FIELD label="GST Number" value={gst} onChange={setGst} placeholder="22AAAAA0000A1Z5"
+                      hint="Optional but required for payouts above ₹50,000/month." />
+                    <div>
+                      <label className={labelCls} style={font}>Print Capabilities</label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {['DTG', 'Screen Print', 'Embroidery', 'Sublimation', 'UV Print'].map(t => (
+                          <button key={t} type="button" onClick={() => togglePrint(t)}
+                            className={`px-3 py-1.5 rounded text-[12px] font-semibold border transition-all ${
+                              prints.includes(t)
+                                ? 'bg-[#aa3000] text-white border-[#aa3000]'
+                                : 'bg-white text-[#5c4037] border-[#e6beb2] hover:border-[#aa3000]'
+                            }`} style={font}>
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-[#ffeadb] border border-[#e6beb2] rounded p-4">
+                      <p className="text-[11px] text-[#5c4037] leading-relaxed" style={font}>
+                        Your account will go through a <strong className="text-[#241910]">24–48 hr verification</strong> before you can accept orders. We'll email you once approved.
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* ── STEP 3 — CONSUMER (skip to done at step 2) ── */}
+
+                {/* Navigation buttons */}
+                <div className="flex gap-3 pt-1">
+                  {step > 1 && (
+                    <button type="button" onClick={() => setStep(s => s - 1)}
+                      className="flex items-center gap-1 px-5 py-3 border border-[#e6beb2] text-[#5c4037] text-[13px] font-semibold rounded hover:bg-[#f4dfcf] transition-colors"
+                      style={font}>
+                      <Icon name="arrow_back" size={16} /> Back
+                    </button>
+                  )}
+                  <button type="submit"
+                    disabled={step === 2 && pass !== passConf && passConf.length > 0}
+                    className="flex-1 bg-[#aa3000] text-white py-3.5 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}>
+                    {step < totalSteps ? 'Continue' : (
+                      role === 'consumer' ? 'Create Account' :
+                      role === 'designer' ? 'Launch Creator Profile' :
+                      'Submit for Verification'
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              <p className="mt-5 text-center text-[12px] text-[#5c4037]" style={font}>
+                Already have an account?{' '}
+                <button type="button" onClick={() => switchMode('signin')} className="text-[#aa3000] font-semibold underline underline-offset-4">Sign In</button>
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -757,24 +937,39 @@ const ShopPage = ({ navigate, onAddToCart }: { navigate: (p: Page) => void; onAd
               {products.map(p => (
                 <div
                   key={p.name}
-                  className="group bg-white border border-[#e6beb2] rounded p-4 transition-all duration-300 cursor-pointer"
+                  className="group bg-white border border-[#e6beb2] rounded p-4 transition-all duration-300"
                   style={{ }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '4px 4px 0px 0px #aa3000'; (e.currentTarget as HTMLDivElement).style.transform = 'translate(-2px, -2px)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = ''; (e.currentTarget as HTMLDivElement).style.transform = ''; }}
-                  onClick={() => navigate('product')}
                 >
-                  <div className="relative overflow-hidden mb-4 bg-[#ffeadb]" style={{ aspectRatio: '3/4' }}>
+                  <div
+                    className="relative overflow-hidden mb-4 bg-[#ffeadb] cursor-pointer"
+                    style={{ aspectRatio: '3/4' }}
+                    onClick={() => navigate('product')}
+                  >
                     <div className="w-full h-full transition-transform duration-500 group-hover:scale-110">
                       <GradientImg gradient={p.gradient} className="h-full" />
                     </div>
                     {p.badge && (
                       <span className="absolute top-2 right-2 bg-[#bdf200] text-[#526b00] text-[10px] font-bold px-2 py-0.5 rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{p.badge}</span>
                     )}
+                    {/* Quick add overlay */}
+                    <div className="absolute inset-x-0 bottom-0 bg-[#aa3000] py-2 text-white text-[11px] font-bold uppercase tracking-wider text-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={e => { e.stopPropagation(); onAddToCart({ name: p.name, price: p.price, gradient: p.gradient }); }}
+                    >
+                      + Quick Add
+                    </div>
                   </div>
-                  <h4 className="text-[18px] font-semibold text-[#241910] mb-1" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }}>{p.name}</h4>
+                  <h4 className="text-[18px] font-semibold text-[#241910] mb-1 cursor-pointer hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }} onClick={() => navigate('product')}>{p.name}</h4>
                   <div className="flex items-center justify-between">
                     <span className="text-[18px] font-bold text-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>{p.price}</span>
-                    <button className="text-[#5c4037] hover:text-[#aa3000] transition-colors"><Icon name="favorite" size={20} /></button>
+                    <button
+                      onClick={() => onAddToCart({ name: p.name, price: p.price, gradient: p.gradient })}
+                      className="text-[#5c4037] hover:text-[#aa3000] transition-colors"
+                      aria-label="Add to cart"
+                    >
+                      <Icon name="shopping_bag" size={20} />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -889,6 +1084,7 @@ const ProductPage = ({ navigate, onAddToCart }: { navigate: (p: Page) => void; o
               <button
                 className="w-full h-16 bg-[#aa3000] text-white rounded-lg uppercase flex items-center justify-center gap-4 text-[24px] font-semibold transition-all"
                 style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }}
+                onClick={() => onAddToCart({ name: 'Neon Samurai Hoodie', price: '$185.00', gradient: GRADIENTS.hoodie })}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '6px 6px 0px 0px #aa3000'; (e.currentTarget as HTMLButtonElement).style.transform = 'translate(-2px,-2px)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; (e.currentTarget as HTMLButtonElement).style.transform = ''; }}
               >
@@ -1873,7 +2069,7 @@ export default function ReferenceApp() {
           navigate={navigate}
         />
       )}
-      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} navigate={navigate} />}
       {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} navigate={navigate} />}
     </div>
   );
