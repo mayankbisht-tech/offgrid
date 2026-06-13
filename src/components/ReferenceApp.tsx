@@ -68,46 +68,30 @@ const TopNav = ({
 }) => (
   <nav className="w-full sticky top-0 z-50 bg-[#fff8f5]/90 backdrop-blur-md border-b border-[#e6beb2]">
     <div className="flex items-center justify-between px-12 h-20 max-w-[1200px] mx-auto">
-      <div className="flex items-center gap-10">
-        <button
-          onClick={() => navigate('home')}
-          className="font-bold tracking-tighter text-[#aa3000] text-[32px] leading-none"
-          style={{ fontFamily: 'Syne, sans-serif' }}
-        >
-          OFFGRID
-        </button>
-        <div className="hidden md:flex gap-6 items-center">
-          {(['shop', 'creator', 'product', 'home'] as Page[]).map((pg, i) => {
-            const labels = ['Shop', 'Creators', 'Drops', 'About'];
-            const active = currentPage === pg;
-            return (
-              <button
-                key={pg}
-                onClick={() => navigate(pg)}
-                className={`text-[18px] leading-[1.6] font-normal transition-colors ${active ? 'text-[#aa3000] border-b-2 border-[#aa3000] pb-1' : 'text-[#5c4037] hover:text-[#aa3000]'}`}
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                {labels[i]}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Logo — clicking goes to home (about/landing) */}
+      <button
+        onClick={() => navigate('home')}
+        className="font-bold tracking-tighter text-[#aa3000] text-[32px] leading-none"
+        style={{ fontFamily: 'Syne, sans-serif' }}
+      >
+        OFFGRID
+      </button>
+
+      {/* Single nav link: Shop */}
+      <button
+        onClick={() => navigate('shop')}
+        className={`text-[18px] font-normal transition-colors ${currentPage === 'shop' || currentPage === 'product' ? 'text-[#aa3000] border-b-2 border-[#aa3000] pb-1' : 'text-[#5c4037] hover:text-[#aa3000]'}`}
+        style={{ fontFamily: 'Inter, sans-serif' }}
+      >
+        Shop
+      </button>
+
+      {/* Actions */}
       <div className="flex items-center gap-4">
-        {/* Search */}
-        <button
-          onClick={onSearchClick}
-          className="grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors"
-          aria-label="Search"
-        >
+        <button onClick={onSearchClick} className="grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Search">
           <Icon name="search" size={24} />
         </button>
-        {/* Cart */}
-        <button
-          onClick={onCartClick}
-          className="relative grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors"
-          aria-label="Cart"
-        >
+        <button onClick={onCartClick} className="relative grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Cart">
           <Icon name="shopping_cart" size={24} />
           {cartCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#aa3000] text-white text-[10px] font-bold">
@@ -115,12 +99,7 @@ const TopNav = ({
             </span>
           )}
         </button>
-        {/* Account / Sign In */}
-        <button
-          onClick={onAuthClick}
-          className="grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors"
-          aria-label="Account"
-        >
+        <button onClick={onAuthClick} className="grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Account">
           <Icon name="person" size={24} />
         </button>
       </div>
@@ -195,8 +174,10 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
 
   const handleNext = (e: FormEvent) => {
     e.preventDefault();
+    // Validate password match on step 2
+    if (step === 2 && pass !== passConf) return;
     if (step < totalSteps) { setStep(s => s + 1); return; }
-    // final submit
+    // Final submit — close and navigate
     onClose();
     if (role === 'designer' || role === 'manufacturer') navigate('dashboard');
   };
@@ -417,11 +398,10 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
                     disabled={step === 2 && pass !== passConf && passConf.length > 0}
                     className="flex-1 bg-[#aa3000] text-white py-3.5 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}>
-                    {step < totalSteps ? 'Continue' : (
-                      role === 'consumer' ? 'Create Account' :
-                      role === 'designer' ? 'Launch Creator Profile' :
-                      'Submit for Verification'
-                    )}
+                    {step < totalSteps
+                      ? (step === 2 && role === 'consumer' ? 'Create Account' : 'Continue')
+                      : (role === 'designer' ? 'Launch Creator Profile' : 'Submit for Verification')
+                    }
                   </button>
                 </div>
               </form>
@@ -691,13 +671,6 @@ const HomePage = ({ navigate, onAddToCart, onAuthClick }: { navigate: (p: Page) 
               style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}
             >
               EXPLORE SHOP
-            </button>
-            <button
-              onClick={() => navigate('creator')}
-              className="border-2 border-white text-white font-semibold px-10 py-6 rounded text-[14px] uppercase tracking-wider hover:bg-white/10 transition-all"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              VIEW CREATORS
             </button>
           </div>
         </div>
@@ -1309,13 +1282,13 @@ const CreatorPage = ({ navigate }: { navigate: (p: Page) => void }) => (
 // ─────────────────────────────────────────────
 // STUDIO SIDEBAR
 // ─────────────────────────────────────────────
-const StudioSidebar = ({ navigate, activeItem = 'designs' }: { navigate: (p: Page) => void; activeItem?: string }) => {
+const StudioSidebar = ({ navigate, activeItem = 'overview', onSignOut }: { navigate: (p: Page) => void; activeItem?: string; onSignOut?: () => void }) => {
   const items = [
-    { icon: 'dashboard', label: 'Overview', page: 'dashboard' as Page, key: 'overview' },
-    { icon: 'palette', label: 'My Designs', page: 'studio-upload' as Page, key: 'designs' },
-    { icon: 'insights', label: 'Analytics', page: 'dashboard' as Page, key: 'analytics' },
-    { icon: 'payments', label: 'Payouts', page: 'dashboard' as Page, key: 'payouts' },
-    { icon: 'settings', label: 'Settings', page: 'dashboard' as Page, key: 'settings' },
+    { icon: 'dashboard',  label: 'Overview',   page: 'dashboard' as Page,       key: 'overview'  },
+    { icon: 'palette',    label: 'My Designs',  page: 'studio-upload' as Page,   key: 'designs'   },
+    { icon: 'insights',   label: 'Analytics',   page: 'dashboard' as Page,       key: 'analytics' },
+    { icon: 'payments',   label: 'Payouts',     page: 'dashboard' as Page,       key: 'payouts'   },
+    { icon: 'settings',   label: 'Settings',    page: 'dashboard' as Page,       key: 'settings'  },
   ];
 
   return (
@@ -1348,7 +1321,11 @@ const StudioSidebar = ({ navigate, activeItem = 'designs' }: { navigate: (p: Pag
         <button className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] transition-all rounded-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
           <Icon name="help_outline" size={20} /> Help
         </button>
-        <button className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] transition-all rounded-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <button
+          className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] transition-all rounded-lg"
+          style={{ fontFamily: 'Inter, sans-serif' }}
+          onClick={() => onSignOut ? onSignOut() : navigate('home')}
+        >
           <Icon name="logout" size={20} /> Sign Out
         </button>
       </div>
@@ -1379,12 +1356,63 @@ const StudioHeader = ({ navigate }: { navigate: (p: Page) => void }) => (
 // ─────────────────────────────────────────────
 // DASHBOARD PAGE  (Image 4.html)
 // ─────────────────────────────────────────────
-const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => (
+const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
+  const [tab, setTab] = useState<'overview'|'analytics'|'payouts'|'settings'>('overview');
+  const font = { fontFamily: 'Inter, sans-serif' };
+  const syne = { fontFamily: 'Syne, sans-serif' };
+
+  // Sidebar items wired to tabs
+  const sidebarItems = [
+    { icon: 'dashboard',  label: 'Overview',   key: 'overview'  as const, page: null },
+    { icon: 'palette',    label: 'My Designs',  key: null,                 page: 'studio-upload' as Page },
+    { icon: 'insights',   label: 'Analytics',   key: 'analytics' as const, page: null },
+    { icon: 'payments',   label: 'Payouts',     key: 'payouts'   as const, page: null },
+    { icon: 'settings',   label: 'Settings',    key: 'settings'  as const, page: null },
+  ];
+
+  return (
   <div className="flex min-h-screen text-[#241910]" style={{ backgroundColor: '#fff8f5', backgroundImage: 'radial-gradient(at 0% 0%, #ffeadb 0px, transparent 50%), radial-gradient(at 100% 100%, #f4dfcf 0px, transparent 50%)', backgroundAttachment: 'fixed' }}>
-    <StudioSidebar navigate={navigate} activeItem="overview" />
+
+    {/* Inline sidebar so we can control tab switching */}
+    <aside className="hidden md:flex flex-col h-screen sticky top-0 p-4 bg-[#fff1e8] border-r border-[#e6beb2] w-64 shrink-0">
+      <div className="mb-6 px-2">
+        <button onClick={() => navigate('home')} className="text-[24px] font-semibold text-[#aa3000]" style={syne}>OffGrid</button>
+        <p className="text-[12px] text-[#5c4037] opacity-70 uppercase tracking-widest font-medium mt-1" style={font}>Creator Studio</p>
+      </div>
+      <div className="mb-4 px-4">
+        <div className="w-10 h-10 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] font-bold text-sm mb-2">JD</div>
+        <p className="text-[14px] font-semibold text-[#241910]" style={font}>Jane Doe</p>
+        <p className="text-[10px] uppercase text-[#5c4037]" style={font}>Elite Partner</p>
+      </div>
+      <nav className="flex-1 flex flex-col gap-1">
+        {sidebarItems.map(item => {
+          const isActive = item.key === tab;
+          return (
+            <button key={item.label}
+              onClick={() => item.page ? navigate(item.page) : item.key && setTab(item.key)}
+              className={`flex items-center gap-4 px-4 py-2 text-[14px] font-semibold rounded-lg transition-all ${isActive ? 'bg-[#aa3000] text-white translate-x-1' : 'text-[#5c4037] hover:bg-[#f4dfcf]'}`}
+              style={{ ...font, ...(isActive ? { boxShadow: '4px 4px 0px 0px #aa3000' } : {}) }}
+            >
+              <Icon name={item.icon} size={20} fill={isActive ? 1 : 0} className={isActive ? 'text-white' : ''} />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="mt-auto flex flex-col gap-1 pt-4 border-t border-[#e6beb2]/30">
+        <button className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] rounded-lg" style={font}>
+          <Icon name="help_outline" size={20} /> Help
+        </button>
+        <button onClick={() => navigate('home')} className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] rounded-lg" style={font}>
+          <Icon name="logout" size={20} /> Sign Out
+        </button>
+      </div>
+    </aside>
+
     <main className="flex-1 min-w-0">
       <StudioHeader navigate={navigate} />
       <section className="max-w-7xl mx-auto px-12 py-10">
+        {tab === 'overview' && <>
         {/* Greeting */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div>
@@ -1524,13 +1552,98 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => (
             </div>
           </div>
         </div>
+        </>}
       </section>
+
+      {/* ── Analytics tab ── */}
+      {tab === 'analytics' && (
+        <section className="max-w-7xl mx-auto px-12 py-10">
+          <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Analytics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[['Total Views','14,280','visibility'],['Conversion Rate','3.2%','percent'],['Avg. Order Value','$94.50','payments']].map(([l,v,ic]) => (
+              <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2] flex flex-col gap-3">
+                <Icon name={ic} size={24} className="text-[#aa3000]" />
+                <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
+                <p className="text-[40px] font-bold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>{v}</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-white border border-[#e6beb2] rounded-xl p-8">
+            <p className="text-[14px] font-semibold text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Monthly Revenue (last 6 months)</p>
+            <div className="flex items-end gap-4 h-40">
+              {[60,80,45,90,70,100].map((h,i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full rounded-t" style={{ height: `${h}%`, background: i===5?'#aa3000':'#ffeadb', border: '1px solid #e6beb2' }} />
+                  <span className="text-[10px] text-[#5c4037] font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {['Jan','Feb','Mar','Apr','May','Jun'][i]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Payouts tab ── */}
+      {tab === 'payouts' && (
+        <section className="max-w-7xl mx-auto px-12 py-10">
+          <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Payouts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            {[['Available Balance','$2,450.00','#aa3000'],['Pending','$380.00','#5c4037'],['Paid This Month','$1,200.00','#4f6600'],['Total Lifetime','$18,900.00','#241910']].map(([l,v,c]) => (
+              <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2]">
+                <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-bold mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
+                <p className="text-[36px] font-bold" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1, color: c }}>{v}</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-white border border-[#e6beb2] rounded-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#e6beb2] flex justify-between items-center">
+              <p className="text-[14px] font-bold text-[#241910] uppercase tracking-wide" style={{ fontFamily: 'Inter, sans-serif' }}>Payout History</p>
+              <button className="text-[13px] text-[#aa3000] font-semibold underline underline-offset-4" style={{ fontFamily: 'Inter, sans-serif' }}>Request Payout</button>
+            </div>
+            {[['Jun 1, 2026','$1,200.00','Paid'],['May 1, 2026','$980.00','Paid'],['Apr 1, 2026','$1,540.00','Paid']].map(([d,a,s]) => (
+              <div key={d} className="flex items-center justify-between px-6 py-4 border-b border-[#e6beb2]/50">
+                <span className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{d}</span>
+                <span className="text-[14px] font-bold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>{a}</span>
+                <span className="px-3 py-1 bg-[#bdf200] text-[#526b00] text-[11px] font-bold rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{s}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Settings tab ── */}
+      {tab === 'settings' && (
+        <section className="max-w-2xl mx-auto px-12 py-10">
+          <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Settings</h2>
+          <div className="bg-white border border-[#e6beb2] rounded-xl p-8 space-y-6">
+            <div>
+              <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Display Name</label>
+              <input defaultValue="Jane Doe" className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Email</label>
+              <input defaultValue="jane@offgrid.io" type="email" className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Bio</label>
+              <textarea rows={3} defaultValue="Independent streetwear creator. Berlin × Tokyo." className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded resize-none focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+            </div>
+            <div className="pt-2 flex gap-3">
+              <button className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#d43f00] transition-colors" style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}>Save Changes</button>
+              <button onClick={() => navigate('home')} className="px-6 py-3 border border-[#e6beb2] text-[#5c4037] text-[14px] font-semibold rounded hover:bg-[#f4dfcf] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Sign Out</button>
+            </div>
+          </div>
+        </section>
+      )}
     </main>
 
     {/* Mobile bottom nav */}
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#f4dfcf] border-t border-[#e6beb2] flex items-center justify-around px-4 z-50">
-      {[['dashboard', 'Overview'], ['palette', 'Designs'], ['add', ''], ['insights', 'Stats'], ['settings', 'Settings']].map(([icon, label]) => (
-        <button key={icon} onClick={() => navigate('dashboard')} className="flex flex-col items-center gap-1 text-[#aa3000]">
+      {([['dashboard','Overview','overview'],['palette','Designs','designs'],['add','','designs'],['insights','Stats','analytics'],['settings','Settings','settings']] as [string,string,string][]).map(([icon,label,t]) => (
+        <button key={icon}
+          onClick={() => t === 'designs' ? navigate('studio-upload') : setTab(t as any)}
+          className={`flex flex-col items-center gap-1 transition-colors ${tab===t?'text-[#aa3000]':'text-[#5c4037]'}`}>
           {icon === 'add'
             ? <div className="-mt-8 w-14 h-14 bg-[#aa3000] rounded-full flex items-center justify-center shadow-lg"><Icon name="add" size={28} className="text-white" /></div>
             : <><Icon name={icon} size={22} /><span className="text-[10px] font-bold uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{label}</span></>
@@ -1539,7 +1652,8 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => (
       ))}
     </nav>
   </div>
-);
+  );
+};
 
 // ─────────────────────────────────────────────
 // STUDIO UPLOAD PAGE  (Image 6.html)
@@ -1550,8 +1664,8 @@ const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => (
     <nav className="bg-[#fff8f5] border-b border-[#e6beb2] flex justify-between items-center w-full px-12 h-20 max-w-7xl mx-auto sticky top-0 z-50">
       <button onClick={() => navigate('home')} className="font-bold text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif', fontSize: 32, letterSpacing: '-0.02em', lineHeight: 1 }}>OffGrid</button>
       <div className="hidden md:flex items-center space-x-6">
-        {['Dashboard', 'Earnings', 'Marketplace'].map(l => (
-          <button key={l} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</button>
+        {([['Dashboard','dashboard'],['Earnings','dashboard'],['Marketplace','shop']] as [string,Page][]).map(([l,pg]) => (
+          <button key={l} onClick={() => navigate(pg)} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</button>
         ))}
       </div>
       <div className="flex items-center gap-4">
@@ -1816,8 +1930,8 @@ const StudioReviewPage = ({ navigate }: { navigate: (p: Page) => void }) => (
         <div className="flex items-center gap-10">
           <button onClick={() => navigate('home')} className="font-bold text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif', fontSize: 32, letterSpacing: '-0.02em' }}>OffGrid</button>
           <nav className="hidden lg:flex items-center gap-6">
-            {['Dashboard', 'Earnings', 'Marketplace'].map(l => (
-              <button key={l} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</button>
+            {([['Dashboard','dashboard'],['Earnings','dashboard'],['Marketplace','shop']] as [string,Page][]).map(([l,pg]) => (
+              <button key={l} onClick={() => navigate(pg)} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</button>
             ))}
           </nav>
         </div>
@@ -2006,7 +2120,7 @@ export default function ReferenceApp() {
   };
 
   // Consumer pages have the shared TopNav
-  const isConsumerPage = ['home', 'shop', 'product', 'creator'].includes(page);
+  const isConsumerPage = ['home', 'shop', 'product'].includes(page);
 
   return (
     <div className="min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -2053,7 +2167,6 @@ export default function ReferenceApp() {
       {page === 'home' && <HomePage navigate={navigate} onAddToCart={addToCart} onAuthClick={() => setAuthOpen(true)} />}
       {page === 'shop' && <ShopPage navigate={navigate} onAddToCart={addToCart} />}
       {page === 'product' && <ProductPage navigate={navigate} onAddToCart={addToCart} />}
-      {page === 'creator' && <CreatorPage navigate={navigate} />}
       {page === 'dashboard' && <DashboardPage navigate={navigate} />}
       {page === 'studio-upload' && <StudioUploadPage navigate={navigate} />}
       {page === 'studio-pricing' && <StudioPricingPage navigate={navigate} />}
