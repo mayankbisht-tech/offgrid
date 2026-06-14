@@ -154,6 +154,8 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
   const [prints, setPrints]     = useState<string[]>([]);
 
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -161,25 +163,63 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const switchMode = (m: AuthMode) => { setMode(m); setStep(1); };
+  const switchMode = (m: AuthMode) => { setMode(m); setStep(1); setAuthError(''); };
 
-  /* ── SIGN IN submit ── */
-  const handleSignIn = (e: FormEvent) => {
+  /* ── SIGN IN — hits real DB ── */
+  const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
-    onClose();
+    setAuthError('');
+    setAuthLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: siEmail, password: siPass }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed.');
+      onClose();
+      if (data.user?.role === 'DESIGNER' || data.user?.role === 'MANUFACTURER') navigate('dashboard');
+    } catch (err: any) {
+      setAuthError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
-  /* ── SIGN UP step navigation ── */
+  /* ── SIGN UP step navigation + final DB submit ── */
   const totalSteps = role === 'consumer' ? 2 : 3;
 
-  const handleNext = (e: FormEvent) => {
+  const handleNext = async (e: FormEvent) => {
     e.preventDefault();
-    // Validate password match on step 2
-    if (step === 2 && pass !== passConf) return;
+    setAuthError('');
+    if (step === 2 && pass !== passConf) { setAuthError("Passwords don't match."); return; }
     if (step < totalSteps) { setStep(s => s + 1); return; }
-    // Final submit — close and navigate
-    onClose();
-    if (role === 'designer' || role === 'manufacturer') navigate('dashboard');
+
+    // Final submit
+    setAuthLoading(true);
+    try {
+      const payload: Record<string, string> = {
+        email, password: pass, name,
+        role: role.toUpperCase() as string,
+      };
+      if (role === 'designer')     { payload.username = username; payload.city = dCity; payload.portfolio = portfolio; }
+      if (role === 'manufacturer') { payload.bizName = bizName; payload.city = mCity; payload.gst = gst; }
+
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Registration failed.');
+      onClose();
+      if (role === 'designer' || role === 'manufacturer') navigate('dashboard');
+    } catch (err: any) {
+      setAuthError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const togglePrint = (t: string) =>
@@ -241,6 +281,11 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
           ══════════════════════════════════════ */}
           {mode === 'signin' && (
             <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+              {authError && (
+                <div className="bg-[#ffdad6] border border-[#ba1a1a] text-[#93000a] text-[13px] px-4 py-3 rounded" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {authError}
+                </div>
+              )}
               <div>
                 <label className={labelCls} style={font}>Email</label>
                 <input type="email" required value={siEmail} onChange={e => setSiEmail(e.target.value)}
@@ -251,13 +296,21 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
                 <input type="password" required value={siPass} onChange={e => setSiPass(e.target.value)}
                   placeholder="••••••••" className={inputCls} style={font} />
               </div>
-              <button type="button" className="text-right text-[12px] text-[#5c4037] hover:text-[#aa3000] transition-colors underline underline-offset-4" style={font}>
-                Forgot password?
-              </button>
-              <button type="submit"
-                className="w-full bg-[#aa3000] text-white py-4 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded mt-1"
+              <div className="bg-[#fff1e8] border border-[#e6beb2] rounded p-3 text-[11px] text-[#5c4037]" style={font}>
+                <p className="font-bold mb-1 text-[#aa3000]">Test accounts (any password: password123)</p>
+                <div className="flex flex-wrap gap-2">
+                  {[['karan@offgrid.in','Designer'],['mumbai@offgrid.in','Manufacturer'],['mayankbisht1107@gmail.com','Consumer']].map(([e,r])=>(
+                    <button key={e} type="button" onClick={()=>{setSiEmail(e);setSiPass('password123');}}
+                      className="px-2 py-1 bg-white border border-[#e6beb2] rounded hover:border-[#aa3000] transition-colors text-[11px]" style={font}>
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button type="submit" disabled={authLoading}
+                className="w-full bg-[#aa3000] text-white py-4 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded mt-1 disabled:opacity-50"
                 style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}>
-                Sign In
+                {authLoading ? 'Signing in…' : 'Sign In'}
               </button>
               <p className="text-center text-[12px] text-[#5c4037]" style={font}>
                 Don't have an account?{' '}
@@ -387,6 +440,11 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
 
                 {/* Navigation buttons */}
                 <div className="flex gap-3 pt-1">
+                  {authError && (
+                    <p className="w-full text-[12px] text-[#93000a] bg-[#ffdad6] border border-[#ba1a1a] px-3 py-2 rounded" style={{ fontFamily: 'Inter, sans-serif' }}>{authError}</p>
+                  )}
+                </div>
+                <div className="flex gap-3 pt-1">
                   {step > 1 && (
                     <button type="button" onClick={() => setStep(s => s - 1)}
                       className="flex items-center gap-1 px-5 py-3 border border-[#e6beb2] text-[#5c4037] text-[13px] font-semibold rounded hover:bg-[#f4dfcf] transition-colors"
@@ -395,13 +453,14 @@ const AuthModal = ({ onClose, navigate }: { onClose: () => void; navigate: (p: P
                     </button>
                   )}
                   <button type="submit"
-                    disabled={step === 2 && pass !== passConf && passConf.length > 0}
+                    disabled={authLoading || (step === 2 && pass !== passConf && passConf.length > 0)}
                     className="flex-1 bg-[#aa3000] text-white py-3.5 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}>
-                    {step < totalSteps
-                      ? (step === 2 && role === 'consumer' ? 'Create Account' : 'Continue')
-                      : (role === 'designer' ? 'Launch Creator Profile' : 'Submit for Verification')
-                    }
+                    {authLoading ? 'Please wait…' : (
+                      step < totalSteps
+                        ? (step === 2 && role === 'consumer' ? 'Create Account' : 'Continue')
+                        : (role === 'designer' ? 'Launch Creator Profile' : role === 'manufacturer' ? 'Submit for Verification' : 'Create Account')
+                    )}
                   </button>
                 </div>
               </form>
@@ -1656,107 +1715,162 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
 };
 
 // ─────────────────────────────────────────────
-// STUDIO UPLOAD PAGE  (Image 6.html)
+// STUDIO UPLOAD PAGE  (Image 6.html) — Cloudinary upload
 // ─────────────────────────────────────────────
-const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => (
+const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => {
+  const [dragOver, setDragOver]       = useState(false);
+  const [uploading, setUploading]     = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadedUrl, setUploadedUrl] = useState('');
+  const [fileName, setFileName]       = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const font = { fontFamily: 'Inter, sans-serif' };
+  const syne = { fontFamily: 'Syne, sans-serif' };
+
+  const handleFile = async (file: File) => {
+    setUploadError('');
+    const ALLOWED = ['image/png','image/jpeg','image/webp','image/svg+xml','application/pdf'];
+    if (!ALLOWED.includes(file.type)) { setUploadError('Invalid file type. Use PNG, JPG, WebP, SVG or PDF.'); return; }
+    if (file.size > 50 * 1024 * 1024) { setUploadError('File too large. Max 50 MB.'); return; }
+    setFileName(file.name);
+    setUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch('/api/designs/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileBase64: base64, fileName: file.name, fileType: file.type, fileSize: file.size }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setUploadedUrl(data.secure_url);
+    } catch (e: any) {
+      setUploadError(e.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
   <div className="bg-[#fff8f5] text-[#241910] min-h-screen">
-    {/* Top nav for upload flow */}
     <nav className="bg-[#fff8f5] border-b border-[#e6beb2] flex justify-between items-center w-full px-12 h-20 max-w-7xl mx-auto sticky top-0 z-50">
-      <button onClick={() => navigate('home')} className="font-bold text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif', fontSize: 32, letterSpacing: '-0.02em', lineHeight: 1 }}>OffGrid</button>
+      <button onClick={() => navigate('home')} className="font-bold text-[#aa3000] text-[32px] tracking-tighter leading-none" style={syne}>OffGrid</button>
       <div className="hidden md:flex items-center space-x-6">
-        {([['Dashboard','dashboard'],['Earnings','dashboard'],['Marketplace','shop']] as [string,Page][]).map(([l,pg]) => (
-          <button key={l} onClick={() => navigate(pg)} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</button>
+        {([['Dashboard','dashboard'],['Marketplace','shop']] as [string,Page][]).map(([l,pg]) => (
+          <button key={l} onClick={() => navigate(pg)} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={font}>{l}</button>
         ))}
       </div>
-      <div className="flex items-center gap-4">
-        <button><Icon name="notifications" size={24} className="text-[#5c4037]" /></button>
-        <div className="w-10 h-10 rounded-full overflow-hidden border border-[#e6beb2] bg-[#ffdbd0] flex items-center justify-center">
-          <span className="text-[#aa3000] font-bold text-sm">JD</span>
-        </div>
-      </div>
+      <div className="w-10 h-10 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] font-bold text-sm">JD</div>
     </nav>
+
     <main className="max-w-7xl mx-auto px-4 md:px-12 py-10">
       {/* Progress */}
-      <div className="mb-16 max-w-2xl mx-auto">
+      <div className="mb-10 max-w-2xl mx-auto">
         <div className="flex justify-between items-end mb-2">
           <div>
-            <span className="text-[10px] font-bold text-[#aa3000] uppercase tracking-widest" style={{ fontFamily: 'Inter, sans-serif' }}>Step 1 of 3</span>
-            <h1 className="text-[32px] font-bold mt-1" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.2 }}>Upload Artwork</h1>
+            <span className="text-[10px] font-bold text-[#aa3000] uppercase tracking-widest" style={font}>Step 1 of 3</span>
+            <h1 className="text-[32px] font-bold mt-1" style={{ ...syne, lineHeight: 1.2 }}>Upload Artwork</h1>
           </div>
-          <span className="text-[14px] font-semibold text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>33% Complete</span>
+          <span className="text-[14px] font-semibold text-[#5c4037]" style={font}>33% Complete</span>
         </div>
         <div className="w-full h-1 bg-[#f4dfcf] rounded-full overflow-hidden">
           <div className="w-1/3 h-full bg-[#aa3000] transition-all duration-700" />
         </div>
       </div>
 
-      {/* Bento layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        {/* Upload zone (7 cols) */}
+        {/* Upload zone */}
         <div className="md:col-span-7 space-y-6">
           <div
-            className="bg-white rounded-lg p-10 transition-all duration-300 flex flex-col items-center justify-center min-h-[400px] text-center cursor-pointer group"
-            style={{ border: '2px dashed #EDE4D8' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#aa3000'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#EDE4D8'; }}
+            className={`bg-white rounded-lg p-10 transition-all duration-300 flex flex-col items-center justify-center min-h-[400px] text-center cursor-pointer ${dragOver ? 'border-[#aa3000] bg-[#fff1e8]' : ''}`}
+            style={{ border: `2px dashed ${dragOver ? '#aa3000' : '#EDE4D8'}` }}
+            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+            onClick={() => fileRef.current?.click()}
           >
-            <div className="w-16 h-16 bg-[#ffdbd0] rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Icon name="cloud_upload" size={28} className="text-[#aa3000]" />
-            </div>
-            <h2 className="text-[24px] font-semibold mb-2" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }}>Drag &amp; drop artwork</h2>
-            <p className="text-[16px] text-[#5c4037] max-w-sm mx-auto mb-10" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.5 }}>
-              High-resolution PNG or SVG files preferred. Max file size: 50MB. Minimum dimensions: 3000px.
-            </p>
-            <button
-              className="bg-[#aa3000] text-white text-[14px] font-semibold px-10 py-4 rounded hover:brightness-110 transition-all"
-              style={{ boxShadow: '4px 4px 0px 0px #aa3000', fontFamily: 'Inter, sans-serif' }}
-            >
-              Browse Files
-            </button>
+            <input ref={fileRef} type="file" accept=".png,.jpg,.jpeg,.webp,.svg,.pdf" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+
+            {uploading ? (
+              <>
+                <div className="w-12 h-12 border-4 border-[#aa3000] border-t-transparent rounded-full animate-spin mb-6" />
+                <p className="text-[16px] text-[#5c4037]" style={font}>Uploading to Cloudinary…</p>
+              </>
+            ) : uploadedUrl ? (
+              <>
+                <img src={uploadedUrl} alt="Uploaded" className="max-h-48 rounded mb-4 object-contain border border-[#e6beb2]" />
+                <p className="text-[14px] font-semibold text-[#4f6600]" style={font}>✓ {fileName} uploaded successfully</p>
+                <button className="mt-4 text-[13px] text-[#aa3000] underline underline-offset-4" style={font} onClick={e => { e.stopPropagation(); setUploadedUrl(''); setFileName(''); }}>Upload different file</button>
+              </>
+            ) : (
+              <>
+                <div className={`w-16 h-16 bg-[#ffdbd0] rounded-full flex items-center justify-center mb-6 transition-transform ${dragOver ? 'scale-110' : ''}`}>
+                  <Icon name="cloud_upload" size={28} className="text-[#aa3000]" />
+                </div>
+                <h2 className="text-[24px] font-semibold mb-2" style={{ ...syne, lineHeight: 1.3 }}>Drag &amp; drop artwork</h2>
+                <p className="text-[15px] text-[#5c4037] max-w-sm mx-auto mb-8" style={{ ...font, lineHeight: 1.5 }}>PNG, JPG, WebP, SVG or PDF · Max 50 MB · Min 3000 px</p>
+                <button className="bg-[#aa3000] text-white text-[14px] font-semibold px-10 py-4 rounded hover:brightness-110 transition-all pointer-events-none" style={{ boxShadow: '4px 4px 0px 0px #aa3000', ...font }}>
+                  Browse Files
+                </button>
+              </>
+            )}
           </div>
-          {/* Editorial callout */}
-          <div className="bg-[#fff1e8] p-6 rounded-lg" style={{ borderLeft: '4px solid #c0f500' }}>
-            <p className="text-[16px] text-[#241910] italic" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.5 }}>
-              "Your creation is the soul of the garment. Ensure your vectors are clean and your raster images are at 300 DPI for the best physical reproduction."
+
+          {uploadError && (
+            <div className="bg-[#ffdad6] border border-[#ba1a1a] text-[#93000a] px-4 py-3 rounded text-[13px]" style={font}>
+              {uploadError}
+            </div>
+          )}
+
+          <div className="bg-[#fff1e8] p-6 rounded-lg" style={{ borderLeft: '4px solid #bdf200' }}>
+            <p className="text-[15px] text-[#241910] italic" style={{ ...font, lineHeight: 1.5 }}>
+              "Ensure your vectors are clean and raster images are at 300 DPI for the best physical reproduction."
             </p>
             <div className="mt-4 flex gap-2">
-              <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>Quality Guide</span>
-              <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>SVG Tips</span>
+              <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold rounded uppercase" style={font}>Quality Guide</span>
+              <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold rounded uppercase" style={font}>SVG Tips</span>
             </div>
           </div>
         </div>
 
-        {/* Mockup preview (5 cols) */}
+        {/* Preview */}
         <div className="md:col-span-5 sticky top-24">
           <div className="bg-[#ffeadb] rounded-xl overflow-hidden border border-[#EDE4D8] relative" style={{ aspectRatio: '4/5' }}>
-            <GradientImg gradient={GRADIENTS.hoodie} className="h-full w-full" />
-            {/* Artwork placement overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50">
-              <div className="border-2 border-[#aa3000] border-dashed w-48 h-64 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#aa3000] uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>Artwork Area</span>
+            {uploadedUrl
+              ? <img src={uploadedUrl} alt="preview" className="w-full h-full object-contain p-8 bg-white" />
+              : <GradientImg gradient={GRADIENTS.hoodie} className="h-full w-full" />
+            }
+            {!uploadedUrl && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50">
+                <div className="border-2 border-[#aa3000] border-dashed w-48 h-64 flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-[#aa3000] uppercase" style={font}>Artwork Area</span>
+                </div>
               </div>
-            </div>
-            {/* Floating indicator */}
+            )}
             <div className="absolute bottom-6 left-6 right-6 bg-[#fff8f5]/90 backdrop-blur-md p-4 rounded border border-[#e6beb2] flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-[#5c4037] uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>Preview</p>
-                <p className="text-[14px] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>Heavyweight Hoodie</p>
+                <p className="text-[10px] font-bold text-[#5c4037] uppercase" style={font}>Preview</p>
+                <p className="text-[14px] font-semibold truncate max-w-[160px]" style={font}>{fileName || 'Heavyweight Hoodie'}</p>
               </div>
               <div className="flex -space-x-2">
-                <div className="w-6 h-6 rounded-full bg-[#1A1410] border border-white" />
-                <div className="w-6 h-6 rounded-full bg-[#EDE4D8] border border-white" />
-                <div className="w-6 h-6 rounded-full bg-[#FF4D00] border border-white" />
+                {['#1A1410','#EDE4D8','#FF4D00'].map(c => <div key={c} className="w-6 h-6 rounded-full border border-white" style={{ background: c }} />)}
               </div>
             </div>
           </div>
           <div className="mt-6 flex gap-4">
-            <button className="flex-1 bg-[#f4dfcf] border border-[#e6beb2] text-[#241910] text-[14px] font-semibold py-4 rounded hover:bg-[#ebd6c7] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <button className="flex-1 bg-[#f4dfcf] border border-[#e6beb2] text-[#241910] text-[14px] font-semibold py-4 rounded hover:bg-[#ebd6c7] transition-colors" style={font}>
               Save Draft
             </button>
             <button
-              onClick={() => navigate('studio-pricing')}
-              className="flex-1 bg-[#aa3000] text-white text-[14px] font-semibold py-4 rounded transition-all"
-              style={{ boxShadow: '4px 4px 0px 0px #aa3000', fontFamily: 'Inter, sans-serif' }}
+              onClick={() => uploadedUrl ? navigate('studio-pricing') : setUploadError('Please upload your artwork first.')}
+              className={`flex-1 text-[14px] font-semibold py-4 rounded transition-all ${uploadedUrl ? 'bg-[#aa3000] text-white' : 'bg-[#f4dfcf] text-[#5c4037] cursor-not-allowed'}`}
+              style={uploadedUrl ? { boxShadow: '4px 4px 0px 0px #aa3000', ...font } : font}
             >
               Continue to Step 2
             </button>
@@ -1765,17 +1879,17 @@ const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => (
       </div>
     </main>
 
-    {/* Mobile bottom nav */}
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#fff1e8] border-t border-[#e6beb2] flex justify-around items-center h-16 z-50">
-      {[['dashboard', 'Dashboard'], ['palette', 'Designs'], ['add_circle', 'Upload'], ['insights', 'Analytics'], ['settings', 'Settings']].map(([icon, label]) => (
-        <button key={icon} className="flex flex-col items-center text-[#5c4037]">
+      {[['dashboard','Dashboard'],['palette','Designs'],['add_circle','Upload'],['insights','Analytics'],['settings','Settings']].map(([icon,label]) => (
+        <button key={icon} className="flex flex-col items-center text-[#5c4037]" onClick={() => navigate(icon === 'dashboard' ? 'dashboard' : 'studio-upload')}>
           <Icon name={icon} size={22} />
-          <span className="text-[10px]" style={{ fontFamily: 'Inter, sans-serif' }}>{label}</span>
+          <span className="text-[10px]" style={font}>{label}</span>
         </button>
       ))}
     </nav>
   </div>
-);
+  );
+};
 
 // ─────────────────────────────────────────────
 // STUDIO PRICING PAGE  (Image 8.html)

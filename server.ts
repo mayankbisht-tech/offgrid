@@ -21,8 +21,11 @@ import {
   updateCapabilityCost 
 } from './server_db.js';
 import { initDb, pool } from './server_pg.js';
+import { validateUploadFile, uploadToCloudinary, ALLOWED_MIME_TYPES, MAX_FILE_BYTES } from './src/lib/cloudinary.js';
+import { validateEnv } from './src/config/env.js';
 
 dotenv.config();
+validateEnv();
 
 const app = express();
 const PORT = 3000;
@@ -291,6 +294,64 @@ app.patch('/api/capabilities/:id', (req: express.Request, res: express.Response)
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// -------------------------------------------------------------
+// CLOUDINARY DESIGN UPLOAD (Designer role)
+// -------------------------------------------------------------
+app.post('/api/designs/upload', async (req: express.Request, res: express.Response) => {
+  try {
+    const { fileBase64, fileName, fileType, fileSize, designerId, designerName } = req.body;
+
+    if (!fileBase64 || !fileType) {
+      res.status(400).json({ error: 'fileBase64 and fileType are required.' });
+      return;
+    }
+
+    // Validate before hitting Cloudinary
+    try {
+      validateUploadFile({ size: fileSize ?? 0, type: fileType });
+    } catch (validationError: any) {
+      res.status(400).json({ error: validationError.message });
+      return;
+    }
+
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey    = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      // Cloudinary not configured — return a placeholder URL so the app stays functional
+      res.json({
+        secure_url: `https://placehold.co/800x800/aa3000/fff?text=${encodeURIComponent(fileName || 'design')}`,
+        public_id: `offgrid/designs/placeholder-${Date.now()}`,
+        configured: false,
+        message: 'Cloudinary env vars not set. Configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env to enable real uploads.',
+      });
+      return;
+    }
+
+    const result = await uploadToCloudinary(fileBase64, {
+      folder: 'offgrid/designs',
+      resourceType: 'auto',
+    });
+
+    res.json({ ...result, configured: true });
+  } catch (error: any) {
+    console.error('[/api/designs/upload] Error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cloudinary config info (safe to expose — no secrets)
+app.get('/api/cloudinary/config', (_req: express.Request, res: express.Response) => {
+  res.json({
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || null,
+    uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'offgrid_designs',
+    configured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY),
+    allowedTypes: ALLOWED_MIME_TYPES,
+    maxFileMB: MAX_FILE_BYTES / 1024 / 1024,
+  });
 });
 
 // -------------------------------------------------------------

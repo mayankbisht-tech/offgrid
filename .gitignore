@@ -1,8 +1,42 @@
+# Dependencies
 node_modules/
-build/
+
+# Build outputs
 dist/
-coverage/
-.DS_Store
-*.log
-.env*
+build/
+out/
+.next/
+
+# Environment — NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+# Allow the example file
 !.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Keys / certs — never commit
+*.pem
+*.key
+*.p12
+
+# Prisma dev migrations (keep schema, not dev migrations)
+prisma/migrations/dev/
+
+# Coverage
+coverage/
