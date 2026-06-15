@@ -94,6 +94,8 @@ export default defineConfig(() => {
         '@': rootDir,
       },
     },
+    // SPA mode: all routes fall back to index.html so react-router-dom handles navigation
+    appType: 'spa' as const,
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
