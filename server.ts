@@ -26,12 +26,14 @@ import { initDb, pool } from './server_pg.js';
 import { validateUploadFile, uploadToCloudinary, ALLOWED_MIME_TYPES, MAX_FILE_BYTES } from './src/lib/cloudinary.js';
 import { validateEnv } from './src/config/env.js';
 
+// dotenv is loaded above via `import 'dotenv/config'` so env vars are available to imports
 validateEnv();
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // -------------------------------------------------------------
 // POSTGRES AUTH & CREDENTIALS ENDPOINTS
@@ -354,6 +356,114 @@ app.get('/api/cloudinary/config', (_req: express.Request, res: express.Response)
     maxFileMB: MAX_FILE_BYTES / 1024 / 1024,
   });
 });
+
+// -------------------------------------------------------------
+// DESIGN PUBLISH — one-shot: create Design + Product with Cloudinary URL
+// -------------------------------------------------------------
+app.post('/api/designs/publish', async (req: express.Request, res: express.Response) => {
+  try {
+    const {
+      cloudinaryUrl, publicId, title, description, designerId, designerName,
+      tags, productType, baseCostINR, designerPriceINR,
+    } = req.body;
+
+    if (!cloudinaryUrl || !title || !designerId) {
+      res.status(400).json({ error: 'cloudinaryUrl, title, and designerId are required.' });
+      return;
+    }
+
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    // 1. Create Design record
+    const design = createDesign({
+      designerId,
+      designerName: designerName || 'Unknown Designer',
+      title: title.trim(),
+      description: description || '',
+      fileUrl: cloudinaryUrl,
+      fileType: (publicId?.split('.').pop() ?? 'PNG').toUpperCase(),
+      tags: Array.isArray(tags) ? tags : [],
+    });
+
+    // 2. Auto-create a Product listing so it's visible in the shop
+    const product = createProduct({
+      designId: design.id,
+      designerId,
+      designerName: designerName || 'Unknown Designer',
+      slug,
+      title: title.trim(),
+      description: description || '',
+      productType: productType || 'hoodie',
+      image: cloudinaryUrl,           // ← real Cloudinary URL
+      baseCostINR: baseCostINR ?? 300,
+      designerPriceINR: designerPriceINR ?? 150,
+      active: true,
+      featured: false,
+    });
+
+    res.status(201).json({ design, product });
+  } catch (error: any) {
+    console.error('[/api/designs/publish] Error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all designs for a specific designer (by designerId)
+app.get('/api/designers/:designerId/designs', (req: express.Request, res: express.Response) => {
+  const { designerId } = req.params;
+  const designerDesigns = designs.filter(d => d.designerId === designerId);
+  // Attach corresponding product info (image, price) for the dashboard view
+  const enriched = designerDesigns.map(d => {
+    const product = products.find(p => p.designId === d.id);
+    return {
+      ...d,
+      productId: product?.id,
+      image: d.fileUrl,  // Cloudinary URL
+      price: product ? `₹${(product.baseCostINR + product.designerPriceINR).toLocaleString('en-IN')}` : null,
+      baseCostINR: product ? product.baseCostINR : 0,
+      designerPriceINR: product ? product.designerPriceINR : 0,
+      productType: product ? product.productType : 'hoodie',
+      totalSold: product ? product.totalSold : 0,
+      active: product?.active ?? false,
+    };
+  });
+  res.json(enriched);
+});
+
+// Get products for a specific designer (for public creator profile)
+app.get('/api/designers/:designerId/products', (req: express.Request, res: express.Response) => {
+  const { designerId } = req.params;
+  res.json(products.filter(p => p.designerId === designerId));
+});
+
+// Get a designer's public details
+app.get('/api/designers/:id', async (req: express.Request, res: express.Response) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(
+      'SELECT id, name, role, username FROM offgrid_users WHERE id = $1',
+      [id]
+    );
+
+    if (rows.length === 0) {
+      // If user isn't in PostgreSQL (e.g. legacy/seed users without DB or custom designer id like 'dsg-1')
+      // we can return a fallback dummy designer
+      res.json({
+        id,
+        name: id === 'dsg-1' ? 'Karan Singh' : 'Unknown Designer',
+        username: id === 'dsg-1' ? 'karan_singh' : 'unknown_designer',
+        role: 'DESIGNER',
+      });
+      return;
+    }
+
+    res.json(rows[0]);
+  } catch (error: any) {
+    console.error('Error fetching designer:', error);
+    res.status(500).json({ error: 'Database error: ' + error.message });
+  }
+});
+
 
 // -------------------------------------------------------------
 // CLIENT ASSETS WEB HOSTING
