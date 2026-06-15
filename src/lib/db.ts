@@ -1,17 +1,20 @@
 /**
  * PostgreSQL connection pool singleton.
  * Import `pool` from here — never instantiate pg.Pool elsewhere.
+ * NOTE: dotenv must be loaded before this module is imported (done in server.ts).
  */
 import pg from 'pg';
 
 const { Pool } = pg;
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  (() => {
-    console.warn('[db] DATABASE_URL is not set — using fallback. Set it in .env for production.');
-    return '';
-  })();
+// At module load time, DATABASE_URL must already be in process.env.
+// server.ts calls dotenv.config() before importing this.
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.error('[db] FATAL: DATABASE_URL is not set. Add it to your .env file.');
+  process.exit(1);
+}
 
 export const pool = new Pool({
   connectionString,

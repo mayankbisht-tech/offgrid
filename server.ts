@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Load .env FIRST — must be before any other local imports that read process.env
+import 'dotenv/config';
+
 import express from 'express';
 import path from 'path';
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import { 
@@ -24,7 +26,6 @@ import { initDb, pool } from './server_pg.js';
 import { validateUploadFile, uploadToCloudinary, ALLOWED_MIME_TYPES, MAX_FILE_BYTES } from './src/lib/cloudinary.js';
 import { validateEnv } from './src/config/env.js';
 
-dotenv.config();
 validateEnv();
 
 const app = express();
