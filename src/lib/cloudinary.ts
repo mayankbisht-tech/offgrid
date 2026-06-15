@@ -1,7 +1,6 @@
 /**
- * Cloudinary configuration + signed-upload helper (server-only).
- * For unsigned browser uploads, use NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
- * and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET directly in the client.
+ * Cloudinary server-side upload helper.
+ * Uses the REST API with signed uploads (no SDK needed).
  */
 
 export interface CloudinaryUploadResult {
@@ -14,10 +13,8 @@ export interface CloudinaryUploadResult {
   resource_type: string;
 }
 
-/** Maximum file size: 50 MB */
-export const MAX_FILE_BYTES = 50 * 1024 * 1024;
+export const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB
 
-/** Allowed MIME types for design uploads */
 export const ALLOWED_MIME_TYPES = [
   'image/png',
   'image/jpeg',
@@ -28,10 +25,7 @@ export const ALLOWED_MIME_TYPES = [
 
 export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
 
-/**
- * Validate a file before upload.
- * Throws a descriptive error string if invalid.
- */
+/** Throws a descriptive string if the file is invalid */
 export function validateUploadFile(file: { size: number; type: string }): void {
   if (file.size > MAX_FILE_BYTES) {
     throw new Error(`File too large. Maximum size is ${MAX_FILE_BYTES / 1024 / 1024} MB.`);
@@ -44,66 +38,53 @@ export function validateUploadFile(file: { size: number; type: string }): void {
 }
 
 /**
- * Upload a file buffer to Cloudinary via REST API (server-side, signed).
- * Returns the secure URL and public_id.
+ * Upload a base64-encoded file to Cloudinary using a signed request.
+ * Requires CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in env.
  */
 export async function uploadToCloudinary(
   fileBase64: string,
   options: {
     folder?: string;
-    publicId?: string;
     resourceType?: 'image' | 'raw' | 'auto';
   } = {}
 ): Promise<CloudinaryUploadResult> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiKey    = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error(
-      '[cloudinary] Missing CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, or CLOUDINARY_API_SECRET env variables.'
+      'Missing CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY or CLOUDINARY_API_SECRET in environment.'
     );
   }
 
-  const timestamp = Math.round(Date.now() / 1000);
-  const folder = options.folder ?? 'offgrid/designs';
+  const folder       = options.folder ?? 'offgrid/designs';
   const resourceType = options.resourceType ?? 'auto';
+  const timestamp    = Math.round(Date.now() / 1000);
 
-  // Build signature string
-  const paramsToSign: Record<string, string | number> = {
-    folder,
-    timestamp,
-  };
-  if (options.publicId) paramsToSign.public_id = options.publicId;
+  // Build signature: sort params alphabetically + append secret
+  const paramsToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
 
-  const sigString =
-    Object.keys(paramsToSign)
-      .sort()
-      .map((k) => `${k}=${paramsToSign[k]}`)
-      .join('&') + apiSecret;
+  // SHA-1 via Node built-in crypto (no external deps)
+  const { createHash } = await import('crypto');
+  const signature = createHash('sha1').update(paramsToSign).digest('hex');
 
-  // SHA-1 hash via Web Crypto (works in Node 18+)
-  const encoder = new TextEncoder();
-  const data = encoder.encode(sigString);
-  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
-  const signature = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+  // Build multipart form
+  const form = new FormData();
+  // Cloudinary accepts data URIs directly
+  const mimeGuess = fileBase64.startsWith('/9j') ? 'image/jpeg' : 'image/png';
+  form.append('file', `data:${mimeGuess};base64,${fileBase64}`);
+  form.append('api_key',   apiKey);
+  form.append('timestamp', String(timestamp));
+  form.append('signature', signature);
+  form.append('folder',    folder);
 
-  const formData = new FormData();
-  formData.append('file', `data:application/octet-stream;base64,${fileBase64}`);
-  formData.append('api_key', apiKey);
-  formData.append('timestamp', String(timestamp));
-  formData.append('signature', signature);
-  formData.append('folder', folder);
-  if (options.publicId) formData.append('public_id', options.publicId);
-
-  const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
-  const response = await fetch(uploadUrl, { method: 'POST', body: formData });
+  const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+  const response = await fetch(url, { method: 'POST', body: form });
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(`[cloudinary] Upload failed: ${JSON.stringify(err)}`);
+    const err = await response.json().catch(() => ({})) as { error?: { message?: string } };
+    throw new Error(`Cloudinary upload failed: ${err?.error?.message ?? response.statusText}`);
   }
 
   return response.json() as Promise<CloudinaryUploadResult>;

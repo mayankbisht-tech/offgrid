@@ -593,19 +593,22 @@ const CartDrawer = ({
 // SEARCH OVERLAY
 // ─────────────────────────────────────────────
 const SearchOverlay = ({ onClose, navigate }: { onClose: () => void; navigate: (p: Page) => void }) => {
-  const [query, setQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery]       = useState('');
+  const [allProducts, setAll]   = useState<any[]>([]);
+  const inputRef  = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
+    fetch('/api/products').then(r => r.json()).then(d => setAll(Array.isArray(d) ? d : [])).catch(() => {});
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const suggestions = ['Neural Mesh Tee', 'Kinetica Hoodie', 'Neon Samurai', 'Void-Walker Parka', 'Horizon Cap', 'Static Wallet']
-    .filter(s => query.length > 1 && s.toLowerCase().includes(query.toLowerCase()));
+  const suggestions = allProducts
+    .filter(p => query.length > 1 && (p.title?.toLowerCase().includes(query.toLowerCase()) || p.designerName?.toLowerCase().includes(query.toLowerCase())))
+    .slice(0, 6);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose();
@@ -636,14 +639,16 @@ const SearchOverlay = ({ onClose, navigate }: { onClose: () => void; navigate: (
         </div>
         {suggestions.length > 0 ? (
           <ul className="py-2">
-            {suggestions.map(s => (
-              <li key={s}>
+            {suggestions.map((p: any) => (
+              <li key={p.id}>
                 <button
-                  onClick={() => { navigate('product'); onClose(); }}
+                  onClick={() => { navigate('shop'); onClose(); }}
                   className="w-full flex items-center gap-3 px-5 py-3 text-[14px] text-[#241910] hover:bg-[#fff1e8] transition-colors text-left"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  <Icon name="arrow_forward" size={16} className="text-[#aa3000]" /> {s}
+                  <Icon name="arrow_forward" size={16} className="text-[#aa3000]" />
+                  <span className="flex-1 truncate">{p.title}</span>
+                  <span className="text-[12px] text-[#5c4037] shrink-0">₹{(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}</span>
                 </button>
               </li>
             ))}
@@ -714,7 +719,12 @@ const Footer = () => (
 // ─────────────────────────────────────────────
 // HOME PAGE  (Image 10.html)
 // ─────────────────────────────────────────────
-const HomePage = ({ navigate, onAddToCart, onAuthClick }: { navigate: (p: Page) => void; onAddToCart: (i: Omit<CartItem,'qty'>) => void; onAuthClick: () => void }) => (
+const HomePage = ({ navigate, onAddToCart, onAuthClick }: { navigate: (p: Page) => void; onAddToCart: (i: Omit<CartItem,'qty'>) => void; onAuthClick: () => void }) => {
+  const [trending, setTrending] = useState<any[]>([]);
+  useEffect(() => {
+    fetch('/api/products').then(r => r.json()).then(d => setTrending(Array.isArray(d) ? d.slice(0, 4) : [])).catch(() => {});
+  }, []);
+  return (
   <div className="bg-[#fff8f5] text-[#241910] overflow-x-hidden">
     {/* Hero */}
     <section className="relative min-h-[870px] flex items-center overflow-hidden px-12" style={{ background: 'linear-gradient(180deg, #aa3000 0%, #fff8f5 100%)' }}>
@@ -765,47 +775,58 @@ const HomePage = ({ navigate, onAddToCart, onAuthClick }: { navigate: (p: Page) 
         </div>
         <button onClick={() => navigate('shop')} className="text-[14px] text-[#aa3000] underline underline-offset-4 uppercase font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>View All</button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        {/* Main large card */}
-        <div
-          className="md:col-span-2 md:row-span-2 relative group bg-[#fff1e8] overflow-hidden rounded-lg cursor-pointer min-h-[400px]"
-          style={{ border: '1px solid #EDE4D8' }}
-          onClick={() => navigate('product')}
-        >
-          <div className="w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-105">
-            <GradientImg gradient={GRADIENTS.parka} className="h-full" />
-          </div>
-          <div className="absolute bottom-0 left-0 w-full p-6" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
-            <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold uppercase rounded mb-2 inline-block" style={{ fontFamily: 'Inter, sans-serif' }}>Best Seller</span>
-            <h4 className="text-white text-[24px] font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>Void-Walker Parka</h4>
-            <p className="text-white/80 text-[14px] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>$450.00</p>
-            <button className="bg-white text-[#241910] text-[14px] font-semibold px-6 py-2 rounded-sm hover:bg-[#aa3000] hover:text-white transition-colors uppercase" style={{ fontFamily: 'Inter, sans-serif' }} onClick={() => onAddToCart({ name: 'Void-Walker Parka', price: '$450.00', gradient: GRADIENTS.parka })}>QUICK ADD</button>
-          </div>
+
+      {trending.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 border border-[#e6beb2] rounded-lg gap-4 text-center">
+          <Icon name="palette" size={40} className="text-[#e6beb2]" />
+          <p className="text-[18px] font-semibold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>No products yet</p>
+          <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Designers haven't published anything yet. Check back soon!</p>
+          <button onClick={() => navigate('shop')} className="bg-[#aa3000] text-white px-6 py-3 text-[14px] font-semibold rounded hover:bg-[#d43f00] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Browse Shop</button>
         </div>
-        {/* Small cards */}
-        {[
-          { name: 'Neural Frames 01', price: '$120.00', gradient: GRADIENTS.frames },
-          { name: 'Kinetic Soles L2', price: '$280.00', gradient: GRADIENTS.sneakers },
-        ].map(p => (
-          <div key={p.name} className="bg-white group cursor-pointer" style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('product')}>
-            <div className="overflow-hidden rounded h-64 mb-4">
-              <div className="w-full h-full transition-transform duration-500 group-hover:scale-110">
-                <GradientImg gradient={p.gradient} className="h-full" />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          {/* Main large card — first product */}
+          {trending[0] && (
+            <div className="md:col-span-2 md:row-span-2 relative group bg-[#fff1e8] overflow-hidden rounded-lg cursor-pointer min-h-[400px]"
+              style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('shop')}>
+              {trending[0].image
+                ? <img src={trending[0].image} alt={trending[0].title} className="w-full h-full absolute inset-0 object-cover transition-transform duration-700 group-hover:scale-105" />
+                : <div className="w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-105"><GradientImg gradient={GRADIENTS.parka} className="h-full" /></div>
+              }
+              <div className="absolute bottom-0 left-0 w-full p-6" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+                {trending[0].featured && <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold uppercase rounded mb-2 inline-block" style={{ fontFamily: 'Inter, sans-serif' }}>Best Seller</span>}
+                <h4 className="text-white text-[24px] font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>{trending[0].title}</h4>
+                <p className="text-white/80 text-[14px] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>₹{(trending[0].baseCostINR + trending[0].designerPriceINR).toLocaleString('en-IN')}</p>
+                <button className="bg-white text-[#241910] text-[14px] font-semibold px-6 py-2 rounded-sm hover:bg-[#aa3000] hover:text-white transition-colors uppercase" style={{ fontFamily: 'Inter, sans-serif' }}
+                  onClick={e => { e.stopPropagation(); onAddToCart({ name: trending[0].title, price: `₹${trending[0].baseCostINR + trending[0].designerPriceINR}`, gradient: GRADIENTS.parka }); }}>
+                  QUICK ADD
+                </button>
               </div>
             </div>
-            <div className="p-4">
-              <h5 className="text-[14px] font-semibold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>{p.name}</h5>
-              <p className="text-[#5c4037] text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }}>{p.price}</p>
+          )}
+          {/* Small cards — next 2 products */}
+          {trending.slice(1, 3).map((p: any) => (
+            <div key={p.id} className="bg-white group cursor-pointer" style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('shop')}>
+              <div className="overflow-hidden rounded h-64 mb-4">
+                {p.image
+                  ? <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  : <GradientImg gradient={GRADIENTS.tee} className="h-full" />
+                }
+              </div>
+              <div className="p-4">
+                <h5 className="text-[14px] font-semibold text-[#241910] truncate" style={{ fontFamily: 'Inter, sans-serif' }}>{p.title}</h5>
+                <p className="text-[#5c4037] text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }}>₹{(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}</p>
+              </div>
             </div>
+          ))}
+          {/* CTA banner */}
+          <div className="md:col-span-2 bg-[#bdf200]/10 border-2 border-[#bdf200] p-10 flex flex-col justify-center items-center text-center">
+            <h5 className="text-[24px] font-semibold text-[#241910] mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>Exclusive Creator Drops</h5>
+            <p className="text-[16px] text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Sign up to get early access when new designs go live.</p>
+            <button className="bg-[#241910] text-[#fff8f5] text-[14px] font-semibold px-10 py-6 rounded hover:bg-[#aa3000] transition-all uppercase" style={{ fontFamily: 'Inter, sans-serif' }} onClick={onAuthClick}>SIGN UP FOR ALERTS</button>
           </div>
-        ))}
-        {/* Alert banner */}
-        <div className="md:col-span-2 bg-[#bdf200]/10 border-2 border-[#bdf200] p-10 flex flex-col justify-center items-center text-center">
-          <h5 className="text-[24px] font-semibold text-[#241910] mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>Exclusive Creator Drop</h5>
-          <p className="text-[16px] text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Limited to 50 pieces worldwide. Each item comes with a verified digital twin.</p>
-          <button className="bg-[#241910] text-[#fff8f5] text-[14px] font-semibold px-10 py-6 rounded hover:bg-[#aa3000] transition-all uppercase" style={{ fontFamily: 'Inter, sans-serif' }} onClick={onAuthClick}>SIGN UP FOR ALERTS</button>
         </div>
-      </div>
+      )}
     </section>
 
     {/* Creator Spotlight */}
@@ -901,22 +922,25 @@ const HomePage = ({ navigate, onAddToCart, onAuthClick }: { navigate: (p: Page) 
 
     <Footer />
   </div>
-);
+  );
+};
 
 // ─────────────────────────────────────────────
-// SHOP PAGE  (Image 14.html)
+// SHOP PAGE  — live products from API
 // ─────────────────────────────────────────────
 const ShopPage = ({ navigate, onAddToCart }: { navigate: (p: Page) => void; onAddToCart: (i: Omit<CartItem,'qty'>) => void }) => {
-  const products = [
-    { name: 'Neural Mesh Tee', price: '$75.00', badge: 'New Drop', gradient: GRADIENTS.tee },
-    { name: 'Kinetica Hoodie', price: '$120.00', badge: null, gradient: GRADIENTS.hoodie },
-    { name: 'Onyx Pulse Print', price: '$55.00', badge: null, gradient: GRADIENTS.print },
-    { name: 'Brutalist Vessel 01', price: '$180.00', badge: null, gradient: GRADIENTS.vessel },
-    { name: 'Syntax Error Tee', price: '$68.00', badge: null, gradient: GRADIENTS.tee },
-    { name: 'Horizon Cap', price: '$45.00', badge: null, gradient: GRADIENTS.cap },
-    { name: 'Neo-Utility Pants', price: '$145.00', badge: null, gradient: GRADIENTS.pants },
-    { name: 'Static Wallet', price: '$90.00', badge: null, gradient: GRADIENTS.wallet },
-  ];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(data => { setProducts(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const font = { fontFamily: 'Inter, sans-serif' };
+  const syne = { fontFamily: 'Syne, sans-serif' };
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #FFF8F5 0%, #FFD0B0 50%, #FFB59E 100%)' }}>
@@ -962,61 +986,58 @@ const ShopPage = ({ navigate, onAddToCart }: { navigate: (p: Page) => void; onAd
           {/* Product grid */}
           <div className="flex-1">
             <div className="flex items-baseline justify-between mb-10 pl-6" style={{ borderLeft: '4px solid #bdf200' }}>
-              <h1 className="text-[48px] font-bold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.1, letterSpacing: '-0.01em' }}>Browse All Art</h1>
-              <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Showing 24 of 142 results</p>
+              <h1 className="text-[48px] font-bold text-[#241910]" style={{ ...syne, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Browse All Art</h1>
+              <p className="text-[14px] text-[#5c4037]" style={font}>{products.length} result{products.length !== 1 ? 's' : ''}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {products.map(p => (
-                <div
-                  key={p.name}
-                  className="group bg-white border border-[#e6beb2] rounded p-4 transition-all duration-300"
-                  style={{ }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '4px 4px 0px 0px #aa3000'; (e.currentTarget as HTMLDivElement).style.transform = 'translate(-2px, -2px)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = ''; (e.currentTarget as HTMLDivElement).style.transform = ''; }}
-                >
-                  <div
-                    className="relative overflow-hidden mb-4 bg-[#ffeadb] cursor-pointer"
-                    style={{ aspectRatio: '3/4' }}
-                    onClick={() => navigate('product')}
-                  >
-                    <div className="w-full h-full transition-transform duration-500 group-hover:scale-110">
-                      <GradientImg gradient={p.gradient} className="h-full" />
-                    </div>
-                    {p.badge && (
-                      <span className="absolute top-2 right-2 bg-[#bdf200] text-[#526b00] text-[10px] font-bold px-2 py-0.5 rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{p.badge}</span>
-                    )}
-                    {/* Quick add overlay */}
-                    <div className="absolute inset-x-0 bottom-0 bg-[#aa3000] py-2 text-white text-[11px] font-bold uppercase tracking-wider text-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={e => { e.stopPropagation(); onAddToCart({ name: p.name, price: p.price, gradient: p.gradient }); }}
+
+            {loading && (
+              <div className="flex items-center justify-center h-64">
+                <div className="w-10 h-10 border-4 border-[#aa3000] border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!loading && products.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-64 gap-4 text-center border border-[#e6beb2] rounded-lg bg-white p-12">
+                <Icon name="palette" size={48} className="text-[#e6beb2]" />
+                <p className="text-[18px] font-semibold text-[#241910]" style={syne}>No designs yet</p>
+                <p className="text-[14px] text-[#5c4037]" style={font}>Designers haven't published any products yet. Be the first!</p>
+              </div>
+            )}
+
+            {!loading && products.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {products.map((p: any) => {
+                  const price = `₹${(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}`;
+                  return (
+                    <div key={p.id}
+                      className="group bg-white border border-[#e6beb2] rounded p-4 transition-all duration-300"
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '4px 4px 0px 0px #aa3000'; (e.currentTarget as HTMLDivElement).style.transform = 'translate(-2px,-2px)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = ''; (e.currentTarget as HTMLDivElement).style.transform = ''; }}
                     >
-                      + Quick Add
+                      <div className="relative overflow-hidden mb-4 bg-[#ffeadb] cursor-pointer" style={{ aspectRatio: '3/4' }} onClick={() => navigate('product')}>
+                        {p.image
+                          ? <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          : <GradientImg gradient={GRADIENTS.tee} className="h-full" />
+                        }
+                        {p.featured && <span className="absolute top-2 right-2 bg-[#bdf200] text-[#526b00] text-[10px] font-bold px-2 py-0.5 rounded uppercase" style={font}>Featured</span>}
+                        <div className="absolute inset-x-0 bottom-0 bg-[#aa3000] py-2 text-white text-[11px] font-bold uppercase tracking-wider text-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={e => { e.stopPropagation(); onAddToCart({ name: p.title, price, gradient: GRADIENTS.tee }); }}>
+                          + Quick Add
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-[#5c4037] mb-1 truncate" style={font}>by {p.designerName}</p>
+                      <h4 className="text-[16px] font-semibold text-[#241910] mb-1 cursor-pointer hover:text-[#aa3000] transition-colors truncate" style={{ ...syne, lineHeight: 1.3 }} onClick={() => navigate('product')}>{p.title}</h4>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[16px] font-bold text-[#aa3000]" style={font}>{price}</span>
+                        <button onClick={() => onAddToCart({ name: p.title, price, gradient: GRADIENTS.tee })} className="text-[#5c4037] hover:text-[#aa3000] transition-colors" aria-label="Add to cart">
+                          <Icon name="shopping_bag" size={20} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <h4 className="text-[18px] font-semibold text-[#241910] mb-1 cursor-pointer hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }} onClick={() => navigate('product')}>{p.name}</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[18px] font-bold text-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>{p.price}</span>
-                    <button
-                      onClick={() => onAddToCart({ name: p.name, price: p.price, gradient: p.gradient })}
-                      className="text-[#5c4037] hover:text-[#aa3000] transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <Icon name="shopping_bag" size={20} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Pagination */}
-            <div className="mt-16 flex justify-center gap-4">
-              {[1, 2, 3].map(n => (
-                <button key={n} className={`w-12 h-12 flex items-center justify-center border rounded text-[14px] font-semibold transition-all hover:bg-[#aa3000] hover:text-white ${n === 2 ? 'border-[#aa3000] bg-[#aa3000] text-white font-bold' : 'border-[#e6beb2]'}`} style={{ ...(n === 2 ? { boxShadow: '4px 4px 0px 0px #aa3000' } : {}), fontFamily: 'Inter, sans-serif' }}>
-                  {n}
-                </button>
-              ))}
-              <button className="w-12 h-12 flex items-center justify-center border border-[#e6beb2] rounded hover:bg-[#aa3000] hover:text-white transition-all">
-                <Icon name="chevron_right" size={20} />
-              </button>
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -1416,9 +1437,29 @@ const StudioHeader = ({ navigate }: { navigate: (p: Page) => void }) => (
 // DASHBOARD PAGE  (Image 4.html)
 // ─────────────────────────────────────────────
 const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
-  const [tab, setTab] = useState<'overview'|'analytics'|'payouts'|'settings'>('overview');
+  const [tab, setTab]           = useState<'overview'|'analytics'|'payouts'|'settings'>('overview');
+  const [designs, setDesigns]   = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders]     = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/products').then(r => r.json()).catch(() => []),
+      fetch('/api/orders').then(r => r.json()).catch(() => []),
+      fetch('/api/designs').then(r => r.json()).catch(() => []),
+    ]).then(([p, o, d]) => {
+      setProducts(Array.isArray(p) ? p : []);
+      setOrders(Array.isArray(o) ? o : []);
+      setDesigns(Array.isArray(d) ? d : []);
+      setLoading(false);
+    });
+  }, []);
+
+  const totalRevenue = orders.reduce((s: number, o: any) => s + (o.subtotalINR ?? 0), 0);
+  const totalSold    = products.reduce((s: number, p: any) => s + (p.totalSold ?? 0), 0);
 
   // Sidebar items wired to tabs
   const sidebarItems = [
@@ -1475,9 +1516,11 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
         {/* Greeting */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div>
-            <h2 className="text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif', fontSize: 48, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Welcome back, Jane.</h2>
-            <p className="text-[18px] text-[#5c4037] max-w-xl pl-6 mt-2" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6, borderLeft: '4px solid #bdf200' }}>
-              Your limited-edition streetwear drops are performing 24% above average this month. Keep the momentum going.
+            <h2 className="text-[#aa3000]" style={{ ...syne, fontSize: 48, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Creator Studio</h2>
+            <p className="text-[18px] text-[#5c4037] max-w-xl pl-6 mt-2" style={{ ...font, lineHeight: 1.6, borderLeft: '4px solid #bdf200' }}>
+              {products.length > 0
+                ? `${products.length} product${products.length !== 1 ? 's' : ''} published · ${totalSold} units sold`
+                : 'Upload your first design to get started.'}
             </p>
           </div>
         </div>
@@ -1485,9 +1528,9 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
         {/* Stats bento */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {[
-            { label: 'Available Payout', value: '$2,450.00', sub: '+12.5% vs last month', subIcon: 'trending_up', bgIcon: 'payments', color: '#4f6600' },
-            { label: 'Active Designs', value: '08', sub: 'Capacity: 8/12 Slots', subIcon: null, bgIcon: 'auto_awesome', color: null },
-            { label: 'Global Reach', value: '1.2k', sub: '+ New followers', subIcon: null, bgIcon: null, color: null },
+            { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString('en-IN')}`, subIcon: 'trending_up', bgIcon: 'payments', color: '#4f6600', sub: `${orders.length} order${orders.length !== 1 ? 's' : ''}` },
+            { label: 'Active Designs', value: String(products.length), sub: `${designs.length} design${designs.length !== 1 ? 's' : ''} uploaded`, subIcon: null, bgIcon: 'auto_awesome', color: null },
+            { label: 'Units Sold', value: String(totalSold), sub: 'across all products', subIcon: null, bgIcon: null, color: null },
           ].map(s => (
             <div key={s.label} className="p-10 rounded-xl relative overflow-hidden flex flex-col justify-between h-48" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid #e6beb2' }}>
               <div className="z-10">
@@ -1528,30 +1571,25 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
 
         {/* Active designs */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-[24px] font-semibold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }}>Your Active Designs</h3>
-          <a href="#" className="text-[14px] font-semibold text-[#aa3000] flex items-center gap-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-            View All <Icon name="arrow_forward" size={14} />
-          </a>
+          <h3 className="text-[24px] font-semibold text-[#241910]" style={{ ...syne, lineHeight: 1.3 }}>Your Active Products</h3>
+          <button onClick={() => navigate('studio-upload')} className="text-[14px] font-semibold text-[#aa3000] flex items-center gap-1" style={font}>
+            + Upload New <Icon name="arrow_forward" size={14} />
+          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { name: 'Neon Nomad Hoodie', sub: 'Drop #042 • 120 Units Left', badge: 'Selling Fast', badgeBg: '#bdf200', badgeFg: '#526b00', g: GRADIENTS.hoodie },
-            { name: 'Cyber-Punk Tee', sub: 'Drop #039 • 450 Units Left', badge: 'Steady', badgeBg: '#f4dfcf', badgeFg: '#5c4037', g: GRADIENTS.tee },
-            { name: 'Geometric Longsleeve', sub: 'Drop #038 • 12 Units Left', badge: 'Limited', badgeBg: '#aa3000', badgeFg: '#fff', g: GRADIENTS.art1 },
-          ].map(d => (
-            <div key={d.name} className="group cursor-pointer" onClick={() => navigate('product')}>
+          {loading && <div className="col-span-4 h-40 flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#aa3000] border-t-transparent rounded-full animate-spin" /></div>}
+          {!loading && products.map((d: any) => (
+            <div key={d.id} className="group cursor-pointer" onClick={() => navigate('product')}>
               <div className="relative rounded-lg overflow-hidden border border-[#e6beb2] mb-4" style={{ aspectRatio: '3/4' }}>
-                <div className="w-full h-full grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500">
-                  <GradientImg gradient={d.g} className="h-full" />
-                </div>
+                {d.image ? <img src={d.image} alt={d.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500" /> : <GradientImg gradient={GRADIENTS.hoodie} className="h-full" />}
                 <div className="absolute top-4 right-4">
-                  <span className="px-2 py-1 rounded text-[10px] font-bold uppercase" style={{ background: d.badgeBg, color: d.badgeFg, fontFamily: 'Inter, sans-serif' }}>{d.badge}</span>
+                  <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-[#ffeadb] text-[#aa3000]" style={font}>{d.productType}</span>
                 </div>
               </div>
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="text-[14px] font-semibold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>{d.name}</h4>
-                  <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{d.sub}</p>
+                  <h4 className="text-[14px] font-semibold text-[#241910] truncate max-w-[140px]" style={font}>{d.title}</h4>
+                  <p className="text-[12px] text-[#5c4037]" style={font}>{d.totalSold ?? 0} sold · ₹{(d.baseCostINR + d.designerPriceINR).toLocaleString('en-IN')}</p>
                 </div>
                 <Icon name="more_vert" size={20} className="text-[#5c4037] cursor-pointer hover:text-[#aa3000]" />
               </div>
@@ -1562,49 +1600,57 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
             <div className="w-16 h-16 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] mb-4">
               <Icon name="add" size={32} className="text-[#aa3000]" />
             </div>
-            <h4 className="text-[#241910] font-semibold mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>New Release</h4>
-            <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Push your next design to the OffGrid marketplace</p>
+            <h4 className="text-[#241910] font-semibold mb-1" style={syne}>New Release</h4>
+            <p className="text-[14px] text-[#5c4037]" style={font}>Upload artwork and publish to the marketplace</p>
           </div>
         </div>
 
         {/* Recent activity */}
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-2">
-            <h3 className="text-[24px] font-semibold text-[#241910] mb-10" style={{ fontFamily: 'Syne, sans-serif' }}>Recent Sales Activity</h3>
+            <h3 className="text-[24px] font-semibold text-[#241910] mb-10" style={syne}>Recent Orders</h3>
+            {orders.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center h-40 gap-3 border border-[#e6beb2] rounded-lg text-center p-8">
+                <Icon name="shopping_bag" size={36} className="text-[#e6beb2]" />
+                <p className="text-[14px] text-[#5c4037]" style={font}>No orders yet.</p>
+              </div>
+            )}
             <div className="space-y-4">
-              {[
-                { item: 'Neon Nomad Hoodie Sold', when: '2 minutes ago • London, UK', amount: '+$45.00', bg: '#ffdbd0', opacity: '1' },
-                { item: 'Cyber-Punk Tee Sold (x2)', when: '1 hour ago • Tokyo, JP', amount: '+$70.00', bg: '#c0f500', opacity: '0.8' },
-                { item: 'Geometric Longsleeve Sold', when: '4 hours ago • New York, US', amount: '+$38.00', bg: '#ede0d9', opacity: '0.6' },
-              ].map(a => (
-                <div key={a.item} className="flex items-center justify-between p-6 rounded-lg" style={{ opacity: a.opacity, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid #e6beb2' }}>
+              {orders.slice(0, 5).map((o: any, idx: number) => (
+                <div key={o.id} className="flex items-center justify-between p-6 rounded-lg" style={{ opacity: 1 - idx * 0.15, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid #e6beb2' }}>
                   <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 rounded flex items-center justify-center" style={{ background: a.bg }}>
+                    <div className="w-12 h-12 rounded flex items-center justify-center bg-[#ffdbd0]">
                       <Icon name="shopping_bag" size={20} className="text-[#aa3000]" />
                     </div>
                     <div>
-                      <p className="text-[14px] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>{a.item}</p>
-                      <p className="text-[10px] uppercase text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{a.when}</p>
+                      <p className="text-[14px] font-semibold" style={font}>{o.items?.[0]?.productTitle ?? 'Order'}</p>
+                      <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{o.status} · {o.consumerName}</p>
                     </div>
                   </div>
-                  <p className="text-[24px] font-semibold text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif' }}>{a.amount}</p>
+                  <p className="text-[20px] font-semibold text-[#aa3000]" style={syne}>₹{o.subtotalINR?.toLocaleString('en-IN')}</p>
                 </div>
               ))}
             </div>
           </div>
           <div className="flex flex-col gap-10">
             <div className="p-10 bg-[#241910] text-[#fff8f5] rounded-xl">
-              <h4 className="font-semibold mb-4" style={{ fontFamily: 'Syne, sans-serif', fontSize: 20 }}>Elite Status Perks</h4>
-              <p className="text-[14px] opacity-80 mb-6" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.5 }}>You've unlocked higher commission rates and featured placement for your next 3 drops.</p>
-              <button className="w-full py-4 border border-[#fff8f5] text-[#fff8f5] text-[14px] font-semibold rounded-lg hover:bg-[#fff8f5] hover:text-[#241910] transition-all uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>Claim Benefits</button>
+              <h4 className="font-semibold mb-4" style={{ ...syne, fontSize: 20 }}>Upload Your Next Design</h4>
+              <p className="text-[14px] opacity-80 mb-6" style={{ ...font, lineHeight: 1.5 }}>Every design you upload becomes a live product available to shoppers globally.</p>
+              <button onClick={() => navigate('studio-upload')} className="w-full py-4 border border-[#fff8f5] text-[#fff8f5] text-[14px] font-semibold rounded-lg hover:bg-[#fff8f5] hover:text-[#241910] transition-all uppercase" style={font}>
+                Start Upload
+              </button>
             </div>
             <div className="p-10 border border-[#e6beb2] rounded-xl bg-[#fff1e8]">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Drop Countdown</span>
-              <div className="mt-4 flex gap-4">
-                {[['02', 'Days'], ['14', 'Hrs'], ['55', 'Min']].map(([v, l]) => (
-                  <div key={l} className="flex-1 text-center">
-                    <p className="text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif', fontSize: 48, fontWeight: 700, lineHeight: 1.1 }}>{v}</p>
-                    <p className="text-[10px] uppercase text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037]" style={font}>Platform Summary</span>
+              <div className="mt-4 space-y-3">
+                {[
+                  [`${designs.length}`, 'Designs Uploaded'],
+                  [`${products.length}`, 'Active Products'],
+                  [`${orders.length}`, 'Orders Received'],
+                ].map(([v, l]) => (
+                  <div key={l} className="flex items-center justify-between">
+                    <span className="text-[14px] text-[#5c4037]" style={font}>{l}</span>
+                    <span className="text-[24px] font-bold text-[#aa3000]" style={syne}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -1718,21 +1764,28 @@ const DashboardPage = ({ navigate }: { navigate: (p: Page) => void }) => {
 // STUDIO UPLOAD PAGE  (Image 6.html) — Cloudinary upload
 // ─────────────────────────────────────────────
 const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => {
-  const [dragOver, setDragOver]       = useState(false);
-  const [uploading, setUploading]     = useState(false);
-  const [uploadError, setUploadError] = useState('');
-  const [uploadedUrl, setUploadedUrl] = useState('');
-  const [fileName, setFileName]       = useState('');
+  const [dragOver, setDragOver]         = useState(false);
+  const [uploading, setUploading]       = useState(false);
+  const [uploadError, setUploadError]   = useState('');
+  const [uploadedUrl, setUploadedUrl]   = useState('');
+  const [uploadedPublicId, setPublicId] = useState('');
+  const [fileName, setFileName]         = useState('');
+  const [designTitle, setDesignTitle]   = useState('');
+  const [saving, setSaving]             = useState(false);
+  const [saved, setSaved]               = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
 
   const handleFile = async (file: File) => {
     setUploadError('');
+    setSaved(false);
     const ALLOWED = ['image/png','image/jpeg','image/webp','image/svg+xml','application/pdf'];
     if (!ALLOWED.includes(file.type)) { setUploadError('Invalid file type. Use PNG, JPG, WebP, SVG or PDF.'); return; }
     if (file.size > 50 * 1024 * 1024) { setUploadError('File too large. Max 50 MB.'); return; }
     setFileName(file.name);
+    // Auto-fill title from filename if empty
+    if (!designTitle) setDesignTitle(file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
     setUploading(true);
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -1749,10 +1802,39 @@ const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       setUploadedUrl(data.secure_url);
+      setPublicId(data.public_id ?? '');
     } catch (e: any) {
       setUploadError(e.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Save design record to the server DB
+  const handleSaveDesign = async () => {
+    if (!uploadedUrl) { setUploadError('Upload a file first.'); return; }
+    if (!designTitle.trim()) { setUploadError('Please enter a design title.'); return; }
+    setSaving(true);
+    setUploadError('');
+    try {
+      const res = await fetch('/api/designs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: designTitle.trim(),
+          description: '',
+          fileUrl: uploadedUrl,
+          fileType: fileName.split('.').pop()?.toUpperCase() ?? 'PNG',
+          tags: [],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save design');
+      setSaved(true);
+    } catch (e: any) {
+      setUploadError(e.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -1805,8 +1887,33 @@ const StudioUploadPage = ({ navigate }: { navigate: (p: Page) => void }) => {
             ) : uploadedUrl ? (
               <>
                 <img src={uploadedUrl} alt="Uploaded" className="max-h-48 rounded mb-4 object-contain border border-[#e6beb2]" />
-                <p className="text-[14px] font-semibold text-[#4f6600]" style={font}>✓ {fileName} uploaded successfully</p>
-                <button className="mt-4 text-[13px] text-[#aa3000] underline underline-offset-4" style={font} onClick={e => { e.stopPropagation(); setUploadedUrl(''); setFileName(''); }}>Upload different file</button>
+                <p className="text-[14px] font-semibold text-[#4f6600] mb-4" style={font}>✓ {fileName} uploaded to Cloudinary</p>
+                {/* Title input */}
+                <div className="w-full text-left mb-3" onClick={e => e.stopPropagation()}>
+                  <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>Design Title *</label>
+                  <input
+                    type="text"
+                    value={designTitle}
+                    onChange={e => setDesignTitle(e.target.value)}
+                    placeholder="e.g. Neon Samurai Graphic"
+                    className="w-full bg-white border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                    style={font}
+                  />
+                </div>
+                {saved
+                  ? <p className="text-[14px] font-semibold text-[#4f6600]" style={font}>✅ Design saved to your portfolio!</p>
+                  : (
+                    <button
+                      onClick={e => { e.stopPropagation(); handleSaveDesign(); }}
+                      disabled={saving}
+                      className="mt-2 bg-[#4f6600] text-white text-[13px] font-semibold px-6 py-2.5 rounded hover:brightness-110 transition-all disabled:opacity-50"
+                      style={font}
+                    >
+                      {saving ? 'Saving…' : 'Save Design to Portfolio'}
+                    </button>
+                  )
+                }
+                <button className="mt-3 text-[13px] text-[#aa3000] underline underline-offset-4" style={font} onClick={e => { e.stopPropagation(); setUploadedUrl(''); setFileName(''); setDesignTitle(''); setSaved(false); }}>Upload different file</button>
               </>
             ) : (
               <>
