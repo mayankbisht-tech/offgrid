@@ -30,7 +30,7 @@ import { validateEnv } from './src/config/env.js';
 validateEnv();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
