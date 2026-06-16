@@ -405,17 +405,6 @@ const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?: (u: Au
                 <input type="password" required value={siPass} onChange={e => setSiPass(e.target.value)}
                   placeholder="••••••••" className={inputCls} style={font} />
               </div>
-              <div className="bg-[#fff1e8] border border-[#e6beb2] rounded p-3 text-[11px] text-[#5c4037]" style={font}>
-                <p className="font-bold mb-1 text-[#aa3000]">Test accounts (any password: password123)</p>
-                <div className="flex flex-wrap gap-2">
-                  {[['karan@offgrid.in', 'Designer'], ['mumbai@offgrid.in', 'Manufacturer'], ['mayankbisht1107@gmail.com', 'Consumer']].map(([e, r]) => (
-                    <button key={e} type="button" onClick={() => { setSiEmail(e); setSiPass('password123'); }}
-                      className="px-2 py-1 bg-white border border-[#e6beb2] rounded hover:border-[#aa3000] transition-colors text-[11px]" style={font}>
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <button type="submit" disabled={authLoading}
                 className="w-full bg-[#aa3000] text-white py-4 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] active:scale-95 transition-all rounded mt-1 disabled:opacity-50"
                 style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}>
