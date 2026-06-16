@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { apiJson } from '../lib/api';
 
 export interface AuthUser {
   id: string;
@@ -17,13 +18,11 @@ export function useAuth() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/login', {
+      const data = await apiJson<{ user: AuthUser }>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
       setUser(data.user);
       return data.user;
     } catch (e: any) {
@@ -38,13 +37,11 @@ export function useAuth() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/register', {
+      const data = await apiJson<{ user: AuthUser }>('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
       setUser(data.user);
       return data.user;
     } catch (e: any) {
