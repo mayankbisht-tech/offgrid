@@ -154,10 +154,15 @@ const TopNav = ({
         {/* Logo */}
         <button
           onClick={() => rNavigate('/')}
-          className="font-bold tracking-tighter text-[#aa3000] text-[28px] md:text-[120px] leading-none"
-          style={{ fontFamily: 'Syne, sans-serif' }}
+          className="flex items-center shrink-0"
+          aria-label="OffGrid home"
         >
-          OFFGRID
+          <img
+            src="/offgrid-logo.jpeg"
+            alt="OFFGRID"
+            className="h-10 w-auto object-contain md:h-12 lg:h-14"
+            loading="eager"
+          />
         </button>
 
         {/* Desktop Nav links */}
@@ -822,9 +827,20 @@ const HomePage = () => {
   const { addToCart, setAuthOpen } = useContext(AppContext);
   const onAddToCart = addToCart;
   const onAuthClick = () => setAuthOpen(true);
-  const [trending, setTrending] = useState<any[]>([]);
+  const [designsFeed, setDesignsFeed] = useState<any[]>([]);
   useEffect(() => {
-    fetch('/api/products').then(r => r.json()).then(d => setTrending(Array.isArray(d) ? d.slice(0, 4) : [])).catch(() => { });
+    fetch('/api/catalog')
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d) && d.length > 0) {
+          setDesignsFeed(d);
+          return;
+        }
+        return fetch('/api/products')
+          .then(r => r.json())
+          .then(products => setDesignsFeed(Array.isArray(products) ? products : []));
+      })
+      .catch(() => { });
   }, []);
   return (
     <div className="bg-[#fff8f5] text-[#241910] overflow-x-hidden">
@@ -868,64 +884,63 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Trending Products Bento */}
+      {/* Latest Designs */}
       <section className="max-w-[1200px] mx-auto px-4 md:px-12 py-16">
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h3 className="text-[24px] md:text-[32px] font-bold" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.2 }}>Trending Products</h3>
+            <h3 className="text-[24px] md:text-[32px] font-bold" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.2 }}>Latest Designs</h3>
             <div className="w-20 h-1 bg-[#aa3000] mt-2" />
           </div>
           <button onClick={() => navigate('shop')} className="text-[14px] text-[#aa3000] underline underline-offset-4 uppercase font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>View All</button>
         </div>
 
-        {trending.length === 0 ? (
+        {designsFeed.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 border border-[#e6beb2] rounded-lg gap-4 text-center">
             <Icon name="palette" size={40} className="text-[#e6beb2]" />
-            <p className="text-[18px] font-semibold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>No products yet</p>
-            <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Designers haven't published anything yet. Check back soon!</p>
+            <p className="text-[18px] font-semibold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>No designs yet</p>
+            <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Designs will appear here as soon as creators publish them.</p>
             <button onClick={() => navigate('shop')} className="bg-[#aa3000] text-white px-6 py-3 text-[14px] font-semibold rounded hover:bg-[#d43f00] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Browse Shop</button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-            {/* Main large card — first product */}
-            {trending[0] && (
-              <div className="col-span-2 md:row-span-2 relative group bg-[#fff1e8] overflow-hidden rounded-lg cursor-pointer min-h-[250px] md:min-h-[400px]"
-                style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('shop')}>
-                {trending[0].image
-                  ? <img src={trending[0].image} alt={trending[0].title} className="w-full h-full absolute inset-0 object-cover transition-transform duration-700 group-hover:scale-105" />
-                  : <div className="w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-105"><GradientImg gradient={GRADIENTS.parka} className="h-full" /></div>
-                }
-                <div className="absolute bottom-0 left-0 w-full p-6" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
-                  {trending[0].featured && <span className="bg-[#bdf200] text-[#526b00] px-2 py-1 text-[10px] font-bold uppercase rounded mb-2 inline-block" style={{ fontFamily: 'Inter, sans-serif' }}>Best Seller</span>}
-                  <h4 className="text-white text-[24px] font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>{trending[0].title}</h4>
-                  <p className="text-white/80 text-[14px] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>₹{(trending[0].baseCostINR + trending[0].designerPriceINR).toLocaleString('en-IN')}</p>
-                  <button className="bg-white text-[#241910] text-[14px] font-semibold px-6 py-2 rounded-sm hover:bg-[#aa3000] hover:text-white transition-colors uppercase" style={{ fontFamily: 'Inter, sans-serif' }}
-                    onClick={e => { e.stopPropagation(); onAddToCart({ name: trending[0].title, price: `₹${trending[0].baseCostINR + trending[0].designerPriceINR}`, gradient: GRADIENTS.parka }); }}>
-                    QUICK ADD
-                  </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
+            {designsFeed.map((item: any) => {
+              const image = item.image || item.fileUrl;
+              const displayPrice = item.price || (typeof item.baseCostINR === 'number' && typeof item.designerPriceINR === 'number'
+                ? `₹${(item.baseCostINR + item.designerPriceINR).toLocaleString('en-IN')}`
+                : 'Coming soon');
+              const cardTarget = item.productId ? `/product/${item.productId}` : `/creator/${item.designerId}`;
+              return (
+                <div key={item.id} className="bg-white group cursor-pointer border border-[#EDE4D8] rounded-lg overflow-hidden" onClick={() => navigate(cardTarget)}>
+                  <div className="overflow-hidden aspect-[3/4]">
+                    {image
+                      ? <img src={image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      : <GradientImg gradient={GRADIENTS.tee} className="h-full" />
+                    }
+                  </div>
+                  <div className="p-4">
+                    <p className="text-[11px] uppercase tracking-wider text-[#aa3000] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>{item.designerName || 'OFFGRID Creator'}</p>
+                    <h5 className="text-[15px] font-semibold text-[#241910] mt-1 truncate" style={{ fontFamily: 'Inter, sans-serif' }}>{item.title}</h5>
+                    <div className="flex items-center justify-between mt-3">
+                      <p className="text-[#5c4037] text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }}>{displayPrice}</p>
+                      <button
+                        className="bg-[#241910] text-[#fff8f5] text-[12px] font-semibold px-4 py-2 rounded uppercase"
+                        style={{ fontFamily: 'Inter, sans-serif' }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          onAddToCart({ name: item.title, price: displayPrice, gradient: GRADIENTS.tee });
+                        }}
+                      >
+                        Quick Add
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-            {/* Small cards — next 2 products */}
-            {trending.slice(1, 3).map((p: any) => (
-              <div key={p.id} className="bg-white group cursor-pointer" style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('shop')}>
-                <div className="overflow-hidden rounded h-40 md:h-64 mb-2 md:mb-4">
-                  {p.image
-                    ? <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    : <GradientImg gradient={GRADIENTS.tee} className="h-full" />
-                  }
-                </div>
-                <div className="p-2 md:p-4">
-                  <h5 className="text-[14px] font-semibold text-[#241910] truncate" style={{ fontFamily: 'Inter, sans-serif' }}>{p.title}</h5>
-                  <p className="text-[#5c4037] text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }}>₹{(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}</p>
-                </div>
-              </div>
-            ))}
-            {/* CTA banner */}
-            <div className="col-span-2 bg-[#bdf200]/10 border-2 border-[#bdf200] p-6 md:p-10 flex flex-col justify-center items-center text-center">
+              );
+            })}
+            <div className="lg:col-span-2 xl:col-span-4 bg-[#bdf200]/10 border-2 border-[#bdf200] p-6 md:p-10 flex flex-col justify-center items-center text-center rounded-lg">
               <h5 className="text-[24px] font-semibold text-[#241910] mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>Exclusive Creator Drops</h5>
               <p className="text-[16px] text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Sign up to get early access when new designs go live.</p>
-              <button className="bg-[#241910] text-[#fff8f5] text-[14px] font-semibold px-10 py-6 rounded hover:bg-[#aa3000] transition-all uppercase" style={{ fontFamily: 'Inter, sans-serif' }} onClick={onAuthClick}>SIGN UP FOR ALERTS</button>
+              <button className="bg-[#241910] text-[#fff8f5] text-[14px] font-semibold px-10 py-4 rounded hover:bg-[#aa3000] transition-all uppercase w-full sm:w-auto" style={{ fontFamily: 'Inter, sans-serif' }} onClick={onAuthClick}>SIGN UP FOR ALERTS</button>
             </div>
           </div>
         )}
@@ -1064,10 +1079,15 @@ const ShopPage = () => {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]); // empty default to show all
 
   useEffect(() => {
-    fetch('/api/products')
+    fetch('/api/catalog')
       .then(r => r.json())
       .then(data => { setProducts(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        fetch('/api/products')
+          .then(r => r.json())
+          .then(data => { setProducts(Array.isArray(data) ? data : []); setLoading(false); })
+          .catch(() => setLoading(false));
+      });
   }, []);
 
   const font = { fontFamily: 'Inter, sans-serif' };
@@ -3248,7 +3268,7 @@ export default function RootLayout() {
             >
               {/* Close Button */}
               <div className="flex items-center justify-between px-5 h-16 border-b border-[#e6beb2]">
-                <span className="text-[18px] font-bold text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif' }}>Menu</span>
+                <img src="/offgrid-logo.jpeg" alt="OFFGRID" className="h-9 w-auto object-contain" />
                 <button onClick={() => setMobileMenuOpen(false)} className="grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors">
                   <Icon name="close" size={22} />
                 </button>

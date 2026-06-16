@@ -13,8 +13,7 @@ out/
 .env.*.local
 .env.production
 .env.staging
-# Allow the example file
-!.env.example
+.env.example
 
 # Logs
 *.log
