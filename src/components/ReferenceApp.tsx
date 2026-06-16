@@ -1712,7 +1712,17 @@ const CreatorPage = () => {
 const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeItem?: string; onSignOut?: () => void }) => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
-  const { handleLogout } = useContext(AppContext);
+  const { handleLogout, user } = useContext(AppContext);
+  const sidebarName = user?.name?.trim() || 'Guest Creator';
+  const sidebarEmail = user?.email?.trim() || 'No email on file';
+  const sidebarRole = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Creator';
+  const sidebarInitials = sidebarName
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part: string) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'OG';
   const items = [
     { icon: 'dashboard', label: 'Overview', page: 'dashboard', key: 'overview' },
     { icon: 'palette', label: 'My Designs', page: 'studio-upload', key: 'designs' },
@@ -1728,9 +1738,10 @@ const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeItem?: st
         <p className="text-[12px] text-[#5c4037] opacity-70 uppercase tracking-widest font-medium mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>Creator Studio</p>
       </div>
       <div className="mb-4 px-4">
-        <div className="w-10 h-10 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] font-bold text-sm mb-2">JD</div>
-        <p className="text-[14px] font-semibold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>Jane Doe</p>
-        <p className="text-[10px] uppercase text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Elite Partner</p>
+        <div className="w-10 h-10 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] font-bold text-sm mb-2">{sidebarInitials}</div>
+        <p className="text-[14px] font-semibold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>{sidebarName}</p>
+        <p className="text-[10px] uppercase text-[#5c4037] truncate" style={{ fontFamily: 'Inter, sans-serif' }}>{sidebarEmail}</p>
+        <p className="text-[10px] uppercase text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{sidebarRole}</p>
       </div>
       <nav className="flex-1 flex flex-col gap-1">
         {items.map(item => {
@@ -1803,7 +1814,7 @@ const StudioHeader = () => {
 const DashboardPage = () => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
-  const { handleLogout, user } = useContext(AppContext);
+  const { handleLogout, handleLogin, user } = useContext(AppContext);
   const [tab, setTab] = useState<'overview' | 'analytics' | 'payouts' | 'settings'>('overview');
   const [designs, setDesigns] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -1853,8 +1864,41 @@ const DashboardPage = () => {
     return s + earnings;
   }, 0);
 
-  const displayName = loggedUser?.name || 'Guest Creator';
-  const initialInitials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  const displayName = loggedUser?.name?.trim() || 'Guest Creator';
+  const displayEmail = loggedUser?.email?.trim() || 'No email on file';
+  const roleLabel = loggedUser?.role ? loggedUser.role.charAt(0) + loggedUser.role.slice(1).toLowerCase() : 'Creator';
+  const initialInitials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'OG';
+
+  const monthlyRevenue = Array.from({ length: 6 }, (_, idx) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (5 - idx));
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const value = designerOrders.reduce((sum: number, order: any) => {
+      const createdKey = order.createdAt ? String(order.createdAt).slice(0, 7) : '';
+      if (createdKey !== monthKey || !Array.isArray(order.items)) return sum;
+      const orderEarnings = order.items.reduce((orderSum: number, item: any) => {
+        const p = designerProducts.find(prod => prod.id === item.productId);
+        return p ? orderSum + (item.quantity * p.designerPriceINR) : orderSum;
+      }, 0);
+      return sum + orderEarnings;
+    }, 0);
+    return { month, value };
+  });
+
+  const revenuePerOrder = designerOrders.length > 0 ? Math.round(totalRevenue / designerOrders.length) : 0;
+  const availablePayout = totalRevenue;
+  const pendingPayout = 0;
+
+  const [profileName, setProfileName] = useState(displayName);
+  const [profileEmail, setProfileEmail] = useState(displayEmail);
+  const [profileUsername, setProfileUsername] = useState(loggedUser?.username || '');
 
   // Sidebar items wired to tabs
   const sidebarItems = [
@@ -1878,7 +1922,8 @@ const DashboardPage = () => {
         <div className="mb-4 px-4">
           <div className="w-10 h-10 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] font-bold text-sm mb-2">{initialInitials}</div>
           <p className="text-[14px] font-semibold text-[#241910]" style={font}>{displayName}</p>
-          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>Elite Partner</p>
+          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{displayEmail}</p>
+          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{roleLabel}</p>
         </div>
         <nav className="flex-1 flex flex-col gap-1">
           {sidebarItems.map(item => {
@@ -1916,7 +1961,7 @@ const DashboardPage = () => {
                 <p className="text-[18px] text-[#5c4037] max-w-xl pl-6 mt-2" style={{ ...font, lineHeight: 1.6, borderLeft: '4px solid #bdf200' }}>
                   {designerProducts.length > 0
                     ? `${designerProducts.length} product${designerProducts.length !== 1 ? 's' : ''} published · ${totalSold} units sold`
-                    : 'Upload your first design to get started.'}
+                    : 'Upload your first design to get started. Your dashboard will update automatically as you sell.'}
                 </p>
               </div>
             </div>
@@ -2065,9 +2110,19 @@ const DashboardPage = () => {
         {/* ── Analytics tab ── */}
         {tab === 'analytics' && (
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-10">
-            <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Analytics</h2>
+            <h2 className="text-[32px] font-bold mb-2 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Analytics</h2>
+            <p className="text-[14px] text-[#5c4037] mb-8" style={{ fontFamily: 'Inter, sans-serif' }}>
+              Live account totals based on your published designs and completed orders.
+            </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-10">
-              {[['Total Views', '14,280', 'visibility'], ['Conversion Rate', '3.2%', 'percent'], ['Avg. Order Value', '$94.50', 'payments']].map(([l, v, ic]) => (
+              {[
+                ['Revenue', `₹${totalRevenue.toLocaleString('en-IN')}`, 'payments'],
+                ['Orders', String(designerOrders.length), 'shopping_bag'],
+                ['Products', String(designerProducts.length), 'palette'],
+                ['Units Sold', String(totalSold), 'inventory_2'],
+                ['Avg. Order', `₹${revenuePerOrder.toLocaleString('en-IN')}`, 'bar_chart'],
+                ['Payouts', `₹${availablePayout.toLocaleString('en-IN')}`, 'account_balance_wallet'],
+              ].map(([l, v, ic]) => (
                 <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2] flex flex-col gap-3">
                   <Icon name={ic} size={24} className="text-[#aa3000]" />
                   <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
@@ -2076,17 +2131,20 @@ const DashboardPage = () => {
               ))}
             </div>
             <div className="bg-white border border-[#e6beb2] rounded-xl p-8">
-              <p className="text-[14px] font-semibold text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Monthly Revenue (last 6 months)</p>
+              <p className="text-[14px] font-semibold text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Monthly Revenue from your orders</p>
               <div className="flex items-end gap-4 h-40">
-                {[60, 80, 45, 90, 70, 100].map((h, i) => (
+                {monthlyRevenue.map((entry, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full rounded-t" style={{ height: `${h}%`, background: i === 5 ? '#aa3000' : '#ffeadb', border: '1px solid #e6beb2' }} />
+                    <div className="w-full rounded-t" style={{ height: `${Math.max(10, Math.min(100, entry.value ? (entry.value / Math.max(...monthlyRevenue.map(x => x.value), 1)) * 100 : 10))}%`, background: i === monthlyRevenue.length - 1 ? '#aa3000' : '#ffeadb', border: '1px solid #e6beb2' }} />
                     <span className="text-[10px] text-[#5c4037] font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][i]}
+                      {entry.month}
                     </span>
                   </div>
                 ))}
               </div>
+              <p className="text-[12px] text-[#5c4037] mt-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+                This chart updates from your live order history, not sample data.
+              </p>
             </div>
           </section>
         )}
@@ -2096,7 +2154,12 @@ const DashboardPage = () => {
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-10">
             <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Payouts</h2>
             <div className="grid grid-cols-2 gap-3 md:gap-6 mb-10">
-              {[['Available Balance', '$2,450.00', '#aa3000'], ['Pending', '$380.00', '#5c4037'], ['Paid This Month', '$1,200.00', '#4f6600'], ['Total Lifetime', '$18,900.00', '#241910']].map(([l, v, c]) => (
+              {[
+                ['Available Balance', `₹${availablePayout.toLocaleString('en-IN')}`, '#aa3000'],
+                ['Pending', `₹${pendingPayout.toLocaleString('en-IN')}`, '#5c4037'],
+                ['Orders Paid', String(designerOrders.length), '#4f6600'],
+                ['Total Lifetime', `₹${totalRevenue.toLocaleString('en-IN')}`, '#241910'],
+              ].map(([l, v, c]) => (
                 <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2]">
                   <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-bold mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
                   <p className="text-[36px] font-bold" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1, color: c }}>{v}</p>
@@ -2108,13 +2171,27 @@ const DashboardPage = () => {
                 <p className="text-[14px] font-bold text-[#241910] uppercase tracking-wide" style={{ fontFamily: 'Inter, sans-serif' }}>Payout History</p>
                 <button className="text-[13px] text-[#aa3000] font-semibold underline underline-offset-4" style={{ fontFamily: 'Inter, sans-serif' }}>Request Payout</button>
               </div>
-              {[['Jun 1, 2026', '$1,200.00', 'Paid'], ['May 1, 2026', '$980.00', 'Paid'], ['Apr 1, 2026', '$1,540.00', 'Paid']].map(([d, a, s]) => (
-                <div key={d} className="flex items-center justify-between px-6 py-4 border-b border-[#e6beb2]/50">
-                  <span className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{d}</span>
-                  <span className="text-[14px] font-bold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>{a}</span>
-                  <span className="px-3 py-1 bg-[#bdf200] text-[#526b00] text-[11px] font-bold rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{s}</span>
+              {designerOrders.length === 0 ? (
+                <div className="px-6 py-10 text-center">
+                  <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>No payouts yet. Once your products sell, earnings will appear here.</p>
                 </div>
-              ))}
+              ) : (
+                designerOrders.slice(0, 5).map((order: any) => {
+                  const payout = Array.isArray(order.items)
+                    ? order.items.reduce((sum: number, item: any) => {
+                        const product = designerProducts.find((prod: any) => prod.id === item.productId);
+                        return product ? sum + (item.quantity * product.designerPriceINR) : sum;
+                      }, 0)
+                    : 0;
+                  return (
+                    <div key={order.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 px-6 py-4 border-b border-[#e6beb2]/50">
+                      <span className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{new Date(order.createdAt).toLocaleDateString('en-IN')}</span>
+                      <span className="text-[14px] font-bold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>₹{payout.toLocaleString('en-IN')}</span>
+                      <span className="px-3 py-1 bg-[#bdf200] text-[#526b00] text-[11px] font-bold rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{order.status}</span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
         )}
@@ -2123,24 +2200,40 @@ const DashboardPage = () => {
         {tab === 'settings' && (
           <section className="max-w-2xl mx-auto px-4 md:px-12 py-10">
             <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Settings</h2>
-            <div className="bg-white border border-[#e6beb2] rounded-xl p-8 space-y-6">
+            <form
+              className="bg-white border border-[#e6beb2] rounded-xl p-8 space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!loggedUser) return;
+                handleLogin({
+                  ...loggedUser,
+                  name: profileName.trim() || loggedUser.name,
+                  email: profileEmail.trim() || loggedUser.email,
+                  username: profileUsername.trim() || undefined,
+                });
+              }}
+            >
               <div>
                 <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Display Name</label>
-                <input defaultValue="Jane Doe" className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+                <input value={profileName} onChange={(e) => setProfileName(e.target.value)} className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
               </div>
               <div>
                 <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Email</label>
-                <input defaultValue="jane@offgrid.io" type="email" className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+                <input value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} type="email" className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Username / Handle</label>
+                <input value={profileUsername} onChange={(e) => setProfileUsername(e.target.value)} placeholder="Optional" className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
               </div>
               <div>
                 <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>Bio</label>
-                <textarea rows={3} defaultValue="Independent streetwear creator. Berlin × Tokyo." className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded resize-none focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
+                <textarea rows={3} defaultValue={`Independent creator at ${displayName}.`} className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded resize-none focus:outline-none focus:border-[#aa3000]" style={{ fontFamily: 'Inter, sans-serif' }} />
               </div>
               <div className="pt-2 flex gap-3">
-                <button className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#d43f00] transition-colors" style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}>Save Changes</button>
+                <button type="submit" className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#d43f00] transition-colors" style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}>Save Changes</button>
                 <button onClick={() => handleLogout()} className="px-6 py-3 border border-[#e6beb2] text-[#5c4037] text-[14px] font-semibold rounded hover:bg-[#f4dfcf] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Sign Out</button>
               </div>
-            </div>
+            </form>
           </section>
         )}
       </main>
