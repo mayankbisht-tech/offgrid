@@ -23,6 +23,36 @@ function toPath(p: string): string {
   return PAGE_PATHS[p] ?? (p.startsWith('/') ? p : `/${p}`);
 }
 
+const AUTH_STORAGE_KEYS = ['offgrid_user', 'offgrid_user_role', 'user_role', 'role'] as const;
+
+function writeAuthStorage(user: AuthUser) {
+  try {
+    AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    localStorage.setItem('offgrid_user', JSON.stringify(user));
+  } catch {
+    // Ignore storage failures and fall back to in-memory state.
+  }
+  window.dispatchEvent(new Event('offgrid-auth-change'));
+}
+
+function clearAuthStorage() {
+  try {
+    AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // Ignore storage failures and fall back to in-memory state.
+  }
+  window.dispatchEvent(new Event('offgrid-auth-change'));
+}
+
+function readAuthUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem('offgrid_user');
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
 // ─────────────────────────────────────────────
 // App-level Context (cart, auth, overlays)
 // ─────────────────────────────────────────────
@@ -245,7 +275,7 @@ const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?: (u: Au
       if (!res.ok) throw new Error(data.error || 'Login failed.');
       // Persist login to caller
       onLogin?.(data.user);
-      try { localStorage.setItem('offgrid_user', JSON.stringify(data.user)); } catch { }
+      writeAuthStorage(data.user);
       onClose();
       if (data.user?.role === 'DESIGNER' || data.user?.role === 'MANUFACTURER') navigate('/dashboard');
     } catch (err: any) {
@@ -282,7 +312,7 @@ const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?: (u: Au
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed.');
       onLogin?.(data.user);
-      try { localStorage.setItem('offgrid_user', JSON.stringify(data.user)); } catch { }
+      writeAuthStorage(data.user);
       onClose();
       if (role === 'designer' || role === 'manufacturer') navigate('/dashboard');
     } catch (err: any) {
@@ -1762,7 +1792,7 @@ const StudioHeader = () => {
 const DashboardPage = () => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
-  const { handleLogout } = useContext(AppContext);
+  const { handleLogout, user } = useContext(AppContext);
   const [tab, setTab] = useState<'overview' | 'analytics' | 'payouts' | 'settings'>('overview');
   const [designs, setDesigns] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -1771,8 +1801,7 @@ const DashboardPage = () => {
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
 
-  // Get logged-in user from localStorage
-  const loggedUser = (() => { try { const r = localStorage.getItem('offgrid_user'); return r ? JSON.parse(r) : null; } catch { return null; } })();
+  const loggedUser = user;
 
   useEffect(() => {
     const designerId = loggedUser?.id;
@@ -2359,8 +2388,8 @@ const ProductMockup = ({ type, url }: { type: 'hoodie' | 'tshirt' | 'print'; url
 const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
-  const { setMobileMenuOpen } = useContext(AppContext);
-  const loggedUser = (() => { try { const r = localStorage.getItem('offgrid_user'); return r ? JSON.parse(r) : null; } catch { return null; } })();
+  const { setMobileMenuOpen, user } = useContext(AppContext);
+  const loggedUser = user;
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [uploadedUrl, setUploadedUrl] = useState('');
@@ -3063,26 +3092,21 @@ export default function RootLayout() {
   const [authOpen, setAuthOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    try {
-      const raw = localStorage.getItem('offgrid_user');
-      return raw ? JSON.parse(raw) as AuthUser : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<AuthUser | null>(() => readAuthUser());
 
   const handleLogin = (u: AuthUser) => {
     setUser(u);
-    try { localStorage.setItem('offgrid_user', JSON.stringify(u)); } catch { }
+    writeAuthStorage(u);
   };
 
   const handleLogout = () => {
     setUser(null);
-    try { localStorage.removeItem('offgrid_user'); } catch { }
+    clearAuthStorage();
     setAuthOpen(false);
     setCartOpen(false);
-    rNavigate('/');
+    setSearchOpen(false);
+    setMobileMenuOpen(false);
+    rNavigate('/', { replace: true });
   };
 
   const addToCart = (item: Omit<CartItem, 'qty'>) => {
@@ -3107,6 +3131,16 @@ export default function RootLayout() {
         .filter(item => item.qty > 0)
     );
   };
+
+  useEffect(() => {
+    const syncUser = () => setUser(readAuthUser());
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('offgrid-auth-change', syncUser as EventListener);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('offgrid-auth-change', syncUser as EventListener);
+    };
+  }, []);
 
   const isConsumerPage = !window.location.pathname.startsWith('/studio') && !window.location.pathname.startsWith('/dashboard');
 
