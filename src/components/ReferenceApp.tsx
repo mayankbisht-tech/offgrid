@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from 'react';
 import { AuthUser } from '../hooks/useAuth';
-import { useNavigate, useParams, Outlet } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, Outlet } from 'react-router-dom';
 import type { ReactNode, FormEvent } from 'react';
 
 // ─────────────────────────────────────────────
@@ -37,7 +37,8 @@ function writeAuthStorage(user: AuthUser) {
 
 function clearAuthStorage() {
   try {
-    AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    localStorage.clear();
+    sessionStorage.clear();
   } catch {
     // Ignore storage failures and fall back to in-memory state.
   }
@@ -51,6 +52,14 @@ function readAuthUser(): AuthUser | null {
   } catch {
     return null;
   }
+}
+
+export function LogoutPage() {
+  useEffect(() => {
+    clearAuthStorage();
+  }, []);
+
+  return <Navigate to="/" replace />;
 }
 
 // ─────────────────────────────────────────────
@@ -1743,7 +1752,7 @@ const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeItem?: st
         <button
           className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] transition-all rounded-lg"
           style={{ fontFamily: 'Inter, sans-serif' }}
-          onClick={() => { if (onSignOut) onSignOut(); handleLogout(); }}
+          onClick={() => { if (onSignOut) onSignOut(); navigate('/logout'); }}
         >
           <Icon name="logout" size={20} /> Sign Out
         </button>
@@ -1888,7 +1897,7 @@ const DashboardPage = () => {
           <button className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] rounded-lg" style={font}>
             <Icon name="help_outline" size={20} /> Help
           </button>
-          <button onClick={() => navigate('/')} className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] rounded-lg" style={font}>
+              <button onClick={() => navigate('/logout')} className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] rounded-lg" style={font}>
             <Icon name="logout" size={20} /> Sign Out
           </button>
         </div>
@@ -3106,7 +3115,7 @@ export default function RootLayout() {
     setCartOpen(false);
     setSearchOpen(false);
     setMobileMenuOpen(false);
-    rNavigate('/', { replace: true });
+    window.location.assign('/');
   };
 
   const addToCart = (item: Omit<CartItem, 'qty'>) => {
@@ -3283,7 +3292,7 @@ export default function RootLayout() {
               <div className="border-t border-[#e6beb2] px-4 py-4 flex flex-col gap-1">
                 {user ? (
                   <button
-                    onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                    onClick={() => { setMobileMenuOpen(false); rNavigate('/logout'); }}
                     className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5c4037] rounded-lg hover:text-[#ba1a1a] hover:bg-[#ffeadb] transition-colors"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >

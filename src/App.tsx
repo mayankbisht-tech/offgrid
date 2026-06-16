@@ -5,6 +5,7 @@ import RootLayout, {
   ShopPage,
   ProductPage,
   DashboardPage,
+  LogoutPage,
   StudioPublishWizard,
   CreatorPage,
 } from './components/ReferenceApp';
@@ -12,6 +13,7 @@ import RootLayout, {
 export default function App() {
   return (
     <Routes>
+      <Route path="logout" element={<LogoutPage />} />
       {/* RootLayout is the shell: TopNav, Cart, Auth overlays, global CSS */}
       <Route element={<RootLayout />}>
         <Route index element={<HomePage />} />
