@@ -34,6 +34,8 @@ interface AppCtx {
   cartOpen: boolean;
   authOpen: boolean;
   searchOpen: boolean;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (v: boolean) => void;
   setCartOpen: (v: boolean) => void;
   setAuthOpen: (v: boolean) => void;
   setSearchOpen: (v: boolean) => void;
@@ -106,19 +108,20 @@ const TopNav = ({
 }) => {
   const rNavigate = useNavigate();
   const isShopActive = window.location.pathname.startsWith('/shop') || window.location.pathname.startsWith('/product');
+  const { setMobileMenuOpen } = useContext(AppContext);
   return (
     <nav className="w-full sticky top-0 z-50 bg-[#fff8f5]/90 backdrop-blur-md border-b border-[#e6beb2]">
-      <div className="flex items-center justify-between px-4 md:px-12 h-20 max-w-[1200px] mx-auto">
+      <div className="flex items-center justify-between px-4 md:px-12 h-16 md:h-20 max-w-[1200px] mx-auto">
         {/* Logo */}
         <button
           onClick={() => rNavigate('/')}
-          className="font-bold tracking-tighter text-[#aa3000] text-[40px] md:text-[120px] leading-none"
+          className="font-bold tracking-tighter text-[#aa3000] text-[28px] md:text-[120px] leading-none"
           style={{ fontFamily: 'Syne, sans-serif' }}
         >
           OFFGRID
         </button>
 
-        {/* Nav links */}
+        {/* Desktop Nav links */}
         <div className="hidden md:flex items-center gap-8">
           <button
             onClick={() => rNavigate('/shop')}
@@ -129,8 +132,8 @@ const TopNav = ({
           </button>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-4">
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-4">
           <button onClick={onSearchClick} className="grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Search">
             <Icon name="search" size={24} />
           </button>
@@ -144,6 +147,21 @@ const TopNav = ({
           </button>
           <button onClick={onAuthClick} className="grid h-10 w-10 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Account">
             <Icon name="person" size={24} />
+          </button>
+        </div>
+
+        {/* Mobile Actions: Cart + Hamburger */}
+        <div className="flex md:hidden items-center gap-2">
+          <button onClick={onCartClick} className="relative grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Cart">
+            <Icon name="shopping_cart" size={20} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#aa3000] text-white text-[8px] font-bold">
+                {cartCount}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Menu">
+            <Icon name="menu" size={24} />
           </button>
         </div>
       </div>
@@ -733,7 +751,7 @@ const SearchOverlay = ({ onClose }: { onClose: () => void }) => {
 // ─────────────────────────────────────────────
 const Footer = () => (
   <footer className="w-full mt-16 bg-[#fff1e8] border-t border-[#e6beb2]">
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-5 px-4 md:px-12 py-10 max-w-[1200px] mx-auto">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 px-4 md:px-12 py-10 max-w-[1200px] mx-auto">
       <div className="flex flex-col gap-4">
         <h2 className="font-bold text-[#241910] text-[24px]" style={{ fontFamily: 'Syne, sans-serif' }}>OFFGRID</h2>
         <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Defining the visual language of the digital underground. Independent, community-driven, and forward-focused.</p>
@@ -788,7 +806,7 @@ const HomePage = () => {
           <div className="flex flex-col gap-6">
             <span className="uppercase tracking-[0.2em] text-[#852400] text-[10px] font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>New Season / 2024</span>
             <h2 className="text-white drop-shadow-sm leading-none text-[40px] md:text-[64px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>Art That Lives Nowhere Else</h2>
-            <p className="text-white/90 max-w-md text-[18px]" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>Discover the vanguard of streetwear and digital collectibles. Exclusive drops from the world's most reclusive creators, curated for the bold.</p>
+            <p className="text-white/90 max-w-md text-[14px] md:text-[18px]" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>Discover the vanguard of streetwear and digital collectibles. Exclusive drops from the world's most reclusive creators, curated for the bold.</p>
             <div className="flex flex-col md:flex-row gap-4 mt-4">
               <button
                 onClick={() => navigate('shop')}
@@ -840,10 +858,10 @@ const HomePage = () => {
             <button onClick={() => navigate('shop')} className="bg-[#aa3000] text-white px-6 py-3 text-[14px] font-semibold rounded hover:bg-[#d43f00] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Browse Shop</button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
             {/* Main large card — first product */}
             {trending[0] && (
-              <div className="md:col-span-2 md:row-span-2 relative group bg-[#fff1e8] overflow-hidden rounded-lg cursor-pointer min-h-[400px]"
+              <div className="col-span-2 md:row-span-2 relative group bg-[#fff1e8] overflow-hidden rounded-lg cursor-pointer min-h-[250px] md:min-h-[400px]"
                 style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('shop')}>
                 {trending[0].image
                   ? <img src={trending[0].image} alt={trending[0].title} className="w-full h-full absolute inset-0 object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -863,20 +881,20 @@ const HomePage = () => {
             {/* Small cards — next 2 products */}
             {trending.slice(1, 3).map((p: any) => (
               <div key={p.id} className="bg-white group cursor-pointer" style={{ border: '1px solid #EDE4D8' }} onClick={() => navigate('shop')}>
-                <div className="overflow-hidden rounded h-64 mb-4">
+                <div className="overflow-hidden rounded h-40 md:h-64 mb-2 md:mb-4">
                   {p.image
                     ? <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     : <GradientImg gradient={GRADIENTS.tee} className="h-full" />
                   }
                 </div>
-                <div className="p-4">
+                <div className="p-2 md:p-4">
                   <h5 className="text-[14px] font-semibold text-[#241910] truncate" style={{ fontFamily: 'Inter, sans-serif' }}>{p.title}</h5>
                   <p className="text-[#5c4037] text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }}>₹{(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}</p>
                 </div>
               </div>
             ))}
             {/* CTA banner */}
-            <div className="md:col-span-2 bg-[#bdf200]/10 border-2 border-[#bdf200] p-10 flex flex-col justify-center items-center text-center">
+            <div className="col-span-2 bg-[#bdf200]/10 border-2 border-[#bdf200] p-6 md:p-10 flex flex-col justify-center items-center text-center">
               <h5 className="text-[24px] font-semibold text-[#241910] mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>Exclusive Creator Drops</h5>
               <p className="text-[16px] text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Sign up to get early access when new designs go live.</p>
               <button className="bg-[#241910] text-[#fff8f5] text-[14px] font-semibold px-10 py-6 rounded hover:bg-[#aa3000] transition-all uppercase" style={{ fontFamily: 'Inter, sans-serif' }} onClick={onAuthClick}>SIGN UP FOR ALERTS</button>
@@ -922,7 +940,7 @@ const HomePage = () => {
       {/* This Week in OffGrid */}
       <section className="max-w-[1200px] mx-auto px-4 md:px-12 py-16">
         <h3 className="text-[24px] md:text-[32px] font-bold text-center mb-10 italic tracking-tight" style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.2 }}>"This Week in OffGrid"</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-10">
           {[
             { num: '01', title: 'Minimalist Rigor', desc: 'A collection focused on the removal of the unnecessary. Pure form, pure function.', img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop", scale: false },
             { num: '02', title: 'Electric Pulse', desc: "The boldest colors in our inventory, curated for those who refuse to blend in.", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop", scale: true },
@@ -942,7 +960,7 @@ const HomePage = () => {
 
       {/* Testimonials */}
       <section className="bg-[#241910] text-[#fff8f5] py-16">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
           {[
             { quote: '"OFFGRID isn\'t just a store; it\'s a statement. The quality of the limited parka I received is unparalleled."', author: '— Julian R., Tokyo' },
             { quote: '"The creator transparency here is something else. Knowing the story behind the piece makes it worth so much more."', author: '— Sarah M., Berlin' },
@@ -952,7 +970,7 @@ const HomePage = () => {
               <div className="flex text-[#bdf200] mb-4">
                 {[...Array(5)].map((_, j) => <Icon key={j} name="star" fill={1} size={20} className="text-[#bdf200]" />)}
               </div>
-              <p className="text-[18px] italic mb-6" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>{t.quote}</p>
+              <p className="text-[16px] md:text-[18px] italic mb-6" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>{t.quote}</p>
               <span className="text-[14px] font-semibold uppercase tracking-wider" style={{ fontFamily: 'Inter, sans-serif' }}>{t.author}</span>
             </div>
           ))}
@@ -969,7 +987,7 @@ const HomePage = () => {
           <div className="flex-1 w-full max-w-md">
             <form className="flex flex-col sm:flex-row gap-4">
               <input className="flex-1 bg-white/10 border border-white/30 text-white placeholder-white/60 p-6 rounded focus:outline-none focus:ring-2 focus:ring-[#bdf200]" placeholder="YOUR EMAIL ADDRESS" type="email" style={{ fontFamily: 'Inter, sans-serif' }} />
-              <button className="bg-[#bdf200] text-[#526b00] font-semibold px-10 py-6 rounded hover:opacity-90 transition-opacity uppercase text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }} type="submit">SUBSCRIBE</button>
+              <button className="bg-[#bdf200] text-[#526b00] font-semibold px-6 py-4 md:px-10 md:py-6 rounded hover:opacity-90 transition-opacity uppercase text-[14px]" style={{ fontFamily: 'Inter, sans-serif' }} type="submit">SUBSCRIBE</button>
             </form>
             <p className="text-[10px] mt-4 text-white/60 font-bold uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>Respecting your inbox since 2024.</p>
           </div>
@@ -984,6 +1002,25 @@ const HomePage = () => {
 // ─────────────────────────────────────────────
 // SHOP PAGE  — live products from API
 // ─────────────────────────────────────────────
+const getProductTags = (p: any): string[] => {
+  if (p.tags && Array.isArray(p.tags)) return p.tags;
+  const tags: string[] = [];
+  const title = (p.title || '').toLowerCase();
+  if (title.includes('minimal') || title.includes('essential')) tags.push('Minimalist');
+  if (title.includes('cyber') || title.includes('samurai') || title.includes('neon')) tags.push('Cyberpunk');
+  if (title.includes('retro') || title.includes('sunset') || title.includes('vintage')) tags.push('Retro');
+  if (title.includes('abstract') || title.includes('decay') || title.includes('distort')) tags.push('Abstract');
+  if (title.includes('brutal') || title.includes('tectonic') || title.includes('struct')) tags.push('Brutalist');
+
+  if (tags.length === 0) {
+    const hash = (p.id || '').split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+    const styles = ['Minimalist', 'Cyberpunk', 'Retro', 'Abstract', 'Brutalist'];
+    tags.push(styles[hash % styles.length]);
+    tags.push(styles[(hash + 2) % styles.length]);
+  }
+  return tags;
+};
+
 const ShopPage = () => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
@@ -991,6 +1028,12 @@ const ShopPage = () => {
   const onAddToCart = addToCart;
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filter states
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedPrices, setSelectedPrices] = useState<string[]>([]); // empty default to show all
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]); // empty default to show all
 
   useEffect(() => {
     fetch('/api/products')
@@ -1002,75 +1045,92 @@ const ShopPage = () => {
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
 
+  // Reactive filtering logic
+  const filteredProducts = React.useMemo(() => {
+    return products.filter((p: any) => {
+      // 1. Category Filter
+      if (selectedCategory !== 'All') {
+        const type = (p.productType || '').toLowerCase();
+        if (selectedCategory === 'T-Shirts') {
+          if (type !== 'tshirt' && type !== 'tee') return false;
+        } else if (selectedCategory === 'Hoodies') {
+          if (type !== 'hoodie') return false;
+        } else if (selectedCategory === 'Accessories') {
+          if (type !== 'accessory' && type !== 'tote' && type !== 'phone_case') return false;
+        } else if (selectedCategory === 'Art Prints') {
+          if (type !== 'print' && type !== 'poster') return false;
+        } else if (selectedCategory === 'Collectibles') {
+          if (type !== 'collectible') return false;
+        }
+      }
+
+      // 2. Price Filter (USD equivalent logic mapped to INR priceVal)
+      const priceVal = p.baseCostINR + p.designerPriceINR;
+      if (selectedPrices.length > 0) {
+        const matchesPrice = selectedPrices.some(range => {
+          if (range === '₹0 - ₹1999') return priceVal <= 1999;
+          if (range === '₹2000-₹3500') return priceVal > 2000 && priceVal <= 3500;
+          if (range === '₹3501-₹5000') return priceVal > 3501 && priceVal <= 5000;
+          if (range === '₹5000+') return priceVal > 5000;
+          return true;
+        });
+        if (!matchesPrice) return false;
+      }
+
+      // 3. Style Filter (tags)
+      if (selectedStyles.length > 0) {
+        const productTags = getProductTags(p);
+        const matchesStyle = selectedStyles.some(style => productTags.includes(style));
+        if (!matchesStyle) return false;
+      }
+
+      return true;
+    });
+  }, [products, selectedCategory, selectedPrices, selectedStyles]);
+
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #FFF8F5 0%, #FFD0B0 50%, #FFB59E 100%)' }}>
       <main className="max-w-[1200px] mx-auto px-4 md:px-12 py-10">
-        <div className="flex flex-col md:flex-row gap-5">
-          {/* Sidebar */}
-          <aside className="w-full md:w-64 space-y-10">
-            <div>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Categories</h3>
-              <ul className="space-y-2">
-                {['T-Shirts', 'Hoodies', 'Accessories', 'Art Prints', 'Collectibles'].map((c, i) => (
-                  <li key={c}>
-                    <a href="#" className={`flex items-center justify-between text-[14px] font-semibold py-2 px-4 rounded transition-all ${i === 0 ? 'bg-[#d43f00] text-white' : 'hover:bg-[#fae4d5]'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {c} <Icon name="chevron_right" size={16} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+        <div className="flex flex-col gap-5">
+          {/* Header layout with title & toggle button */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#e6beb2] pb-6 mb-10 gap-4">
+            <div className="flex items-baseline gap-6 pl-6" style={{ borderLeft: '4px solid #bdf200' }}>
+              <h1 className="text-[32px] md:text-[48px] font-bold text-[#241910]" style={{ ...syne, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Browse All Art</h1>
+              <p className="text-[14px] text-[#5c4037]" style={font}>{filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}</p>
             </div>
-            <div>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Filter by Price</h3>
-              <div className="space-y-2">
-                {[['$0 - $50', false], ['$50 - $150', true], ['$150+', false]].map(([l, checked]) => (
-                  <label key={l as string} className="flex items-center gap-4 group cursor-pointer">
-                    <input type="checkbox" defaultChecked={checked as boolean} className="w-4 h-4 rounded-sm border-[#916f65] text-[#aa3000] focus:ring-[#aa3000]" />
-                    <span className={`text-[14px] ${checked ? 'text-[#aa3000] font-bold' : 'text-[#241910] group-hover:text-[#aa3000]'} transition-colors`} style={{ fontFamily: 'Inter, sans-serif' }}>{l as string}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>Filter by Style</h3>
-              <div className="flex flex-wrap gap-2">
-                {[['Minimalist', true, '#bdf200', '#526b00'], ['Cyberpunk', false, '#fff', '#241910'], ['Retro', false, '#fff', '#241910'], ['Abstract', true, '#d43f00', '#fff'], ['Brutalist', false, '#fff', '#241910']].map(([label, active, bg, fg]) => (
-                  <button key={label as string} className="px-4 py-1 rounded-full text-[12px] font-medium border transition-all hover:bg-[#aa3000] hover:text-white hover:border-[#aa3000]" style={{ background: bg as string, color: fg as string, border: active ? '1px solid #aa3000' : '1px solid #e6beb2', fontFamily: 'Inter, sans-serif' }}>
-                    {label as string}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </aside>
+            <button
+              onClick={() => setFiltersOpen(true)}
+              className="flex items-center gap-2 bg-white border border-[#e6beb2] px-6 py-3 text-[14px] font-bold uppercase tracking-wider rounded-lg text-[#aa3000] hover:bg-[#ffeadb] transition-all self-start md:self-auto cursor-pointer"
+              style={{ ...font, boxShadow: '4px 4px 0px 0px #aa3000' }}
+            >
+              <Icon name="tune" size={20} />
+              Filters
+            </button>
+          </div>
 
           {/* Product grid */}
           <div className="flex-1">
-            <div className="flex items-baseline justify-between mb-10 pl-6" style={{ borderLeft: '4px solid #bdf200' }}>
-              <h1 className="text-[32px] md:text-[48px] font-bold text-[#241910]" style={{ ...syne, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Browse All Art</h1>
-              <p className="text-[14px] text-[#5c4037]" style={font}>{products.length} result{products.length !== 1 ? 's' : ''}</p>
-            </div>
-
             {loading && (
               <div className="flex items-center justify-center h-64">
                 <div className="w-10 h-10 border-4 border-[#aa3000] border-t-transparent rounded-full animate-spin" />
               </div>
             )}
 
-            {!loading && products.length === 0 && (
+            {!loading && filteredProducts.length === 0 && (
               <div className="flex flex-col items-center justify-center h-64 gap-4 text-center border border-[#e6beb2] rounded-lg bg-white p-12">
                 <Icon name="palette" size={48} className="text-[#e6beb2]" />
-                <p className="text-[18px] font-semibold text-[#241910]" style={syne}>No designs yet</p>
-                <p className="text-[14px] text-[#5c4037]" style={font}>Designers haven't published any products yet. Be the first!</p>
+                <p className="text-[18px] font-semibold text-[#241910]" style={syne}>No designs match these filters</p>
+                <p className="text-[14px] text-[#5c4037]" style={font}>Try clearing some filters to explore more streetwear designs.</p>
               </div>
             )}
 
-            {!loading && products.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {products.map((p: any) => {
+            {!loading && filteredProducts.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+                {filteredProducts.map((p: any) => {
                   const price = `₹${(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}`;
                   return (
                     <div key={p.id}
-                      className="group bg-white border border-[#e6beb2] rounded p-4 transition-all duration-300"
+                      className="group bg-white border border-[#e6beb2] rounded p-2 md:p-4 transition-all duration-300"
                       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '4px 4px 0px 0px #aa3000'; (e.currentTarget as HTMLDivElement).style.transform = 'translate(-2px,-2px)'; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = ''; (e.currentTarget as HTMLDivElement).style.transform = ''; }}
                     >
@@ -1086,7 +1146,7 @@ const ShopPage = () => {
                         </div>
                       </div>
                       <p className="text-[11px] text-[#5c4037] mb-1 truncate" style={font}>by {p.designerName}</p>
-                      <h4 className="text-[16px] font-semibold text-[#241910] mb-1 cursor-pointer hover:text-[#aa3000] transition-colors truncate" style={{ ...syne, lineHeight: 1.3 }} onClick={() => navigate(`/product/${p.id}`)}>{p.title}</h4>
+                      <h4 className="text-[14px] md:text-[16px] font-semibold text-[#241910] mb-1 cursor-pointer hover:text-[#aa3000] transition-colors truncate" style={{ ...syne, lineHeight: 1.3 }} onClick={() => navigate(`/product/${p.id}`)}>{p.title}</h4>
                       <div className="flex items-center justify-between">
                         <span className="text-[16px] font-bold text-[#aa3000]" style={font}>{price}</span>
                         <button onClick={() => onAddToCart({ name: p.title, price, gradient: GRADIENTS.tee })} className="text-[#5c4037] hover:text-[#aa3000] transition-colors" aria-label="Add to cart">
@@ -1102,6 +1162,132 @@ const ShopPage = () => {
         </div>
       </main>
       <Footer />
+
+      {/* Slide-out Filters Drawer Overlay */}
+      {filtersOpen && (
+        <div className="fixed inset-0 z-[100]" onClick={() => setFiltersOpen(false)}>
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          {/* Panel */}
+          <div
+            className="absolute top-0 right-0 h-full w-80 md:w-96 bg-[#fff8f5] shadow-2xl flex flex-col p-6 overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+            style={{ animation: 'slideInRight 0.25s ease-out' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#e6beb2] pb-4 mb-6">
+              <h3 className="text-[20px] font-bold text-[#aa3000]" style={syne}>Filters</h3>
+              <button onClick={() => setFiltersOpen(false)} className="grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors">
+                <Icon name="close" size={22} />
+              </button>
+            </div>
+
+            {/* Categories */}
+            <div className="mb-8">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037] mb-4" style={font}>Categories</h3>
+              <ul className="space-y-1.5">
+                {['All', 'T-Shirts', 'Hoodies', 'Accessories', 'Art Prints', 'Collectibles'].map(c => {
+                  const isActive = selectedCategory === c;
+                  return (
+                    <li key={c}>
+                      <button
+                        onClick={() => setSelectedCategory(c)}
+                        className={`w-full flex items-center justify-between text-[14px] font-semibold py-2.5 px-4 rounded-lg transition-all ${isActive ? 'bg-[#aa3000] text-white shadow-sm' : 'hover:bg-[#ffeadb] text-[#5c4037]'}`}
+                        style={font}
+                      >
+                        {c}
+                        <Icon name={isActive ? 'check' : 'chevron_right'} size={16} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Filter by Price */}
+            <div className="mb-8">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037] mb-4" style={font}>Filter by Price</h3>
+              <div className="space-y-3">
+                {['₹0 - ₹1999', '₹2000-₹3500', '₹3501-₹5000', '₹5000+'].map(l => {
+                  const checked = selectedPrices.includes(l);
+                  return (
+                    <label key={l} className="flex items-center gap-4 group cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          setSelectedPrices(prev =>
+                            prev.includes(l) ? prev.filter(p => p !== l) : [...prev, l]
+                          );
+                        }}
+                        className="w-4 h-4 rounded-sm border-[#e6beb2] text-[#aa3000] focus:ring-[#aa3000] accent-[#aa3000]"
+                      />
+                      <span className={`text-[14px] ${checked ? 'text-[#aa3000] font-bold' : 'text-[#241910] group-hover:text-[#aa3000]'} transition-colors`} style={font}>{l}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Filter by Style */}
+            <div className="mb-8">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037] mb-4" style={font}>Filter by Style</h3>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { name: 'Minimalist', bg: '#bdf200', fg: '#526b00' },
+                  { name: 'Cyberpunk', bg: '#fff', fg: '#241910' },
+                  { name: 'Retro', bg: '#fff', fg: '#241910' },
+                  { name: 'Abstract', bg: '#d43f00', fg: '#fff' },
+                  { name: 'Brutalist', bg: '#fff', fg: '#241910' }
+                ].map(s => {
+                  const active = selectedStyles.includes(s.name);
+                  return (
+                    <button
+                      key={s.name}
+                      onClick={() => {
+                        setSelectedStyles(prev =>
+                          prev.includes(s.name) ? prev.filter(st => st !== s.name) : [...prev, s.name]
+                        );
+                      }}
+                      className="px-4 py-1.5 rounded-full text-[12px] font-medium border transition-all hover:bg-[#aa3000] hover:text-white cursor-pointer"
+                      style={{
+                        background: active ? s.bg : '#fff',
+                        color: active ? s.fg : '#241910',
+                        borderColor: active ? '#aa3000' : '#e6beb2',
+                        fontFamily: 'Inter, sans-serif'
+                      }}
+                    >
+                      {s.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Drawer Actions */}
+            <div className="mt-auto pt-6 border-t border-[#e6beb2] flex gap-3">
+              <button
+                onClick={() => {
+                  setSelectedCategory('All');
+                  setSelectedPrices([]);
+                  setSelectedStyles([]);
+                }}
+                className="flex-1 py-3 border border-[#e6beb2] rounded text-[13px] font-bold uppercase hover:bg-[#fff1e8] text-[#5c4037] transition-colors cursor-pointer"
+                style={font}
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="flex-1 py-3 bg-[#aa3000] text-white text-[13px] font-bold uppercase rounded hover:bg-[#d43f00] transition-colors cursor-pointer"
+                style={font}
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1195,7 +1381,7 @@ const ProductPage = () => {
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Collection 04 / {displayProduct.productType.toUpperCase()}</span>
             </div>
-            <h1 className="text-[#241910] mb-2 leading-none" style={{ fontFamily: 'Syne, sans-serif', fontSize: 48, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>{displayProduct.title}</h1>
+            <h1 className="text-[#241910] mb-2 leading-none text-[32px] md:text-[48px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>{displayProduct.title}</h1>
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-2 cursor-pointer hover:text-[#aa3000] transition-colors" onClick={() => navigate(`/creator/${displayProduct.designerId}`)}>
                 <div className="w-8 h-8 rounded-full border border-[#916f65] bg-[#ffeadb] flex items-center justify-center overflow-hidden">
@@ -1248,7 +1434,7 @@ const ProductPage = () => {
             {/* Actions */}
             <div className="flex flex-col gap-4">
               <button
-                className="w-full h-16 bg-[#aa3000] text-white rounded-lg uppercase flex items-center justify-center gap-4 text-[24px] font-semibold transition-all"
+                className="w-full h-14 md:h-16 bg-[#aa3000] text-white rounded-lg uppercase flex items-center justify-center gap-4 text-[20px] md:text-[24px] font-semibold transition-all"
                 style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }}
                 onClick={() => onAddToCart({ name: displayProduct.title, price: priceString, gradient: GRADIENTS.hoodie })}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '6px 6px 0px 0px #aa3000'; (e.currentTarget as HTMLButtonElement).style.transform = 'translate(-2px,-2px)'; }}
@@ -1374,7 +1560,7 @@ const CreatorPage = () => {
           <div className="md:col-span-7 flex flex-col items-start gap-6 mt-10 md:mt-0">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-[#aa3000] uppercase tracking-widest mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>{usernameDisplay}</span>
-              <h1 className="text-[#241910] leading-none mb-2" style={{ fontFamily: 'Syne, sans-serif', fontSize: 48, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>{designerName}</h1>
+              <h1 className="text-[#241910] leading-none mb-2 text-[32px] md:text-[48px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>{designerName}</h1>
             </div>
             <div className="pl-6 max-w-xl" style={{ borderLeft: '4px solid #bdf200' }}>
               <p className="text-[18px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>
@@ -1383,16 +1569,16 @@ const CreatorPage = () => {
             </div>
             <div className="flex flex-wrap gap-4 mt-2">
               <button
-                className="bg-[#aa3000] text-white px-16 py-4 text-[14px] font-semibold uppercase border border-[#aa3000] hover:bg-[#d43f00] transition-all"
+                className="bg-[#aa3000] text-white px-8 py-3 md:px-16 md:py-4 text-[14px] font-semibold uppercase border border-[#aa3000] hover:bg-[#d43f00] transition-all"
                 style={{ boxShadow: '4px 4px 0px 0px #aa3000', fontFamily: 'Inter, sans-serif' }}
               >
                 Follow Creator
               </button>
-              <button className="bg-transparent text-[#241910] px-10 py-4 text-[14px] font-semibold uppercase border border-[#241910] hover:bg-[#fff1e8] transition-all" style={{ fontFamily: 'Inter, sans-serif' }}>
+              <button className="bg-transparent text-[#241910] px-6 py-3 md:px-10 md:py-4 text-[14px] font-semibold uppercase border border-[#241910] hover:bg-[#fff1e8] transition-all" style={{ fontFamily: 'Inter, sans-serif' }}>
                 Message
               </button>
             </div>
-            <div className="flex gap-10 mt-4">
+            <div className="flex gap-6 md:gap-10 mt-4">
               {[
                 ['1.2K', 'Followers'],
                 [products.length.toString(), 'Works'],
@@ -1424,12 +1610,12 @@ const CreatorPage = () => {
             <p className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>This creator hasn't published any designs to the shop yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
             {products.map((p: any) => {
               const price = `₹${(p.baseCostINR + p.designerPriceINR).toLocaleString('en-IN')}`;
               return (
                 <div key={p.id}
-                  className="group bg-white border border-[#e6beb2] rounded p-4 transition-all duration-300"
+                  className="group bg-white border border-[#e6beb2] rounded p-2 md:p-4 transition-all duration-300"
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '4px 4px 0px 0px #aa3000'; (e.currentTarget as HTMLDivElement).style.transform = 'translate(-2px,-2px)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = ''; (e.currentTarget as HTMLDivElement).style.transform = ''; }}
                 >
@@ -1457,11 +1643,11 @@ const CreatorPage = () => {
         )}
 
         {/* Featured callout */}
-        <section className="mt-16 bg-[#fae4d5] p-16 flex flex-col md:flex-row items-center gap-10 border border-[#e6beb2] relative overflow-hidden">
+        <section className="mt-16 bg-[#fae4d5] p-8 md:p-16 flex flex-col md:flex-row items-center gap-6 md:gap-10 border border-[#e6beb2] relative overflow-hidden">
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#aa3000] rounded-full blur-[100px] opacity-20" />
           <div className="relative z-10 md:w-1/2">
             <span className="text-[10px] font-bold text-[#aa3000] uppercase tracking-[0.2em] mb-4 block" style={{ fontFamily: 'Inter, sans-serif' }}>Behind the process</span>
-            <h2 className="text-[#241910] mb-6" style={{ fontFamily: 'Syne, sans-serif', fontSize: 48, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>REDEFINING TEXTILE TOPOLOGY.</h2>
+            <h2 className="text-[#241910] mb-6 text-[32px] md:text-[48px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>REDEFINING TEXTILE TOPOLOGY.</h2>
             <p className="text-[18px] text-[#5c4037] mb-10" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>
               Every piece in the 001 Drop was crafted using procedural generation algorithms mapped onto traditional Japanese weaving patterns.
             </p>
@@ -1485,6 +1671,7 @@ const CreatorPage = () => {
 const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeItem?: string; onSignOut?: () => void }) => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
+  const { handleLogout } = useContext(AppContext);
   const items = [
     { icon: 'dashboard', label: 'Overview', page: 'dashboard', key: 'overview' },
     { icon: 'palette', label: 'My Designs', page: 'studio-upload', key: 'designs' },
@@ -1526,7 +1713,7 @@ const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeItem?: st
         <button
           className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] transition-all rounded-lg"
           style={{ fontFamily: 'Inter, sans-serif' }}
-          onClick={() => onSignOut ? onSignOut() : navigate('/')}
+          onClick={() => { if (onSignOut) onSignOut(); handleLogout(); }}
         >
           <Icon name="logout" size={20} /> Sign Out
         </button>
@@ -1538,9 +1725,17 @@ const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeItem?: st
 // Studio header
 const StudioHeader = () => {
   const rNavigate = useNavigate();
+  const { setMobileMenuOpen } = useContext(AppContext);
   return (
     <header className="flex justify-between items-center w-full px-4 md:px-12 h-20 border-b border-[#e6beb2] bg-transparent">
       <div className="flex items-center gap-10">
+        <button
+          onClick={() => rNavigate('/')}
+          className="font-bold tracking-tighter text-[#aa3000] text-[28px] leading-none md:hidden"
+          style={{ fontFamily: 'Syne, sans-serif' }}
+        >
+          OFFGRID
+        </button>
         <div className="hidden lg:flex items-center gap-6">
           {[['Dashboard', '/dashboard'], ['Earnings', '/dashboard'], ['Marketplace', '/shop']].map(([l, pg]) => (
             <button key={l} onClick={() => rNavigate(pg)} className="text-[14px] font-semibold text-[#5c4037] hover:text-[#aa3000] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</button>
@@ -1553,6 +1748,9 @@ const StudioHeader = () => {
         </button>
         <Icon name="notifications" size={24} className="text-[#5c4037] cursor-pointer hover:text-[#aa3000]" />
         <Icon name="account_circle" size={24} className="text-[#5c4037] cursor-pointer hover:text-[#aa3000]" />
+        <button onClick={() => setMobileMenuOpen(true)} className="grid md:hidden h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Menu">
+          <Icon name="menu" size={24} />
+        </button>
       </div>
     </header>
   );
@@ -1564,6 +1762,7 @@ const StudioHeader = () => {
 const DashboardPage = () => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
+  const { handleLogout } = useContext(AppContext);
   const [tab, setTab] = useState<'overview' | 'analytics' | 'payouts' | 'settings'>('overview');
   const [designs, setDesigns] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -1673,7 +1872,7 @@ const DashboardPage = () => {
             {/* Greeting */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
               <div>
-                <h2 className="text-[#aa3000]" style={{ ...syne, fontSize: 48, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Creator Studio</h2>
+                <h2 className="text-[#aa3000] text-[32px] md:text-[48px]" style={{ ...syne, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Creator Studio</h2>
                 <p className="text-[18px] text-[#5c4037] max-w-xl pl-6 mt-2" style={{ ...font, lineHeight: 1.6, borderLeft: '4px solid #bdf200' }}>
                   {designerProducts.length > 0
                     ? `${designerProducts.length} product${designerProducts.length !== 1 ? 's' : ''} published · ${totalSold} units sold`
@@ -1683,16 +1882,16 @@ const DashboardPage = () => {
             </div>
 
             {/* Stats bento */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-16">
               {[
                 { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString('en-IN')}`, subIcon: 'trending_up', bgIcon: 'payments', color: '#4f6600', sub: `${designerOrders.length} order${designerOrders.length !== 1 ? 's' : ''}` },
                 { label: 'Active Designs', value: String(designerProducts.length), sub: `${designs.length} design${designs.length !== 1 ? 's' : ''} uploaded`, subIcon: null, bgIcon: 'auto_awesome', color: null },
                 { label: 'Units Sold', value: String(totalSold), sub: 'across your products', subIcon: null, bgIcon: null, color: null },
               ].map(s => (
-                <div key={s.label} className="p-10 rounded-xl relative overflow-hidden flex flex-col justify-between h-48" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid #e6beb2' }}>
+                <div key={s.label} className="p-6 md:p-10 rounded-xl relative overflow-hidden flex flex-col justify-between h-36 md:h-48" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid #e6beb2' }}>
                   <div className="z-10">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{s.label}</span>
-                    <h3 className="text-[#241910] mt-2" style={{ fontFamily: 'Syne, sans-serif', fontSize: 48, fontWeight: 700, lineHeight: 1.1 }}>{s.value}</h3>
+                    <h3 className="text-[#241910] mt-2 text-[32px] md:text-[48px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, lineHeight: 1.1 }}>{s.value}</h3>
                   </div>
                   <div className="z-10">
                     {s.subIcon && (
@@ -1733,7 +1932,7 @@ const DashboardPage = () => {
                 + Upload New <Icon name="arrow_forward" size={14} />
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
               {!loading && designs.length === 0 && (
                 <div className="col-span-4 flex flex-col items-center justify-center h-40 gap-3 border border-[#e6beb2] rounded-lg text-center p-8">
                   <Icon name="palette" size={36} className="text-[#e6beb2]" />
@@ -1827,7 +2026,7 @@ const DashboardPage = () => {
         {tab === 'analytics' && (
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-10">
             <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Analytics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-10">
               {[['Total Views', '14,280', 'visibility'], ['Conversion Rate', '3.2%', 'percent'], ['Avg. Order Value', '$94.50', 'payments']].map(([l, v, ic]) => (
                 <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2] flex flex-col gap-3">
                   <Icon name={ic} size={24} className="text-[#aa3000]" />
@@ -1856,7 +2055,7 @@ const DashboardPage = () => {
         {tab === 'payouts' && (
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-10">
             <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Payouts</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div className="grid grid-cols-2 gap-3 md:gap-6 mb-10">
               {[['Available Balance', '$2,450.00', '#aa3000'], ['Pending', '$380.00', '#5c4037'], ['Paid This Month', '$1,200.00', '#4f6600'], ['Total Lifetime', '$18,900.00', '#241910']].map(([l, v, c]) => (
                 <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2]">
                   <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-bold mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
@@ -1899,7 +2098,7 @@ const DashboardPage = () => {
               </div>
               <div className="pt-2 flex gap-3">
                 <button className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#d43f00] transition-colors" style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}>Save Changes</button>
-                <button onClick={() => navigate('home')} className="px-6 py-3 border border-[#e6beb2] text-[#5c4037] text-[14px] font-semibold rounded hover:bg-[#f4dfcf] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Sign Out</button>
+                <button onClick={() => handleLogout()} className="px-6 py-3 border border-[#e6beb2] text-[#5c4037] text-[14px] font-semibold rounded hover:bg-[#f4dfcf] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>Sign Out</button>
               </div>
             </div>
           </section>
@@ -2160,6 +2359,7 @@ const ProductMockup = ({ type, url }: { type: 'hoodie' | 'tshirt' | 'print'; url
 const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
+  const { setMobileMenuOpen } = useContext(AppContext);
   const loggedUser = (() => { try { const r = localStorage.getItem('offgrid_user'); return r ? JSON.parse(r) : null; } catch { return null; } })();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -2334,19 +2534,19 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
       <main className="flex-1 min-h-screen relative flex flex-col min-w-0">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-4 md:px-12 bg-[#fff8f5]/90 backdrop-blur-md border-b border-[#e6beb2] sticky top-0 z-50">
-          <div className="flex items-center gap-10">
+          <div className="flex items-center gap-4 md:gap-10">
             {step > 1 && (
               <button onClick={() => setStep(s => (s - 1) as any)} className="text-[#5c4037] hover:text-[#aa3000] transition-colors">
                 <Icon name="arrow_back" size={22} />
               </button>
             )}
             <div>
-              <h1 className="text-[24px] font-semibold text-[#aa3000] leading-none" style={syne}>
+              <h1 className="text-[18px] md:text-[24px] font-semibold text-[#aa3000] leading-none" style={syne}>
                 {step === 1 && 'Step 1: Upload Artwork'}
                 {step === 2 && 'Step 2: Dynamic Pricing'}
                 {step === 3 && 'Step 3: Final Review & Publish'}
               </h1>
-              <p className="text-[10px] text-[#5c4037] mt-1 uppercase font-bold tracking-wider" style={font}>
+              <p className="text-[9px] md:text-[10px] text-[#5c4037] mt-1 uppercase font-bold tracking-wider" style={font}>
                 {step === 1 && 'ARTWORK UPLOAD & INITIAL TITLE'}
                 {step === 2 && 'CREATOR MARGIN & LIVE MOCKUPS'}
                 {step === 3 && 'METADATA INGESTION & LAUNCH'}
@@ -2354,15 +2554,20 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex gap-2">
-              <div className={`w-12 h-1.5 transition-all duration-300 ${step >= 1 ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`} />
-              <div className={`w-12 h-1.5 transition-all duration-300 ${step >= 2 ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`} />
-              <div className={`w-12 h-1.5 transition-all duration-300 ${step >= 3 ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`} />
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex gap-1.5">
+                <div className={`w-8 h-1 transition-all duration-300 ${step >= 1 ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`} />
+                <div className={`w-8 h-1 transition-all duration-300 ${step >= 2 ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`} />
+                <div className={`w-8 h-1 transition-all duration-300 ${step >= 3 ? 'bg-[#aa3000]' : 'bg-[#f4dfcf]'}`} />
+              </div>
+              <span className="text-[9px] text-[#aa3000] uppercase tracking-widest font-bold" style={font}>
+                Step 0{step}/03
+              </span>
             </div>
-            <span className="text-[10px] text-[#aa3000] uppercase tracking-widest font-bold" style={font}>
-              Step 0{step}/03
-            </span>
+            <button onClick={() => setMobileMenuOpen(true)} className="grid md:hidden h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Menu">
+              <Icon name="menu" size={24} />
+            </button>
           </div>
         </header>
 
@@ -2857,6 +3062,7 @@ export default function RootLayout() {
   const [cartOpen, setCartOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(() => {
     try {
       const raw = localStorage.getItem('offgrid_user');
@@ -2905,7 +3111,7 @@ export default function RootLayout() {
   const isConsumerPage = !window.location.pathname.startsWith('/studio') && !window.location.pathname.startsWith('/dashboard');
 
   const ctx: AppCtx = {
-    user, cartItems, cartOpen, authOpen, searchOpen,
+    user, cartItems, cartOpen, authOpen, searchOpen, mobileMenuOpen, setMobileMenuOpen,
     setCartOpen, setAuthOpen, setSearchOpen,
     handleLogin, handleLogout,
     addToCart, removeCartItem, changeCartQty,
@@ -2918,6 +3124,10 @@ export default function RootLayout() {
           @keyframes ticker {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
+          }
+          @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
           }
           .animate-\\[ticker_30s_linear_infinite\\] {
             animation: ticker 30s linear infinite;
@@ -2994,6 +3204,70 @@ export default function RootLayout() {
         )}
         {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onLogin={handleLogin} />}
         {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-[100] md:hidden" onClick={() => setMobileMenuOpen(false)}>
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            {/* Sidebar Panel */}
+            <div
+              className="absolute top-0 right-0 h-full w-72 bg-[#fff8f5] shadow-2xl flex flex-col"
+              onClick={e => e.stopPropagation()}
+              style={{ animation: 'slideInRight 0.25s ease-out' }}
+            >
+              {/* Close Button */}
+              <div className="flex items-center justify-between px-5 h-16 border-b border-[#e6beb2]">
+                <span className="text-[18px] font-bold text-[#aa3000]" style={{ fontFamily: 'Syne, sans-serif' }}>Menu</span>
+                <button onClick={() => setMobileMenuOpen(false)} className="grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors">
+                  <Icon name="close" size={22} />
+                </button>
+              </div>
+              {/* Nav Links */}
+              <nav className="flex-1 flex flex-col gap-1 px-4 py-6">
+                {[
+                  { icon: 'home', label: 'Home', path: '/' },
+                  { icon: 'storefront', label: 'Shop', path: '/shop' },
+                  { icon: 'dashboard', label: 'Creator Dashboard', path: '/dashboard' },
+                ].map(item => (
+                  <button
+                    key={item.label}
+                    onClick={() => { rNavigate(item.path); setMobileMenuOpen(false); }}
+                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#241910] rounded-lg hover:bg-[#ffeadb] transition-colors"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    <Icon name={item.icon} size={20} className="text-[#aa3000]" /> {item.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => { setSearchOpen(true); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#241910] rounded-lg hover:bg-[#ffeadb] transition-colors"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  <Icon name="search" size={20} className="text-[#aa3000]" /> Search
+                </button>
+              </nav>
+              {/* Bottom Actions */}
+              <div className="border-t border-[#e6beb2] px-4 py-4 flex flex-col gap-1">
+                {user ? (
+                  <button
+                    onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5c4037] rounded-lg hover:text-[#ba1a1a] hover:bg-[#ffeadb] transition-colors"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    <Icon name="logout" size={20} /> Sign Out
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { setAuthOpen(true); setMobileMenuOpen(false); }}
+                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5c4037] rounded-lg hover:text-[#aa3000] hover:bg-[#ffeadb] transition-colors"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    <Icon name="login" size={20} /> Sign In
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppContext.Provider>
   );
