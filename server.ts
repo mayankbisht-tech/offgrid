@@ -205,6 +205,101 @@ app.post('/api/designs', (req: express.Request, res: express.Response) => {
   }
 });
 
+// Public design feed
+app.get('/api/designs', (req: express.Request, res: express.Response) => {
+  const publicDesigns = designs.map(d => {
+    const product = products.find(p => p.designId === d.id);
+    return {
+      ...d,
+      productId: product?.id,
+      image: d.fileUrl,
+      price: product ? `₹${(product.baseCostINR + product.designerPriceINR).toLocaleString('en-IN')}` : null,
+      baseCostINR: product ? product.baseCostINR : 0,
+      designerPriceINR: product ? product.designerPriceINR : 0,
+      productType: product ? product.productType : 'hoodie',
+      totalSold: product ? product.totalSold : 0,
+      active: product?.active ?? false,
+    };
+  });
+  res.json(publicDesigns);
+});
+
+// Public Cloudinary catalog for sellable assets
+app.get('/api/catalog', async (_req: express.Request, res: express.Response) => {
+  try {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      res.json([]);
+      return;
+    }
+
+    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    const resources: Array<Record<string, any>> = [];
+    let nextCursor: string | undefined;
+
+    do {
+      const params = new URLSearchParams({
+        max_results: '100',
+      });
+      if (nextCursor) params.set('next_cursor', nextCursor);
+
+      const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload?${params.toString()}`;
+      const cloudinaryRes = await fetch(cloudinaryUrl, {
+        headers: {
+          Authorization: `Basic ${auth}`,
+        },
+      });
+
+      if (!cloudinaryRes.ok) {
+        throw new Error(`Cloudinary catalog fetch failed: ${cloudinaryRes.status} ${cloudinaryRes.statusText}`);
+      }
+
+      const payload = await cloudinaryRes.json() as { resources?: Array<Record<string, any>>; next_cursor?: string };
+      resources.push(...(Array.isArray(payload.resources) ? payload.resources : []));
+      nextCursor = payload.next_cursor;
+    } while (nextCursor);
+
+    const catalog = resources.map((resource) => {
+      const matchedProduct = products.find(p =>
+        p.image === resource.secure_url || p.image?.includes(resource.public_id)
+      );
+      const matchedDesign = designs.find(d =>
+        d.fileUrl === resource.secure_url || d.fileUrl?.includes(resource.public_id)
+      );
+
+      return {
+        id: matchedProduct?.id ?? matchedDesign?.id ?? resource.public_id,
+        designId: matchedProduct?.designId ?? matchedDesign?.id ?? resource.public_id,
+        designerId: matchedProduct?.designerId ?? matchedDesign?.designerId ?? 'dsg-guest',
+        designerName: matchedProduct?.designerName ?? matchedDesign?.designerName ?? 'OFFGRID Creator',
+        title: matchedProduct?.title ?? matchedDesign?.title ?? resource.public_id.split('/').pop()?.replace(/[-_]+/g, ' ') ?? 'Untitled Design',
+        description: matchedProduct?.description ?? matchedDesign?.description ?? '',
+        image: resource.secure_url,
+        fileUrl: resource.secure_url,
+        productType: matchedProduct?.productType ?? 'hoodie',
+        baseCostINR: matchedProduct?.baseCostINR ?? 0,
+        designerPriceINR: matchedProduct?.designerPriceINR ?? 0,
+        price: matchedProduct ? `₹${(matchedProduct.baseCostINR + matchedProduct.designerPriceINR).toLocaleString('en-IN')}` : null,
+        active: matchedProduct?.active ?? true,
+        featured: matchedProduct?.featured ?? false,
+        totalSold: matchedProduct?.totalSold ?? 0,
+        public_id: resource.public_id,
+        width: resource.width,
+        height: resource.height,
+        format: resource.format,
+      };
+    });
+
+    res.json(catalog);
+  } catch (error: any) {
+    console.error('[/api/catalog] Error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Dynamic listed product launch
 app.post('/api/products', (req: express.Request, res: express.Response) => {
   try {
