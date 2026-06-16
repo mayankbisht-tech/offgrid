@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, createContext, useContext } from 'r
 import { AuthUser } from '../hooks/useAuth';
 import { Navigate, useNavigate, useParams, Outlet } from 'react-router-dom';
 import type { ReactNode, FormEvent } from 'react';
+import { apiJson } from '../lib/api';
 
 // ─────────────────────────────────────────────
 // Routing helpers — wrap useNavigate into a simple navigate(path) helper
@@ -280,13 +281,11 @@ const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?: (u: Au
     setAuthError('');
     setAuthLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      const data = await apiJson<{ user: AuthUser }>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: siEmail, password: siPass }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed.');
       // Persist login to caller
       onLogin?.(data.user);
       writeAuthStorage(data.user);
@@ -318,13 +317,11 @@ const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?: (u: Au
       if (role === 'designer') { payload.username = username; payload.city = dCity; payload.portfolio = portfolio; }
       if (role === 'manufacturer') { payload.bizName = bizName; payload.city = mCity; payload.gst = gst; }
 
-      const res = await fetch('/api/auth/register', {
+      const data = await apiJson<{ user: AuthUser }>('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed.');
       onLogin?.(data.user);
       writeAuthStorage(data.user);
       onClose();
@@ -704,7 +701,7 @@ const SearchOverlay = ({ onClose }: { onClose: () => void }) => {
     inputRef.current?.focus();
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
-    fetch('/api/products').then(r => r.json()).then(d => setAll(Array.isArray(d) ? d : [])).catch(() => { });
+    apiJson<any[]>('/api/products').then(d => setAll(Array.isArray(d) ? d : [])).catch(() => { });
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
@@ -829,15 +826,13 @@ const HomePage = () => {
   const onAuthClick = () => setAuthOpen(true);
   const [designsFeed, setDesignsFeed] = useState<any[]>([]);
   useEffect(() => {
-    fetch('/api/catalog')
-      .then(r => r.json())
+    apiJson<any[]>('/api/catalog')
       .then(d => {
         if (Array.isArray(d) && d.length > 0) {
           setDesignsFeed(d);
           return;
         }
-        return fetch('/api/products')
-          .then(r => r.json())
+        return apiJson<any[]>('/api/products')
           .then(products => setDesignsFeed(Array.isArray(products) ? products : []));
       })
       .catch(() => { });
@@ -1079,12 +1074,10 @@ const ShopPage = () => {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]); // empty default to show all
 
   useEffect(() => {
-    fetch('/api/catalog')
-      .then(r => r.json())
+    apiJson<any[]>('/api/catalog')
       .then(data => { setProducts(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => {
-        fetch('/api/products')
-          .then(r => r.json())
+        apiJson<any[]>('/api/products')
           .then(data => { setProducts(Array.isArray(data) ? data : []); setLoading(false); })
           .catch(() => setLoading(false));
       });
@@ -1824,11 +1817,11 @@ const DashboardPage = () => {
   useEffect(() => {
     const designerId = loggedUser?.id;
     Promise.all([
-      fetch('/api/products').then(r => r.json()).catch(() => []),
-      fetch('/api/orders').then(r => r.json()).catch(() => []),
+      apiJson<any[]>('/api/products').catch(() => []),
+      apiJson<any[]>('/api/orders').catch(() => []),
       // Fetch real designs for this designer if logged in
       designerId
-        ? fetch(`/api/designers/${designerId}/designs`).then(r => r.json()).catch(() => [])
+        ? apiJson<any[]>(`/api/designers/${designerId}/designs`).catch(() => [])
         : Promise.resolve([]),
     ]).then(([p, o, d]) => {
       setProducts(Array.isArray(p) ? p : []);
@@ -2454,15 +2447,13 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const res = await fetch('/api/designs/upload', {
+      const res = await apiJson<{ secure_url: string; public_id?: string }>('/api/designs/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileBase64: base64, fileName: file.name, fileType: file.type, fileSize: file.size }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
-      setUploadedUrl(data.secure_url);
-      setPublicId(data.public_id ?? '');
+      setUploadedUrl(res.secure_url);
+      setPublicId(res.public_id ?? '');
     } catch (e: any) {
       setUploadError(e.message);
     } finally {
@@ -2499,7 +2490,7 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
       const firstBase = firstDef.base;
       const firstEarn = Math.round(firstBase * (firstMargin / 100));
 
-      const res = await fetch('/api/designs/publish', {
+      const data = await apiJson<{ design: { id: string } }>('/api/designs/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2516,9 +2507,6 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to publish design');
-
       const designId = data.design.id;
 
       // 2. Publish other active products linked to this design ID
@@ -2529,7 +2517,7 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
         const nextBase = nextDef.base;
         const nextEarn = Math.round(nextBase * (nextMargin / 100));
 
-        const pRes = await fetch('/api/products', {
+        await apiJson('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2543,11 +2531,7 @@ const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) => {
             baseCostINR: nextBase,
             designerPriceINR: nextEarn,
           }),
-        });
-
-        if (!pRes.ok) {
-          console.warn(`Failed to launch additional product: ${nextType}`);
-        }
+        }).catch(() => console.warn(`Failed to launch additional product: ${nextType}`));
       }
 
       setSaved(true);
