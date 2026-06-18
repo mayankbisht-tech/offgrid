@@ -77,7 +77,7 @@ export const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?:
       onLogin?.(data.user);
       writeAuthStorage(data.user);
       onClose();
-      if (data.user?.role === 'DESIGNER' || data.user?.role === 'MANUFACTURER') navigate('/dashboard');
+      navigate('/dashboard');
     } catch (err: any) {
       setAuthError(err.message);
     } finally {
@@ -112,7 +112,7 @@ export const AuthModal = ({ onClose, onLogin }: { onClose: () => void; onLogin?:
       onLogin?.(data.user);
       writeAuthStorage(data.user);
       onClose();
-      if (role === 'designer' || role === 'manufacturer') navigate('/dashboard');
+      navigate('/dashboard');
     } catch (err: any) {
       setAuthError(err.message);
     } finally {

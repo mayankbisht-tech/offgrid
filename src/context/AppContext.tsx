@@ -14,6 +14,8 @@ const PAGE_PATHS: Record<string, string> = {
   'studio-upload': '/studio/upload',
   'studio-pricing': '/studio/pricing',
   'studio-review': '/studio/review',
+  'checkout': '/checkout',
+  'payment': '/payment',
 };
 
 /** Convert a legacy page key OR a direct path string to a router path */
@@ -55,7 +57,7 @@ export function readAuthUser(): AuthUser | null {
 // ─────────────────────────────────────────────
 // App-level Context (cart, auth, overlays)
 // ─────────────────────────────────────────────
-export interface CartItem { name: string; price: string; gradient: string; qty: number; }
+export interface CartItem { name: string; price: string; gradient: string; qty: number; image?: string; }
 
 export interface AppCtx {
   user: AuthUser | null;

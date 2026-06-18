@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartItem, toPath } from '../../context/AppContext';
-import { Icon } from './UI';
+import { Icon, GradientImg } from './UI';
 
 export const CartDrawer = ({
   items,
@@ -16,7 +16,7 @@ export const CartDrawer = ({
 }) => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => { rNavigate(toPath(p)); onClose(); };
-  const subtotal = items.reduce((acc, i) => acc + parseFloat(i.price.replace('$', '').replace('₹', '')) * i.qty, 0);
+  const subtotal = items.reduce((acc, i) => acc + parseFloat(i.price.replace(/[^\d.-]/g, '')) * i.qty, 0);
 
   // Close on Escape
   useEffect(() => {
@@ -57,7 +57,13 @@ export const CartDrawer = ({
             items.map((item, idx) => (
               <div key={idx} className="flex gap-4 bg-white border border-[#e6beb2] p-4 rounded">
                 {/* Thumbnail */}
-                <div className="w-20 h-20 rounded overflow-hidden shrink-0" style={{ background: item.gradient }} />
+                <div className="w-20 h-20 rounded overflow-hidden shrink-0">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <GradientImg gradient={item.gradient} className="h-full w-full" />
+                  )}
+                </div>
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-semibold text-[#241910] truncate" style={{ fontFamily: 'Inter, sans-serif' }}>{item.name}</p>
@@ -89,10 +95,11 @@ export const CartDrawer = ({
           <div className="border-t border-[#e6beb2] px-6 py-6 space-y-4 bg-[#fff1e8]">
             <div className="flex justify-between items-center">
               <span className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Subtotal</span>
-              <span className="text-[18px] font-bold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>${subtotal.toFixed(2)}</span>
+              <span className="text-[18px] font-bold text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>₹{subtotal.toLocaleString('en-IN')}</span>
             </div>
             <p className="text-[12px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>Shipping & taxes calculated at checkout.</p>
             <button
+              onClick={() => navigate('/checkout')}
               className="w-full bg-[#aa3000] text-white py-4 text-[14px] font-semibold uppercase tracking-widest hover:bg-[#d43f00] transition-colors"
               style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}
             >

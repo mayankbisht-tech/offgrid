@@ -145,7 +145,7 @@ export const ProductPage = () => {
               <button
                 className="w-full h-14 md:h-16 bg-[#aa3000] text-white rounded-lg uppercase flex items-center justify-center gap-4 text-[20px] md:text-[24px] font-semibold transition-all"
                 style={{ fontFamily: 'Syne, sans-serif', lineHeight: 1.3 }}
-                onClick={() => onAddToCart({ name: displayProduct.title, price: priceString, gradient: GRADIENTS.hoodie })}
+                onClick={() => onAddToCart({ name: displayProduct.title, price: priceString, gradient: GRADIENTS.hoodie, image: displayProduct.image })}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '6px 6px 0px 0px #aa3000'; (e.currentTarget as HTMLButtonElement).style.transform = 'translate(-2px,-2px)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; (e.currentTarget as HTMLButtonElement).style.transform = ''; }}
               >

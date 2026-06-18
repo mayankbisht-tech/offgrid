@@ -19,6 +19,8 @@ import { Icon } from './shared/UI';
 import { HomePage } from './user/HomePage';
 import { ShopPage } from './user/ShopPage';
 import { ProductPage } from './user/ProductPage';
+import { CheckoutPage } from './user/CheckoutPage';
+import { PaymentPlaceholderPage } from './user/PaymentPlaceholderPage';
 
 import { DashboardPage } from './designer/DashboardPage';
 import { StudioPublishWizard } from './designer/StudioPublishWizard';
@@ -261,4 +263,6 @@ export {
   DashboardPage,
   StudioPublishWizard,
   CreatorPage,
+  CheckoutPage,
+  PaymentPlaceholderPage,
 };

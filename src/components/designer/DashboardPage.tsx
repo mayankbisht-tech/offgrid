@@ -5,6 +5,7 @@ import { apiJson } from '../../lib/api';
 import { Icon, GradientImg, GRADIENTS } from '../shared/UI';
 import { StudioHeader } from './StudioHeader';
 import { ManufacturerDashboard } from '../manufacturer/ManufacturerDashboard';
+import { UserDashboard } from '../user/UserDashboard';
 
 export const CreatorDashboard = () => {
   const rNavigate = useNavigate();
@@ -455,6 +456,10 @@ export const DashboardPage = () => {
   
   if (user?.role === 'MANUFACTURER') {
     return <ManufacturerDashboard />;
+  }
+  
+  if (user?.role === 'CONSUMER') {
+    return <UserDashboard />;
   }
   
   return <CreatorDashboard />;
