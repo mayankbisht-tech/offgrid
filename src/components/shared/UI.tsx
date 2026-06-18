@@ -3,10 +3,10 @@ import React, { ReactNode } from 'react';
 // ─────────────────────────────────────────────
 // Shared helpers
 // ─────────────────────────────────────────────
-export const Icon = ({ name, fill = 0, size = 24, className = '' }: { name: string; fill?: number; size?: number; className?: string; key?: number | string }) => (
+export const Icon = ({ name, fill = 0, size = 24, className = '', style = {} }: { name: string; fill?: number; size?: number; className?: string; style?: React.CSSProperties; key?: number | string }) => (
   <span
     className={`material-symbols-outlined ${className}`}
-    style={{ fontVariationSettings: `'FILL' ${fill}, 'wght' 400, 'GRAD' 0, 'opsz' ${size}`, fontSize: size }}
+    style={{ fontVariationSettings: `'FILL' ${fill}, 'wght' 400, 'GRAD' 0, 'opsz' ${size}`, fontSize: size, ...style }}
   >
     {name}
   </span>
