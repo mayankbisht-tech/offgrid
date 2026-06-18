@@ -4,8 +4,9 @@ import { AppContext, toPath } from '../../context/AppContext';
 import { apiJson } from '../../lib/api';
 import { Icon, GradientImg, GRADIENTS } from '../shared/UI';
 import { StudioHeader } from './StudioHeader';
+import { ManufacturerDashboard } from '../manufacturer/ManufacturerDashboard';
 
-export const DashboardPage = () => {
+export const CreatorDashboard = () => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
   const { handleLogout, handleLogin, user } = useContext(AppContext);
@@ -447,4 +448,14 @@ export const DashboardPage = () => {
       </nav>
     </div>
   );
+};
+
+export const DashboardPage = () => {
+  const { user } = useContext(AppContext);
+  
+  if (user?.role === 'MANUFACTURER') {
+    return <ManufacturerDashboard />;
+  }
+  
+  return <CreatorDashboard />;
 };
