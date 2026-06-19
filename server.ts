@@ -270,7 +270,7 @@ app.get('/api/designs', (req: express.Request, res: express.Response) => {
   res.json(publicDesigns);
 });
 
-// Public Cloudinary catalog for sellable assets
+// Public catalog for sellable assets from the media library
 app.get('/api/catalog', async (_req: express.Request, res: express.Response) => {
   try {
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -828,7 +828,7 @@ app.post('/api/designs/upload', async (req: express.Request, res: express.Respon
       return;
     }
 
-    // Validate before hitting Cloudinary
+    // Validate before uploading artwork
     try {
       validateUploadFile({ size: fileSize ?? 0, type: fileType });
     } catch (validationError: any) {
@@ -841,12 +841,12 @@ app.post('/api/designs/upload', async (req: express.Request, res: express.Respon
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
-      // Cloudinary not configured — return a placeholder URL so the app stays functional
+      // Artwork storage not configured — return a placeholder URL so the app stays functional
       res.json({
         secure_url: `https://placehold.co/800x800/aa3000/fff?text=${encodeURIComponent(fileName || 'design')}`,
         public_id: `offgrid/designs/placeholder-${Date.now()}`,
         configured: false,
-        message: 'Cloudinary env vars not set. Configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env to enable real uploads.',
+        message: 'Artwork upload is not configured. Set the artwork storage environment variables to enable real uploads.',
       });
       return;
     }
@@ -863,7 +863,7 @@ app.post('/api/designs/upload', async (req: express.Request, res: express.Respon
   }
 });
 
-// Cloudinary config info (safe to expose — no secrets)
+// Artwork storage config info (safe to expose — no secrets)
 app.get('/api/cloudinary/config', (_req: express.Request, res: express.Response) => {
   res.json({
     cloudName: process.env.CLOUDINARY_CLOUD_NAME || null,

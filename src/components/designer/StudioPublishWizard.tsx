@@ -213,7 +213,7 @@ export const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) =
                   {uploading ? (
                     <>
                       <div className="w-12 h-12 border-4 border-[#aa3000] border-t-transparent rounded-full animate-spin mb-6" />
-                      <p className="text-[16px] text-[#5c4037] font-semibold" style={font}>Uploading to Cloudinary…</p>
+                      <p className="text-[16px] text-[#5c4037] font-semibold" style={font}>Uploading artwork…</p>
                     </>
                   ) : uploadedUrl ? (
                     <>

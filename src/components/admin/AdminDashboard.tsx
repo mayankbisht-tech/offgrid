@@ -6,6 +6,7 @@ type DesignRecord = {
   title: string;
   designerId: string;
   designerName: string;
+  fileUrl?: string;
   workflowStatus: string;
   moderationStatus: string;
   createdAt: string;
@@ -82,6 +83,7 @@ export const AdminDashboard = () => {
   }, [selectedDesign]);
 
   const selectedSummary = useMemo(() => designs.find((d) => d.id === selectedDesign), [designs, selectedDesign]);
+  const selectedWorkflowDesign = workflow?.design ?? selectedSummary;
 
   const approveDesign = async (designId: string) => {
     await apiJson(`/api/admin/designs/${designId}/approve`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminId: 'admin' }) });
@@ -156,6 +158,13 @@ export const AdminDashboard = () => {
               {designs.map((design) => (
                 <div key={design.id} className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="min-w-0">
+                    <div className="w-20 h-20 mb-3 rounded-lg overflow-hidden border border-[#e6beb2] bg-[#fff8f5]">
+                      {design.fileUrl ? (
+                        <img src={design.fileUrl} alt={design.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full grid place-items-center text-[11px] text-[#5c4037]" style={font}>No preview</div>
+                      )}
+                    </div>
                     <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>{design.workflowStatus}</div>
                     <h3 className="text-[18px] font-semibold truncate" style={syne}>{design.title}</h3>
                     <p className="text-[13px] text-[#5c4037]" style={font}>
@@ -182,7 +191,18 @@ export const AdminDashboard = () => {
                 <>
                   <div>
                     <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>Selected Design</div>
-                    <div className="font-semibold" style={font}>{selectedSummary.title}</div>
+                    <div className="font-semibold" style={font}>{selectedWorkflowDesign?.title ?? selectedSummary.title}</div>
+                  </div>
+                  <div className="rounded-lg border border-[#e6beb2] overflow-hidden bg-[#fff8f5]">
+                    {selectedWorkflowDesign?.fileUrl ? (
+                      <img src={selectedWorkflowDesign.fileUrl} alt={selectedWorkflowDesign.title} className="w-full aspect-square object-cover" />
+                    ) : (
+                      <div className="aspect-square grid place-items-center text-[13px] text-[#5c4037]" style={font}>No artwork preview</div>
+                    )}
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <button onClick={() => approveDesign(selectedWorkflowDesign?.id ?? selectedSummary.id)} className="px-3 py-2 rounded bg-[#aa3000] text-white text-[13px]" style={font}>Approve Design</button>
+                    <button onClick={() => rejectDesign(selectedWorkflowDesign?.id ?? selectedSummary.id)} className="px-3 py-2 rounded border border-[#ba1a1a] text-[#ba1a1a] text-[13px]" style={font}>Reject Design</button>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>Bids</div>
