@@ -273,8 +273,52 @@ app.get('/api/designs', (req: express.Request, res: express.Response) => {
         totalSold: product ? product.totalSold : 0,
         active: product?.active ?? false,
       };
-    });
+  });
   res.json(publicDesigns);
+});
+
+// Approved design feed for manufacturers
+app.get('/api/designs/approved', (_req: express.Request, res: express.Response) => {
+  const approvedStatuses = new Set([
+    'ADMIN_APPROVED',
+    'BIDDING_OPEN',
+    'SHORTLISTED',
+    'HELD',
+    'SAMPLE_IN_PROGRESS',
+    'SAMPLE_REJECTED',
+    'SAMPLE_APPROVED',
+    'LIVE',
+  ]);
+
+  const approvedDesigns = designs
+    .filter((design) => approvedStatuses.has(design.workflowStatus))
+    .map((design) => {
+      const product = products.find((item) => item.id === design.liveProductId) || products.find((item) => item.designId === design.id);
+      const relatedBids = designBids.filter((bid) => bid.designId === design.id);
+      const shortlistedBids = relatedBids.filter((bid) => bid.status === 'SHORTLISTED');
+      const winningBid = relatedBids.find((bid) => bid.status === 'WINNING');
+      const lowestBid = relatedBids.reduce<number | null>((lowest, bid) => {
+        if (typeof lowest !== 'number') return bid.bidAmountINR;
+        return Math.min(lowest, bid.bidAmountINR);
+      }, null);
+      return {
+        ...design,
+        productId: product?.id ?? null,
+        productActive: product?.active ?? false,
+        productType: product?.productType ?? design.preferredProductType ?? 'hoodie',
+        image: design.fileUrl,
+        bidSummary: {
+          total: relatedBids.length,
+          shortlisted: shortlistedBids.length,
+          lowestBidINR: lowestBid,
+          winningManufacturerId: winningBid?.manufacturerId ?? null,
+          winningBidAmountINR: winningBid?.bidAmountINR ?? null,
+        },
+      };
+    })
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  res.json(approvedDesigns);
 });
 
 // Public catalog for sellable assets from the media library
@@ -515,6 +559,14 @@ app.patch('/api/admin/designs/:designId/approve', async (req: express.Request, r
     adminReviewedAt: new Date().toISOString(),
     adminReviewedBy: req.body?.adminId || 'admin',
     adminNotes: req.body?.notes || design.adminNotes,
+  });
+  await createNotification({
+    userId: design.designerId,
+    role: 'DESIGNER',
+    title: 'Design approved',
+    message: `Your design "${design.title}" was approved by the admin review team.`,
+    category: 'DESIGN_APPROVED',
+    link: '/dashboard',
   });
   res.json({ design: updated ?? design });
 });

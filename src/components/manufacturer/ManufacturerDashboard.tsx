@@ -30,6 +30,25 @@ type CapabilityLike = {
   active?: boolean;
 };
 
+type ApprovedDesignLike = {
+  id: string;
+  title: string;
+  designerName: string;
+  workflowStatus: string;
+  fileUrl?: string;
+  productType?: string;
+  liveProductId?: string | null;
+  createdAt: string;
+  adminNotes?: string;
+  bidSummary?: {
+    total: number;
+    shortlisted: number;
+    lowestBidINR: number | null;
+    winningManufacturerId: string | null;
+    winningBidAmountINR: number | null;
+  };
+};
+
 const EMPTY_PROFILE: ManufacturerPaymentProfile = {
   userId: '',
   businessName: '',
@@ -47,15 +66,21 @@ export const ManufacturerDashboard = () => {
   const navigate = (p: string) => rNavigate(toPath(p));
   const { handleLogout, user, handleLogin } = useContext(AppContext);
 
-  const [tab, setTab] = useState<'overview' | 'orders' | 'bids' | 'inventory' | 'payouts' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'designs' | 'orders' | 'bids' | 'inventory' | 'payouts' | 'settings'>('overview');
   const [orderFilter, setOrderFilter] = useState<'ALL' | 'PENDING' | 'SHIPPED'>('ALL');
   const [orders, setOrders] = useState<OrderLike[]>([]);
   const [capabilities, setCapabilities] = useState<CapabilityLike[]>([]);
   const [bids, setBids] = useState<any[]>([]);
+  const [approvedDesigns, setApprovedDesigns] = useState<ApprovedDesignLike[]>([]);
+  const [bidDesign, setBidDesign] = useState<ApprovedDesignLike | null>(null);
+  const [bidAmountINR, setBidAmountINR] = useState('');
+  const [turnAroundDays, setTurnAroundDays] = useState('7');
   const [paymentProfile, setPaymentProfile] = useState<ManufacturerPaymentProfile>(EMPTY_PROFILE);
   const [loading, setLoading] = useState(true);
   const [savingPayment, setSavingPayment] = useState(false);
+  const [placingBid, setPlacingBid] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
 
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
@@ -67,15 +92,17 @@ export const ManufacturerDashboard = () => {
     Promise.all([
       apiJson<OrderLike[]>('/api/orders').catch(() => []),
       apiJson<CapabilityLike[]>('/api/capabilities').catch(() => []),
+      apiJson<ApprovedDesignLike[]>('/api/designs/approved').catch(() => []),
       manufacturerId
         ? apiJson<any[]>(`/api/manufacturers/${manufacturerId}/bids`).catch(() => [])
         : Promise.resolve([]),
       manufacturerId
         ? apiJson<ManufacturerPaymentProfile | null>(`/api/manufacturers/${manufacturerId}/payment-info`).catch(() => null)
         : Promise.resolve(null),
-    ]).then(([ordersData, capabilityData, bidsData, paymentData]) => {
+    ]).then(([ordersData, capabilityData, approvedDesignData, bidsData, paymentData]) => {
       setOrders(Array.isArray(ordersData) ? ordersData : []);
       setCapabilities(Array.isArray(capabilityData) ? capabilityData : []);
+      setApprovedDesigns(Array.isArray(approvedDesignData) ? approvedDesignData : []);
       setBids(Array.isArray(bidsData) ? bidsData : []);
 
       const profile = paymentData && manufacturerId
@@ -115,6 +142,7 @@ export const ManufacturerDashboard = () => {
 
   const sidebarItems = [
     { icon: 'dashboard', label: 'Overview', key: 'overview' as const },
+    { icon: 'verified', label: 'Approved Designs', key: 'designs' as const },
     { icon: 'inventory_2', label: 'Orders', key: 'orders' as const },
     { icon: 'gavel', label: 'Bids', key: 'bids' as const },
     { icon: 'category', label: 'Capabilities', key: 'inventory' as const },
@@ -159,6 +187,69 @@ export const ManufacturerDashboard = () => {
       setSaveMessage(error.message || 'Failed to save payment details.');
     } finally {
       setSavingPayment(false);
+    }
+  };
+
+  const openBidForm = (design: ApprovedDesignLike) => {
+    setBidDesign(design);
+    setBidAmountINR('');
+    setTurnAroundDays('7');
+    setActionMessage('');
+  };
+
+  const closeBidForm = () => {
+    setBidDesign(null);
+    setBidAmountINR('');
+    setTurnAroundDays('7');
+  };
+
+  const submitBid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bidDesign || !loggedUser?.id) return;
+
+    const parsedBid = Number(bidAmountINR);
+    const parsedTurnaround = Number(turnAroundDays);
+
+    if (!Number.isFinite(parsedBid) || parsedBid <= 0) {
+      setActionMessage('Enter a valid bid amount.');
+      return;
+    }
+
+    if (!Number.isFinite(parsedTurnaround) || parsedTurnaround <= 0) {
+      setActionMessage('Enter a valid turnaround in days.');
+      return;
+    }
+
+    setPlacingBid(true);
+    setActionMessage('');
+
+    try {
+      await apiJson(`/api/designs/${bidDesign.id}/bids`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manufacturerId: loggedUser.id,
+          manufacturerName: loggedUser.name || paymentProfile.businessName || 'Manufacturer',
+          bidAmountINR: parsedBid,
+          turnAroundDays: parsedTurnaround,
+        }),
+      });
+
+      setActionMessage(`Bid placed on ${bidDesign.title}.`);
+      closeBidForm();
+      setTab('bids');
+
+      const [bidData, approvedDesignData] = await Promise.all([
+        apiJson<any[]>(`/api/manufacturers/${loggedUser.id}/bids`).catch(() => []),
+        apiJson<ApprovedDesignLike[]>('/api/designs/approved').catch(() => []),
+      ]);
+
+      setBids(Array.isArray(bidData) ? bidData : []);
+      setApprovedDesigns(Array.isArray(approvedDesignData) ? approvedDesignData : []);
+    } catch (error: any) {
+      setActionMessage(error?.message || 'Failed to place bid.');
+    } finally {
+      setPlacingBid(false);
     }
   };
 
@@ -287,6 +378,152 @@ export const ManufacturerDashboard = () => {
                 )}
               </div>
             </>
+          )}
+
+          {tab === 'designs' && (
+            <>
+              <div className="mb-8">
+                <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Approved Designs</h2>
+                <p className="text-[14px] text-[#5c4037] mt-2" style={font}>
+                  Designs approved by admin are visible here before they move into live product publishing.
+                </p>
+              </div>
+
+              {approvedDesigns.length === 0 && !loading ? (
+                <div className="bg-white border border-[#e6beb2] rounded-xl p-10 text-center text-[#5c4037]">
+                  <Icon name="verified" size={44} className="text-[#e6beb2] mx-auto mb-4" />
+                  <p style={font}>No approved designs are available yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {approvedDesigns.map((design) => (
+                    <div key={design.id} className="bg-white border border-[#e6beb2] rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="aspect-[4/5] bg-[#fff8f5]">
+                        {design.fileUrl ? (
+                          <img src={design.fileUrl} alt={design.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full grid place-items-center text-[#5c4037]" style={font}>No preview</div>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-[11px] uppercase tracking-widest text-[#aa3000]" style={font}>{design.workflowStatus}</span>
+                          <span className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>{design.productType || 'hoodie'}</span>
+                        </div>
+                        <h3 className="text-[18px] font-semibold text-[#241910]" style={syne}>{design.title}</h3>
+                        <p className="text-[13px] text-[#5c4037]" style={font}>by {design.designerName}</p>
+                        <p className="text-[12px] text-[#5c4037]" style={font}>
+                          {design.liveProductId ? 'Live product generated' : 'Ready for manufacturer bids'}
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <span className="px-2.5 py-1 rounded-full bg-[#ffeadb] text-[#aa3000] text-[10px] font-bold uppercase" style={font}>
+                            {design.bidSummary?.total ?? 0} bids
+                          </span>
+                          <span className="px-2.5 py-1 rounded-full bg-[#fff1e8] text-[#5c4037] text-[10px] font-bold uppercase" style={font}>
+                            {design.bidSummary?.shortlisted ?? 0} shortlisted
+                          </span>
+                          <span className="px-2.5 py-1 rounded-full bg-[#f4dfcf] text-[#241910] text-[10px] font-bold uppercase" style={font}>
+                            Lowest {design.bidSummary?.lowestBidINR ? `INR ${design.bidSummary.lowestBidINR.toLocaleString('en-IN')}` : 'N/A'}
+                          </span>
+                          {design.bidSummary?.winningBidAmountINR ? (
+                            <span className="px-2.5 py-1 rounded-full bg-[#bdf200]/20 text-[#4f6600] text-[10px] font-bold uppercase" style={font}>
+                              Winning INR {design.bidSummary.winningBidAmountINR.toLocaleString('en-IN')}
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-full bg-[#fff8f5] text-[#5c4037] text-[10px] font-bold uppercase" style={font}>
+                              No winner yet
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => openBidForm(design)}
+                          className="mt-2 w-full px-4 py-2 rounded bg-[#aa3000] text-white text-[13px] font-semibold hover:bg-[#d43f00] transition-colors"
+                          style={font}
+                        >
+                          Place Bid
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {bidDesign && (
+            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
+              <div className="w-full max-w-lg rounded-2xl border border-[#e6beb2] bg-white shadow-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5] flex items-center justify-between">
+                  <div>
+                    <h3 className="text-[18px] font-semibold text-[#241910]" style={syne}>Place Bid</h3>
+                    <p className="text-[12px] text-[#5c4037] mt-1" style={font}>{bidDesign.title}</p>
+                  </div>
+                  <button onClick={closeBidForm} className="text-[#5c4037] text-[22px] leading-none" aria-label="Close bid form">
+                    X
+                  </button>
+                </div>
+                <form onSubmit={submitBid} className="p-6 space-y-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[#5c4037]" style={font}>Bids</div>
+                      <div className="text-[18px] font-semibold text-[#241910]" style={syne}>{bidDesign.bidSummary?.total ?? 0}</div>
+                    </div>
+                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[#5c4037]" style={font}>Lowest</div>
+                      <div className="text-[18px] font-semibold text-[#241910]" style={syne}>
+                        {bidDesign.bidSummary?.lowestBidINR ? `INR ${bidDesign.bidSummary.lowestBidINR.toLocaleString('en-IN')}` : 'N/A'}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[#5c4037]" style={font}>Winner</div>
+                      <div className="text-[18px] font-semibold text-[#241910]" style={syne}>
+                        {bidDesign.bidSummary?.winningBidAmountINR ? `INR ${bidDesign.bidSummary.winningBidAmountINR.toLocaleString('en-IN')}` : 'None'}
+                      </div>
+                    </div>
+                  </div>
+                  {actionMessage && (
+                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] px-4 py-3 text-[13px]" style={font}>
+                      {actionMessage}
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#5c4037] mb-1 block" style={font}>Bid Amount INR</label>
+                    <input
+                      value={bidAmountINR}
+                      onChange={(e) => setBidAmountINR(e.target.value)}
+                      inputMode="numeric"
+                      placeholder="e.g. 850"
+                      className="w-full border border-[#e6beb2] rounded px-3 py-2"
+                      style={font}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#5c4037] mb-1 block" style={font}>Turnaround Days</label>
+                    <input
+                      value={turnAroundDays}
+                      onChange={(e) => setTurnAroundDays(e.target.value)}
+                      inputMode="numeric"
+                      placeholder="7"
+                      className="w-full border border-[#e6beb2] rounded px-3 py-2"
+                      style={font}
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button type="button" onClick={closeBidForm} className="px-4 py-2 rounded border border-[#e6beb2] text-[#5c4037] text-[13px]" style={font}>
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={placingBid}
+                      className="px-4 py-2 rounded bg-[#aa3000] text-white text-[13px] font-semibold disabled:opacity-60"
+                      style={font}
+                    >
+                      {placingBid ? 'Submitting...' : 'Submit Bid'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           )}
 
           {tab === 'orders' && (

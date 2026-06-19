@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiJson } from '../../lib/api';
 
 type DesignRecord = {
@@ -14,27 +14,6 @@ type DesignRecord = {
   liveProductId?: string;
 };
 
-type WorkflowPayload = {
-  design: DesignRecord;
-  bids: Array<{
-    id: string;
-    manufacturerId: string;
-    manufacturerName: string;
-    bidAmountINR: number;
-    status: string;
-    sampleStatus: string | null;
-    createdAt: string;
-  }>;
-  samples: Array<{
-    id: string;
-    bidId: string;
-    manufacturerId: string;
-    status: string;
-    notes?: string;
-    createdAt: string;
-  }>;
-};
-
 type AnalyticsPayload = {
   designs: number;
   products: number;
@@ -48,8 +27,7 @@ type AnalyticsPayload = {
 export const AdminDashboard = () => {
   const [designs, setDesigns] = useState<DesignRecord[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsPayload | null>(null);
-  const [selectedDesign, setSelectedDesign] = useState<string>('');
-  const [workflow, setWorkflow] = useState<WorkflowPayload | null>(null);
+  const [archiveTab, setArchiveTab] = useState<'approved' | 'rejected'>('approved');
   const [moderationUserId, setModerationUserId] = useState('');
   const [moderationRole, setModerationRole] = useState<'DESIGNER' | 'MANUFACTURER'>('DESIGNER');
   const [moderationStatus, setModerationStatus] = useState<'ACTIVE' | 'PAUSED' | 'BLOCKED'>('PAUSED');
@@ -58,7 +36,9 @@ export const AdminDashboard = () => {
 
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
-  const activeDesigns = designs.filter((design) => design.workflowStatus !== 'REJECTED');
+
+  const pendingDesigns = designs.filter((design) => design.workflowStatus === 'SUBMITTED');
+  const acceptedDesigns = designs.filter((design) => design.workflowStatus !== 'SUBMITTED' && design.workflowStatus !== 'REJECTED');
   const rejectedDesigns = designs.filter((design) => design.workflowStatus === 'REJECTED');
 
   const loadData = async () => {
@@ -68,37 +48,31 @@ export const AdminDashboard = () => {
     ]);
     setDesigns(Array.isArray(designData) ? designData : []);
     setAnalytics(analyticsData);
-    const nextSelected =
-      designData.find((design) => design.id === selectedDesign && design.workflowStatus !== 'REJECTED')
-      ?? designData.find((design) => design.workflowStatus !== 'REJECTED')
-      ?? designData[0];
-    if (nextSelected?.id) setSelectedDesign(nextSelected.id);
   };
 
   useEffect(() => {
     loadData().catch(() => setMessage('Failed to load admin data.'));
   }, []);
 
-  useEffect(() => {
-    if (!selectedDesign) return;
-    apiJson<WorkflowPayload>(`/api/designs/${selectedDesign}/workflow`)
-      .then(setWorkflow)
-      .catch(() => setWorkflow(null));
-  }, [selectedDesign]);
-
-  const selectedSummary = useMemo(() => designs.find((d) => d.id === selectedDesign), [designs, selectedDesign]);
-  const selectedWorkflowDesign = workflow?.design ?? selectedSummary;
-
   const approveDesign = async (designId: string) => {
-    await apiJson(`/api/admin/designs/${designId}/approve`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminId: 'admin' }) });
-    setMessage('Design approved and bidding can begin.');
+    await apiJson(`/api/admin/designs/${designId}/approve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminId: 'admin' }),
+    });
+    setMessage('Design approved and now visible to manufacturers.');
+    setArchiveTab('approved');
     await loadData();
-    setSelectedDesign(designId);
   };
 
   const rejectDesign = async (designId: string) => {
-    await apiJson(`/api/admin/designs/${designId}/reject`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminId: 'admin' }) });
+    await apiJson(`/api/admin/designs/${designId}/reject`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminId: 'admin' }),
+    });
     setMessage('Design rejected.');
+    setArchiveTab('rejected');
     await loadData();
   };
 
@@ -152,14 +126,17 @@ export const AdminDashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <section className="xl:col-span-2 rounded-xl border border-[#e6beb2] bg-white overflow-hidden">
             <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5] flex items-center justify-between">
-              <h2 className="font-semibold text-[18px]" style={syne}>Design Queue</h2>
+              <div>
+                <h2 className="font-semibold text-[18px]" style={syne}>Design Queue</h2>
+                <p className="text-[12px] text-[#5c4037] mt-1" style={font}>Only new submissions stay here until you review them.</p>
+              </div>
               <button onClick={loadData} className="text-[13px] font-semibold text-[#aa3000]" style={font}>Refresh</button>
             </div>
             <div className="divide-y divide-[#e6beb2]">
-              {activeDesigns.length === 0 && rejectedDesigns.length === 0 && (
-                <div className="p-8 text-[#5c4037]" style={font}>No designs submitted yet.</div>
+              {pendingDesigns.length === 0 && (
+                <div className="p-8 text-[#5c4037]" style={font}>No pending designs right now.</div>
               )}
-              {activeDesigns.map((design) => (
+              {pendingDesigns.map((design) => (
                 <div key={design.id} className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="min-w-0">
                     <div className="w-20 h-20 mb-3 rounded-lg overflow-hidden border border-[#e6beb2] bg-[#fff8f5]">
@@ -171,13 +148,10 @@ export const AdminDashboard = () => {
                     </div>
                     <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>{design.workflowStatus}</div>
                     <h3 className="text-[18px] font-semibold truncate" style={syne}>{design.title}</h3>
-                    <p className="text-[13px] text-[#5c4037]" style={font}>
-                      by {design.designerName} · {design.moderationStatus}
-                    </p>
+                    <p className="text-[13px] text-[#5c4037]" style={font}>by {design.designerName} · {design.moderationStatus}</p>
                     {design.adminNotes && <p className="text-[13px] text-[#5c4037] mt-1" style={font}>{design.adminNotes}</p>}
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => setSelectedDesign(design.id)} className="px-3 py-2 rounded border border-[#e6beb2] text-[13px]" style={font}>Open</button>
                     <button onClick={() => approveDesign(design.id)} className="px-3 py-2 rounded bg-[#aa3000] text-white text-[13px]" style={font}>Approve</button>
                     <button onClick={() => rejectDesign(design.id)} className="px-3 py-2 rounded border border-[#ba1a1a] text-[#ba1a1a] text-[13px]" style={font}>Reject</button>
                   </div>
@@ -187,61 +161,57 @@ export const AdminDashboard = () => {
           </section>
 
           <section className="rounded-xl border border-[#e6beb2] bg-white overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5]">
-              <h2 className="font-semibold text-[18px]" style={syne}>Workflow</h2>
+            <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5] flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-[18px]" style={syne}>Review Archive</h2>
+                <p className="text-[12px] text-[#5c4037] mt-1" style={font}>Accepted and rejected designs are grouped here.</p>
+              </div>
             </div>
-            <div className="p-6 space-y-4">
-              {selectedSummary ? (
-                <>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>Selected Design</div>
-                    <div className="font-semibold" style={font}>{selectedWorkflowDesign?.title ?? selectedSummary.title}</div>
-                  </div>
-                  <div className="rounded-lg border border-[#e6beb2] overflow-hidden bg-[#fff8f5]">
-                    {selectedWorkflowDesign?.fileUrl ? (
-                      <img src={selectedWorkflowDesign.fileUrl} alt={selectedWorkflowDesign.title} className="w-full aspect-square object-cover" />
-                    ) : (
-                      <div className="aspect-square grid place-items-center text-[13px] text-[#5c4037]" style={font}>No artwork preview</div>
-                    )}
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => approveDesign(selectedWorkflowDesign?.id ?? selectedSummary.id)} className="px-3 py-2 rounded bg-[#aa3000] text-white text-[13px]" style={font}>Approve Design</button>
-                    <button onClick={() => rejectDesign(selectedWorkflowDesign?.id ?? selectedSummary.id)} className="px-3 py-2 rounded border border-[#ba1a1a] text-[#ba1a1a] text-[13px]" style={font}>Reject Design</button>
-                  </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>Bids</div>
-                    <div className="space-y-2 mt-2">
-                      {(workflow?.bids ?? []).map((bid) => (
-                        <div key={bid.id} className="rounded-lg border border-[#e6beb2] p-3">
-                          <div className="flex items-center justify-between text-[13px]">
-                            <span style={font}>{bid.manufacturerName}</span>
-                            <span className="font-semibold" style={font}>INR {bid.bidAmountINR.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-[12px] text-[#5c4037]" style={font}>{bid.status} · {bid.sampleStatus || 'NO SAMPLE'}</div>
-                        </div>
-                      ))}
-                      {(!workflow?.bids || workflow.bids.length === 0) && (
-                        <div className="text-[13px] text-[#5c4037]" style={font}>No bids yet.</div>
-                      )}
+            <div className="px-6 pt-4 flex gap-2">
+              <button
+                onClick={() => setArchiveTab('approved')}
+                className={`px-3 py-2 rounded text-[12px] font-semibold border transition-colors ${archiveTab === 'approved' ? 'bg-[#aa3000] text-white border-[#aa3000]' : 'border-[#e6beb2] text-[#5c4037] hover:bg-[#fff8f5]'}`}
+                style={font}
+              >
+                Accepted
+              </button>
+              <button
+                onClick={() => setArchiveTab('rejected')}
+                className={`px-3 py-2 rounded text-[12px] font-semibold border transition-colors ${archiveTab === 'rejected' ? 'bg-[#aa3000] text-white border-[#aa3000]' : 'border-[#e6beb2] text-[#5c4037] hover:bg-[#fff8f5]'}`}
+                style={font}
+              >
+                Rejected
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {archiveTab === 'approved' ? (
+                acceptedDesigns.length === 0 ? (
+                  <div className="text-[13px] text-[#5c4037] p-2" style={font}>Approved designs will appear here after review.</div>
+                ) : (
+                  acceptedDesigns.map((design) => (
+                    <div key={design.id} className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
+                      <div className="text-[11px] uppercase tracking-widest text-[#aa3000]" style={font}>{design.workflowStatus}</div>
+                      <div className="font-semibold truncate" style={syne}>{design.title}</div>
+                      <div className="text-[12px] text-[#5c4037]" style={font}>by {design.designerName}</div>
+                      <div className="text-[12px] text-[#5c4037] mt-1" style={font}>
+                        {design.liveProductId ? 'Live product generated' : 'Visible to manufacturers'}
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>Samples</div>
-                    <div className="space-y-2 mt-2">
-                      {(workflow?.samples ?? []).map((sample) => (
-                        <div key={sample.id} className="rounded-lg border border-[#e6beb2] p-3 text-[13px]" style={font}>
-                          <div className="font-semibold">{sample.status}</div>
-                          <div className="text-[#5c4037]">Bid: {sample.bidId}</div>
-                        </div>
-                      ))}
-                      {(!workflow?.samples || workflow.samples.length === 0) && (
-                        <div className="text-[13px] text-[#5c4037]" style={font}>No samples yet.</div>
-                      )}
-                    </div>
-                  </div>
-                </>
+                  ))
+                )
               ) : (
-                <div className="text-[13px] text-[#5c4037]" style={font}>Select a design to inspect bids and samples.</div>
+                rejectedDesigns.length === 0 ? (
+                  <div className="text-[13px] text-[#5c4037] p-2" style={font}>Rejected designs will appear here after review.</div>
+                ) : (
+                  rejectedDesigns.map((design) => (
+                    <div key={design.id} className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
+                      <div className="text-[11px] uppercase tracking-widest text-[#ba1a1a]" style={font}>Rejected</div>
+                      <div className="font-semibold truncate" style={syne}>{design.title}</div>
+                      <div className="text-[12px] text-[#5c4037]" style={font}>by {design.designerName}</div>
+                      {design.adminNotes && <div className="text-[12px] text-[#5c4037] mt-1 line-clamp-2" style={font}>{design.adminNotes}</div>}
+                    </div>
+                  ))
+                )
               )}
             </div>
           </section>
@@ -263,31 +233,6 @@ export const AdminDashboard = () => {
               </select>
               <input value={moderationReason} onChange={(e) => setModerationReason(e.target.value)} placeholder="Reason" className="border border-[#e6beb2] rounded px-3 py-2 md:col-span-1" style={font} />
               <button onClick={applyModeration} className="rounded bg-[#aa3000] text-white px-4 py-2 font-semibold" style={font}>Apply</button>
-            </div>
-          </section>
-
-          <section className="rounded-xl border border-[#e6beb2] bg-white overflow-hidden xl:col-span-3">
-            <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5] flex items-center justify-between">
-              <h2 className="font-semibold text-[18px]" style={syne}>Rejected Shelf</h2>
-              <span className="text-[12px] text-[#5c4037]" style={font}>{rejectedDesigns.length} saved for later review</span>
-            </div>
-            <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {rejectedDesigns.length === 0 ? (
-                <div className="text-[13px] text-[#5c4037] p-2" style={font}>Rejected designs will appear here after review.</div>
-              ) : (
-                rejectedDesigns.map((design) => (
-                  <button
-                    key={design.id}
-                    onClick={() => setSelectedDesign(design.id)}
-                    className="text-left rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3 hover:border-[#aa3000] transition-colors"
-                  >
-                    <div className="text-[11px] uppercase tracking-widest text-[#ba1a1a]" style={font}>Rejected</div>
-                    <div className="font-semibold truncate" style={syne}>{design.title}</div>
-                    <div className="text-[12px] text-[#5c4037] truncate" style={font}>by {design.designerName}</div>
-                    {design.adminNotes && <div className="text-[12px] text-[#5c4037] mt-1 line-clamp-2" style={font}>{design.adminNotes}</div>}
-                  </button>
-                ))
-              )}
             </div>
           </section>
 
