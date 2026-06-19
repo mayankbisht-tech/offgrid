@@ -21,10 +21,12 @@ import { ShopPage } from './user/ShopPage';
 import { ProductPage } from './user/ProductPage';
 import { CheckoutPage } from './user/CheckoutPage';
 import { PaymentPlaceholderPage } from './user/PaymentPlaceholderPage';
+import { PaymentPage } from './user/PaymentPage';
 
 import { DashboardPage } from './designer/DashboardPage';
 import { StudioPublishWizard } from './designer/StudioPublishWizard';
 import { CreatorPage } from './designer/CreatorPage';
+import { AdminDashboard } from './admin/AdminDashboard';
 
 export function LogoutPage() {
   useEffect(() => {
@@ -68,6 +70,10 @@ export default function RootLayout() {
     setCartOpen(true);
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   const removeCartItem = (idx: number) => {
     setCartItems(prev => prev.filter((_, i) => i !== idx));
   };
@@ -96,7 +102,7 @@ export default function RootLayout() {
     user, cartItems, cartOpen, authOpen, searchOpen, mobileMenuOpen, setMobileMenuOpen,
     setCartOpen, setAuthOpen, setSearchOpen,
     handleLogin, handleLogout,
-    addToCart, removeCartItem, changeCartQty,
+    addToCart, clearCart, removeCartItem, changeCartQty,
   };
 
   return (
@@ -263,6 +269,8 @@ export {
   DashboardPage,
   StudioPublishWizard,
   CreatorPage,
+  AdminDashboard,
   CheckoutPage,
   PaymentPlaceholderPage,
+  PaymentPage,
 };

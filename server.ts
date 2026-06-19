@@ -10,19 +10,32 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
-import { 
+import {
   products, 
   designs, 
   orders, 
   capabilities, 
   manufacturers, 
+  manufacturerPaymentProfiles,
+  designBids,
+  designSamples,
+  moderationRecords,
   createProduct, 
   createDesign, 
+  createDesignBid,
+  createDesignSample,
+  createLiveProductFromDesign,
+  promoteNextHeldBid,
   createOrder, 
   updateOrderStatus, 
-  updateCapabilityCost 
+  updateCapabilityCost,
+  upsertManufacturerPaymentProfile,
+  setModerationStatus,
+  getModerationStatus,
+  recalculateBidStatuses,
+  attachWinningSample,
 } from './server_db.js';
-import { initDb, pool } from './server_pg.js';
+import { initDb, prisma } from './server_pg.js';
 import { validateUploadFile, uploadToCloudinary, ALLOWED_MIME_TYPES, MAX_FILE_BYTES } from './src/lib/cloudinary.js';
 import { validateEnv } from './src/config/env.js';
 
@@ -64,17 +77,21 @@ app.post('/api/auth/login', async (req: express.Request, res: express.Response) 
       return;
     }
 
-    const { rows } = await pool.query(
-      'SELECT id, email, password, name, role, username FROM offgrid_users WHERE email = $1',
-      [email.toLowerCase().trim()]
-    );
+    const dbUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim() },
+      select: { id: true, email: true, password: true, name: true, role: true, username: true },
+    });
 
-    if (rows.length === 0) {
+    if (!dbUser) {
       res.status(401).json({ error: 'User does not exist in Neon PostgreSQL.' });
       return;
     }
 
-    const dbUser = rows[0];
+    const accountStatus = getModerationStatus(dbUser.id);
+    if (accountStatus === 'BLOCKED') {
+      res.status(403).json({ error: 'This account is blocked by an administrator.' });
+      return;
+    }
     if (dbUser.password !== password) {
       res.status(401).json({ error: 'Incorrect password entered.' });
       return;
@@ -86,7 +103,8 @@ app.post('/api/auth/login', async (req: express.Request, res: express.Response) 
         email: dbUser.email,
         name: dbUser.name,
         role: dbUser.role,
-        username: dbUser.username || undefined
+        username: dbUser.username || undefined,
+        accountStatus,
       }
     });
   } catch (error: any) {
@@ -104,11 +122,16 @@ app.post('/api/auth/register', async (req: express.Request, res: express.Respons
     }
 
     const id = `usr-${Date.now()}`;
-    await pool.query(
-      `INSERT INTO offgrid_users (id, email, password, name, role, username)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [id, email.toLowerCase().trim(), password, name, role, username || null]
-    );
+    await prisma.user.create({
+      data: {
+        id,
+        email: email.toLowerCase().trim(),
+        password,
+        name,
+        role,
+        username: username || null,
+      },
+    });
 
     res.status(201).json({
       user: {
@@ -215,7 +238,10 @@ app.post('/api/designs', (req: express.Request, res: express.Response) => {
       description,
       fileUrl,
       fileType: fileType || 'PNG',
-      tags: tags || []
+      tags: tags || [],
+      workflowStatus: 'SUBMITTED',
+      moderationStatus: getModerationStatus(designerId || 'dsg-1'),
+      currentRound: 0,
     });
     res.status(201).json(newDesign);
   } catch (error: any) {
@@ -223,22 +249,24 @@ app.post('/api/designs', (req: express.Request, res: express.Response) => {
   }
 });
 
-// Public design feed
+// Public design feed: only live designs with products
 app.get('/api/designs', (req: express.Request, res: express.Response) => {
-  const publicDesigns = designs.map(d => {
-    const product = products.find(p => p.designId === d.id);
-    return {
-      ...d,
-      productId: product?.id,
-      image: d.fileUrl,
-      price: product ? `₹${(product.baseCostINR + product.designerPriceINR).toLocaleString('en-IN')}` : null,
-      baseCostINR: product ? product.baseCostINR : 0,
-      designerPriceINR: product ? product.designerPriceINR : 0,
-      productType: product ? product.productType : 'hoodie',
-      totalSold: product ? product.totalSold : 0,
-      active: product?.active ?? false,
-    };
-  });
+  const publicDesigns = designs
+    .filter((d) => d.workflowStatus === 'LIVE' && d.liveProductId)
+    .map((d) => {
+      const product = products.find((p) => p.id === d.liveProductId) || products.find((p) => p.designId === d.id);
+      return {
+        ...d,
+        productId: product?.id,
+        image: d.fileUrl,
+        price: product ? `?${(product.baseCostINR + product.designerPriceINR).toLocaleString('en-IN')}` : null,
+        baseCostINR: product ? product.baseCostINR : 0,
+        designerPriceINR: product ? product.designerPriceINR : 0,
+        productType: product ? product.productType : 'hoodie',
+        totalSold: product ? product.totalSold : 0,
+        active: product?.active ?? false,
+      };
+    });
   res.json(publicDesigns);
 });
 
@@ -288,6 +316,10 @@ app.get('/api/catalog', async (_req: express.Request, res: express.Response) => 
         d.fileUrl === resource.secure_url || d.fileUrl?.includes(resource.public_id)
       );
 
+      if (!matchedProduct && (!matchedDesign || matchedDesign.workflowStatus !== 'LIVE')) {
+        return null;
+      }
+
       return {
         id: matchedProduct?.id ?? matchedDesign?.id ?? resource.public_id,
         designId: matchedProduct?.designId ?? matchedDesign?.id ?? resource.public_id,
@@ -311,7 +343,7 @@ app.get('/api/catalog', async (_req: express.Request, res: express.Response) => 
       };
     });
 
-    res.json(catalog);
+    res.json(catalog.filter(Boolean));
   } catch (error: any) {
     console.error('[/api/catalog] Error:', error.message);
     res.status(500).json({ error: error.message });
@@ -321,9 +353,14 @@ app.get('/api/catalog', async (_req: express.Request, res: express.Response) => 
 // Dynamic listed product launch
 app.post('/api/products', (req: express.Request, res: express.Response) => {
   try {
-    const { designId, designerId, designerName, title, description, productType, image, baseCostINR, designerPriceINR } = req.body;
+    const { designId, designerId, designerName, title, description, productType, image, baseCostINR, designerPriceINR, manufacturerId } = req.body;
     if (!designId || !title || !productType) {
       res.status(400).json({ error: 'Required config elements (designId, title, productType) are missing.' });
+      return;
+    }
+    const design = designs.find((item) => item.id === designId);
+    if (!design || (design.workflowStatus !== 'SAMPLE_APPROVED' && req.body?.allowDirectPublish !== true)) {
+      res.status(403).json({ error: 'Design must complete approval before product publishing.' });
       return;
     }
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -331,6 +368,7 @@ app.post('/api/products', (req: express.Request, res: express.Response) => {
       designId,
       designerId: designerId || 'dsg-1',
       designerName: designerName || 'Karan Singh',
+      manufacturerId,
       slug,
       title,
       description,
@@ -341,6 +379,8 @@ app.post('/api/products', (req: express.Request, res: express.Response) => {
       active: true,
       featured: false
     });
+    design.liveProductId = newProduct.id;
+    design.workflowStatus = 'LIVE';
     res.status(201).json(newProduct);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -370,7 +410,7 @@ app.post('/api/orders', (req: express.Request, res: express.Response) => {
       subtotalINR,
       shippingINR,
       totalINR,
-      paymentMethod: paymentMethod || 'razorpay'
+      paymentMethod: paymentMethod || 'upi'
     });
     res.status(201).json(orderObj);
   } catch (error: any) {
@@ -393,9 +433,373 @@ app.patch('/api/orders/:id', (req: express.Request, res: express.Response) => {
   }
 });
 
+// -------------------------------------------------------------
+// PAYMENT PROCESSING (UPI and Bank Transfer)
+// -------------------------------------------------------------
+
+// Payment processing (placeholder for UPI and bank transfer)
+app.post('/api/payments/process', (req: express.Request, res: express.Response) => {
+  try {
+    const { paymentMethod, amount, orderId } = req.body;
+    
+    if (!paymentMethod || !amount || !orderId) {
+      res.status(400).json({ error: 'Payment method, amount, and order ID are required.' });
+      return;
+    }
+    
+    // Mock payment processing
+    const paymentId = `${paymentMethod}_${Date.now()}`;
+    
+    res.json({
+      success: true,
+      paymentId,
+      message: `Payment initiated with ${paymentMethod}. Please complete the payment.`
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get payment details for UPI or bank transfer
+app.get('/api/payments/details', (req: express.Request, res: express.Response) => {
+  try {
+    const paymentMethod = req.query.method as 'upi' | 'bank_transfer';
+    
+    if (!paymentMethod || (paymentMethod !== 'upi' && paymentMethod !== 'bank_transfer')) {
+      res.status(400).json({ error: 'Invalid payment method. Use "upi" or "bank_transfer".' });
+      return;
+    }
+    
+    if (paymentMethod === 'upi') {
+      res.json({
+        method: 'UPI',
+        upiId: process.env.UPI_ID || 'yourupiid@bank',
+        instructions: 'Scan the QR code or send payment to the UPI ID above.'
+      });
+    } else {
+      res.json({
+        method: 'Bank Transfer',
+        bankName: process.env.BANK_NAME || 'Your Bank Name',
+        accountNumber: process.env.BANK_ACCOUNT || '1234567890',
+        ifscCode: process.env.BANK_IFSC || 'BANK0001234',
+        instructions: 'Transfer the amount to the account details above and use the order ID as reference.'
+      });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Workflow APIs for design approval, bidding, samples, and moderation
+app.get('/api/admin/designs', (_req: express.Request, res: express.Response) => {
+  res.json(designs);
+});
+
+app.patch('/api/admin/designs/:designId/approve', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.params.designId);
+  if (!design) {
+    res.status(404).json({ error: 'Design not found.' });
+    return;
+  }
+  design.workflowStatus = 'ADMIN_APPROVED';
+  design.adminReviewedAt = new Date().toISOString();
+  design.adminReviewedBy = req.body?.adminId || 'admin';
+  design.adminNotes = req.body?.notes || design.adminNotes;
+  res.json({ design });
+});
+
+app.patch('/api/admin/designs/:designId/reject', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.params.designId);
+  if (!design) {
+    res.status(404).json({ error: 'Design not found.' });
+    return;
+  }
+  design.workflowStatus = 'REJECTED';
+  design.adminReviewedAt = new Date().toISOString();
+  design.adminReviewedBy = req.body?.adminId || 'admin';
+  design.adminNotes = req.body?.notes || design.adminNotes;
+  res.json({ design });
+});
+
+app.get('/api/designs/:designId/bids', (req: express.Request, res: express.Response) => {
+  const bids = designBids
+    .filter((bid) => bid.designId === req.params.designId)
+    .sort((a, b) => a.bidAmountINR - b.bidAmountINR || a.createdAt.localeCompare(b.createdAt));
+  res.json(bids);
+});
+
+app.post('/api/designs/:designId/bids', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.params.designId);
+  if (!design) {
+    res.status(404).json({ error: 'Design not found.' });
+    return;
+  }
+  if (design.moderationStatus === 'BLOCKED') {
+    res.status(403).json({ error: 'This design is blocked.' });
+    return;
+  }
+
+  const { manufacturerId, manufacturerName, bidAmountINR, turnAroundDays } = req.body ?? {};
+  if (!manufacturerId || typeof bidAmountINR !== 'number') {
+    res.status(400).json({ error: 'manufacturerId and bidAmountINR are required.' });
+    return;
+  }
+
+  if (getModerationStatus(manufacturerId) === 'BLOCKED') {
+    res.status(403).json({ error: 'This manufacturer is blocked.' });
+    return;
+  }
+
+  const bid = createDesignBid({
+    designId: design.id,
+    manufacturerId,
+    manufacturerName: manufacturerName || 'Manufacturer',
+    bidAmountINR,
+    turnAroundDays: typeof turnAroundDays === 'number' ? turnAroundDays : 7,
+  });
+
+  design.workflowStatus = 'BIDDING_OPEN';
+  const ranked = recalculateBidStatuses(design.id);
+  res.status(201).json({ bid, bids: ranked });
+});
+
+app.post('/api/designs/:designId/samples', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.params.designId);
+  if (!design) {
+    res.status(404).json({ error: 'Design not found.' });
+    return;
+  }
+
+  const { bidId, manufacturerId, designerId, imageUrl, notes } = req.body ?? {};
+  const bid = designBids.find((item) => item.id === bidId && item.designId === design.id);
+  if (!bid) {
+    res.status(404).json({ error: 'Bid not found for this design.' });
+    return;
+  }
+
+  const sample = createDesignSample({
+    designId: design.id,
+    bidId,
+    manufacturerId: manufacturerId || bid.manufacturerId,
+    designerId: designerId || design.designerId,
+    status: 'IN_PROGRESS',
+    sampleCostSplit: '50/50 designer/manufacturer',
+    imageUrl,
+    notes,
+  });
+
+  bid.sampleStatus = 'IN_PROGRESS';
+  bid.updatedAt = new Date().toISOString();
+  design.workflowStatus = 'SAMPLE_IN_PROGRESS';
+
+  res.status(201).json({ sample, design });
+});
+
+app.patch('/api/designs/:designId/samples/:sampleId/decision', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.params.designId);
+  const sample = designSamples.find((item) => item.id === req.params.sampleId && item.designId === req.params.designId);
+  if (!design || !sample) {
+    res.status(404).json({ error: 'Design or sample not found.' });
+    return;
+  }
+
+  const { status } = req.body ?? {};
+  if (status === 'APPROVED') {
+    attachWinningSample(design.id, sample.bidId, sample.id, sample.manufacturerId);
+    const product = createLiveProductFromDesign(design.id, sample.bidId);
+    const bid = designBids.find((item) => item.id === sample.bidId);
+    if (bid) {
+      bid.status = 'WINNING';
+      bid.sampleStatus = 'APPROVED';
+      bid.updatedAt = new Date().toISOString();
+    }
+    design.workflowStatus = 'LIVE';
+    res.json({ design, product, sample });
+    return;
+  }
+
+  sample.status = 'REJECTED';
+  sample.reviewedAt = new Date().toISOString();
+  sample.updatedAt = sample.reviewedAt;
+  const rejectedBid = designBids.find((item) => item.id === sample.bidId);
+  if (rejectedBid) {
+    rejectedBid.status = 'REJECTED';
+    rejectedBid.sampleStatus = 'REJECTED';
+    rejectedBid.updatedAt = new Date().toISOString();
+  }
+
+  const promotedBid = promoteNextHeldBid(design.id);
+  if (promotedBid) {
+    design.workflowStatus = 'SHORTLISTED';
+    res.json({ design, sample, promotedBid });
+    return;
+  }
+
+  design.workflowStatus = 'BIDDING_OPEN';
+  res.json({ design, sample, promotedBid: null });
+});
+
+app.patch('/api/admin/users/:userId/status', (req: express.Request, res: express.Response) => {
+  const { status, reason, role, adminId } = req.body ?? {};
+  if (!status || !['ACTIVE', 'PAUSED', 'BLOCKED'].includes(status)) {
+    res.status(400).json({ error: 'Valid status is required.' });
+    return;
+  }
+
+  const record = setModerationStatus({
+    userId: req.params.userId,
+    role: role || 'MANUFACTURER',
+    status,
+    reason,
+    updatedBy: adminId || 'admin',
+  });
+
+  designs.forEach((design) => {
+    if (design.designerId === req.params.userId || design.winningManufacturerId === req.params.userId) {
+      design.moderationStatus = status;
+      if (status === 'BLOCKED') design.workflowStatus = 'BLOCKED';
+      if (status === 'PAUSED') design.workflowStatus = 'PAUSED';
+    }
+  });
+
+  designBids.forEach((bid) => {
+    if (bid.manufacturerId === req.params.userId && status !== 'ACTIVE') {
+      bid.status = status === 'BLOCKED' ? 'REJECTED' : bid.status;
+      bid.heldReason = status === 'BLOCKED' ? 'Manufacturer blocked by admin' : bid.heldReason;
+      bid.updatedAt = new Date().toISOString();
+    }
+  });
+
+  res.json({ record });
+});
+
+app.get('/api/admin/analytics', (_req: express.Request, res: express.Response) => {
+  const designerAnalytics = designs.reduce<Record<string, { designerId: string; designs: number; liveProducts: number; bids: number; }>>((acc, design) => {
+    acc[design.designerId] ||= { designerId: design.designerId, designs: 0, liveProducts: 0, bids: 0 };
+    acc[design.designerId].designs += 1;
+    if (design.liveProductId) acc[design.designerId].liveProducts += 1;
+    acc[design.designerId].bids += designBids.filter((bid) => bid.designId === design.id).length;
+    return acc;
+  }, {});
+
+  const manufacturerAnalytics = designBids.reduce<Record<string, { manufacturerId: string; bids: number; shortlisted: number; winning: number; samples: number; }>>((acc, bid) => {
+    acc[bid.manufacturerId] ||= { manufacturerId: bid.manufacturerId, bids: 0, shortlisted: 0, winning: 0, samples: 0 };
+    acc[bid.manufacturerId].bids += 1;
+    if (bid.status === 'SHORTLISTED') acc[bid.manufacturerId].shortlisted += 1;
+    if (bid.status === 'WINNING') acc[bid.manufacturerId].winning += 1;
+    acc[bid.manufacturerId].samples += designSamples.filter((sample) => sample.bidId === bid.id).length;
+    return acc;
+  }, {});
+
+  res.json({
+    designs: designs.length,
+    products: products.length,
+    bids: designBids.length,
+    samples: designSamples.length,
+    designerAnalytics: Object.values(designerAnalytics),
+    manufacturerAnalytics: Object.values(manufacturerAnalytics),
+    moderationRecords: Object.values(moderationRecords),
+  });
+});
+
+app.get('/api/designs/:designId/workflow', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.params.designId);
+  if (!design) {
+    res.status(404).json({ error: 'Design not found.' });
+    return;
+  }
+  const bids = designBids.filter((bid) => bid.designId === design.id).sort((a, b) => a.bidAmountINR - b.bidAmountINR || a.createdAt.localeCompare(b.createdAt));
+  const samples = designSamples.filter((sample) => sample.designId === design.id);
+  res.json({ design, bids, samples });
+});
+
+app.patch('/api/products/:id/publish-from-design', (req: express.Request, res: express.Response) => {
+  const design = designs.find((item) => item.id === req.body?.designId);
+  const product = products.find((item) => item.id === req.params.id);
+  if (!design || !product) {
+    res.status(404).json({ error: 'Design or product not found.' });
+    return;
+  }
+  design.liveProductId = product.id;
+  design.workflowStatus = 'LIVE';
+  product.active = true;
+  res.json({ design, product });
+});
+
+app.get('/api/manufacturers/:manufacturerId/bids', (req: express.Request, res: express.Response) => {
+  const manufacturerId = req.params.manufacturerId;
+  const bids = designBids
+    .filter((bid) => bid.manufacturerId === manufacturerId)
+    .map((bid) => ({
+      ...bid,
+      design: designs.find((design) => design.id === bid.designId) ?? null,
+      sample: designSamples.find((sample) => sample.bidId === bid.id) ?? null,
+    }))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  res.json(bids);
+});
+
 // Capabilities configurations APIs
 app.get('/api/capabilities', (req: express.Request, res: express.Response) => {
   res.json(capabilities);
+});
+
+app.get('/api/manufacturers/:userId/payment-info', (req: express.Request, res: express.Response) => {
+  const profile = manufacturerPaymentProfiles[req.params.userId];
+  res.json(profile ?? null);
+});
+
+app.patch('/api/manufacturers/:userId/payment-info', (req: express.Request, res: express.Response) => {
+  try {
+    const { businessName, preferredPayoutMethod, accountHolderName, upiId, bankName, bankAccount, bankIFSC } = req.body ?? {};
+    const userId = req.params.userId;
+
+    if (typeof businessName !== 'string' || !businessName.trim()) {
+      res.status(400).json({ error: 'Business name is required.' });
+      return;
+    }
+
+    if (preferredPayoutMethod !== 'upi' && preferredPayoutMethod !== 'bank_transfer') {
+      res.status(400).json({ error: 'Preferred payout method must be "upi" or "bank_transfer".' });
+      return;
+    }
+
+    if (preferredPayoutMethod === 'upi' && (typeof upiId !== 'string' || !upiId.trim())) {
+      res.status(400).json({ error: 'UPI ID is required for UPI payouts.' });
+      return;
+    }
+
+    if (preferredPayoutMethod === 'bank_transfer') {
+      if (typeof bankName !== 'string' || !bankName.trim()) {
+        res.status(400).json({ error: 'Bank name is required for bank transfer payouts.' });
+        return;
+      }
+      if (typeof bankAccount !== 'string' || !bankAccount.trim()) {
+        res.status(400).json({ error: 'Bank account number is required for bank transfer payouts.' });
+        return;
+      }
+      if (typeof bankIFSC !== 'string' || !bankIFSC.trim()) {
+        res.status(400).json({ error: 'IFSC code is required for bank transfer payouts.' });
+        return;
+      }
+    }
+
+    const profile = upsertManufacturerPaymentProfile({
+      userId,
+      businessName: businessName.trim(),
+      preferredPayoutMethod,
+      accountHolderName: typeof accountHolderName === 'string' ? accountHolderName.trim() || undefined : undefined,
+      upiId: typeof upiId === 'string' ? upiId.trim() || undefined : undefined,
+      bankName: typeof bankName === 'string' ? bankName.trim() || undefined : undefined,
+      bankAccount: typeof bankAccount === 'string' ? bankAccount.trim() || undefined : undefined,
+      bankIFSC: typeof bankIFSC === 'string' ? bankIFSC.trim() || undefined : undefined,
+      updatedAt: new Date().toISOString(),
+    });
+
+    res.json({ success: true, profile });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.patch('/api/capabilities/:id', (req: express.Request, res: express.Response) => {
@@ -471,13 +875,13 @@ app.get('/api/cloudinary/config', (_req: express.Request, res: express.Response)
 });
 
 // -------------------------------------------------------------
-// DESIGN PUBLISH — one-shot: create Design + Product with Cloudinary URL
+// DESIGN PUBLISH - create Design submission for admin review
 // -------------------------------------------------------------
 app.post('/api/designs/publish', async (req: express.Request, res: express.Response) => {
   try {
     const {
       cloudinaryUrl, publicId, title, description, designerId, designerName,
-      tags, productType, baseCostINR, designerPriceINR,
+      tags, productType,
     } = req.body;
 
     if (!cloudinaryUrl || !title || !designerId) {
@@ -485,9 +889,6 @@ app.post('/api/designs/publish', async (req: express.Request, res: express.Respo
       return;
     }
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-    // 1. Create Design record
     const design = createDesign({
       designerId,
       designerName: designerName || 'Unknown Designer',
@@ -496,25 +897,14 @@ app.post('/api/designs/publish', async (req: express.Request, res: express.Respo
       fileUrl: cloudinaryUrl,
       fileType: (publicId?.split('.').pop() ?? 'PNG').toUpperCase(),
       tags: Array.isArray(tags) ? tags : [],
+      preferredProductType: productType || 'hoodie',
+      workflowStatus: 'SUBMITTED',
+      moderationStatus: getModerationStatus(designerId),
+      currentRound: 0,
+      adminNotes: productType ? `Preferred product type: ${productType}` : undefined,
     });
 
-    // 2. Auto-create a Product listing so it's visible in the shop
-    const product = createProduct({
-      designId: design.id,
-      designerId,
-      designerName: designerName || 'Unknown Designer',
-      slug,
-      title: title.trim(),
-      description: description || '',
-      productType: productType || 'hoodie',
-      image: cloudinaryUrl,           // ← real Cloudinary URL
-      baseCostINR: baseCostINR ?? 300,
-      designerPriceINR: designerPriceINR ?? 150,
-      active: true,
-      featured: false,
-    });
-
-    res.status(201).json({ design, product });
+    res.status(201).json({ design, status: 'SUBMITTED' });
   } catch (error: any) {
     console.error('[/api/designs/publish] Error:', error.message);
     res.status(500).json({ error: error.message });
@@ -553,12 +943,12 @@ app.get('/api/designers/:designerId/products', (req: express.Request, res: expre
 app.get('/api/designers/:id', async (req: express.Request, res: express.Response) => {
   try {
     const { id } = req.params;
-    const { rows } = await pool.query(
-      'SELECT id, name, role, username FROM offgrid_users WHERE id = $1',
-      [id]
-    );
+    const userRow = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, name: true, role: true, username: true },
+    });
 
-    if (rows.length === 0) {
+    if (!userRow) {
       // If user isn't in PostgreSQL (e.g. legacy/seed users without DB or custom designer id like 'dsg-1')
       // we can return a fallback dummy designer
       res.json({
@@ -570,7 +960,7 @@ app.get('/api/designers/:id', async (req: express.Request, res: express.Response
       return;
     }
 
-    res.json(rows[0]);
+    res.json(userRow);
   } catch (error: any) {
     console.error('Error fetching designer:', error);
     res.status(500).json({ error: 'Database error: ' + error.message });

@@ -38,13 +38,11 @@ export const serverEnv = {
   CLOUDINARY_API_KEY: optionalEnv('CLOUDINARY_API_KEY'),
   CLOUDINARY_API_SECRET: optionalEnv('CLOUDINARY_API_SECRET'),
 
-  // Razorpay
-  RAZORPAY_KEY_ID: optionalEnv('RAZORPAY_KEY_ID'),
-  RAZORPAY_KEY_SECRET: optionalEnv('RAZORPAY_KEY_SECRET'),
-
-  // Stripe
-  STRIPE_SECRET_KEY: optionalEnv('STRIPE_SECRET_KEY'),
-  STRIPE_WEBHOOK_SECRET: optionalEnv('STRIPE_WEBHOOK_SECRET'),
+    // UPI and Bank Transfer
+  UPI_ID: optionalEnv('UPI_ID'),
+  BANK_NAME: optionalEnv('BANK_NAME'),
+  BANK_ACCOUNT: optionalEnv('BANK_ACCOUNT'),
+  BANK_IFSC: optionalEnv('BANK_IFSC'),
 
   // Resend
   RESEND_API_KEY: optionalEnv('RESEND_API_KEY'),
@@ -66,14 +64,11 @@ export const clientEnv = {
   ),
   CLOUDINARY_UPLOAD_PRESET: optionalEnv('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET', 'offgrid_designs'),
 
-  // Razorpay key ID is safe to send to the browser
-  RAZORPAY_KEY_ID: optionalEnv(
-    'NEXT_PUBLIC_RAZORPAY_KEY_ID',
-    optionalEnv('RAZORPAY_KEY_ID')
-  ),
-
-  // Stripe publishable key
-  STRIPE_PUBLISHABLE_KEY: optionalEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'),
+    // UPI and Bank Transfer details (safe to expose)
+  UPI_ID: optionalEnv('NEXT_PUBLIC_UPI_ID', optionalEnv('UPI_ID')),
+  BANK_NAME: optionalEnv('NEXT_PUBLIC_BANK_NAME', optionalEnv('BANK_NAME')),
+  BANK_ACCOUNT: optionalEnv('NEXT_PUBLIC_BANK_ACCOUNT', optionalEnv('BANK_ACCOUNT')),
+  BANK_IFSC: optionalEnv('NEXT_PUBLIC_BANK_IFSC', optionalEnv('BANK_IFSC')),
 } as const;
 
 // ─── Validate on server startup ───────────────────────────────────────────────

@@ -32,7 +32,7 @@ export interface Order {
   subtotalINR: number;
   shippingINR: number;
   totalINR: number;
-  paymentMethod: 'razorpay' | 'stripe';
+  paymentMethod: 'upi' | 'bank_transfer';
   paymentId?: string;
   trackingNumber?: string;
   courierName?: string;

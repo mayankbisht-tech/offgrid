@@ -73,6 +73,7 @@ export interface AppCtx {
   handleLogin: (u: AuthUser) => void;
   handleLogout: () => void;
   addToCart: (item: Omit<CartItem, 'qty'>) => void;
+  clearCart: () => void;
   removeCartItem: (idx: number) => void;
   changeCartQty: (idx: number, delta: number) => void;
 }
@@ -80,5 +81,5 @@ export interface AppCtx {
 export const AppContext = createContext<AppCtx>(null as any);
 
 export type AuthMode = 'signin' | 'signup';
-export type UserRole = 'consumer' | 'designer' | 'manufacturer';
+export type UserRole = 'consumer' | 'designer' | 'manufacturer' | 'admin';
 export type Page = string;
