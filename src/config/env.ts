@@ -50,6 +50,13 @@ export const serverEnv = {
 
   // Gemini
   GEMINI_API_KEY: optionalEnv('GEMINI_API_KEY'),
+
+  // Demo account seeding
+  SEED_MAYANK_PASSWORD: optionalEnv('SEED_MAYANK_PASSWORD'),
+  SEED_SIDDHARTH_PASSWORD: optionalEnv('SEED_SIDDHARTH_PASSWORD'),
+  SEED_AYUSH_PASSWORD: optionalEnv('SEED_AYUSH_PASSWORD'),
+  SEED_DHRUV_PASSWORD: optionalEnv('SEED_DHRUV_PASSWORD'),
+  SEED_MARKETING_PASSWORD: optionalEnv('SEED_MARKETING_PASSWORD'),
 } as const;
 
 // ─── Client-safe env (public vars) ───────────────────────────────────────────
