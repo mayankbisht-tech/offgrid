@@ -21,14 +21,19 @@ import {
   designSamples,
   moderationRecords,
   createProduct, 
-  createDesign, 
+  createDesign,
   createDesignBid,
   createDesignSample,
   createLiveProductFromDesign,
   promoteNextHeldBid,
+  reloadStore,
   createOrder, 
   updateOrderStatus, 
   updateCapabilityCost,
+  updateDesign,
+  updateDesignBid,
+  updateDesignSample,
+  updateProduct,
   upsertManufacturerPaymentProfile,
   setModerationStatus,
   getModerationStatus,
@@ -224,14 +229,14 @@ app.get('/api/products/:id', (req: express.Request, res: express.Response) => {
 });
 
 // Dynamic design submission
-app.post('/api/designs', (req: express.Request, res: express.Response) => {
+app.post('/api/designs', async (req: express.Request, res: express.Response) => {
   try {
     const { designerId, designerName, title, description, fileUrl, fileType, tags } = req.body;
     if (!title || !fileUrl) {
       res.status(400).json({ error: 'Title and artwork file are required elements.' });
       return;
     }
-    const newDesign = createDesign({
+    const newDesign = await createDesign({
       designerId: designerId || 'dsg-1',
       designerName: designerName || 'Karan Singh',
       title,
@@ -351,7 +356,7 @@ app.get('/api/catalog', async (_req: express.Request, res: express.Response) => 
 });
 
 // Dynamic listed product launch
-app.post('/api/products', (req: express.Request, res: express.Response) => {
+app.post('/api/products', async (req: express.Request, res: express.Response) => {
   try {
     const { designId, designerId, designerName, title, description, productType, image, baseCostINR, designerPriceINR, manufacturerId } = req.body;
     if (!designId || !title || !productType) {
@@ -364,7 +369,7 @@ app.post('/api/products', (req: express.Request, res: express.Response) => {
       return;
     }
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const newProduct = createProduct({
+    const newProduct = await createProduct({
       designId,
       designerId: designerId || 'dsg-1',
       designerName: designerName || 'Karan Singh',
@@ -379,8 +384,10 @@ app.post('/api/products', (req: express.Request, res: express.Response) => {
       active: true,
       featured: false
     });
-    design.liveProductId = newProduct.id;
-    design.workflowStatus = 'LIVE';
+    await updateDesign(design.id, {
+      liveProductId: newProduct.id,
+      workflowStatus: 'LIVE',
+    });
     res.status(201).json(newProduct);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -393,14 +400,14 @@ app.get('/api/orders', (req: express.Request, res: express.Response) => {
 });
 
 // Submit a new order
-app.post('/api/orders', (req: express.Request, res: express.Response) => {
+app.post('/api/orders', async (req: express.Request, res: express.Response) => {
   try {
     const { consumerId, consumerName, consumerEmail, items, shippingAddress, subtotalINR, shippingINR, totalINR, paymentMethod } = req.body;
     if (!items || items.length === 0 || !shippingAddress) {
       res.status(400).json({ error: 'Orders require selected items and shipping coordinates.' });
       return;
     }
-    const orderObj = createOrder({
+    const orderObj = await createOrder({
       consumerId: consumerId || 'usr-6',
       consumerName: consumerName || 'Mayank Bisht',
       consumerEmail: consumerEmail || 'mayankbisht1107@gmail.com',
@@ -419,10 +426,10 @@ app.post('/api/orders', (req: express.Request, res: express.Response) => {
 });
 
 // Update order status (Fulfillment actions)
-app.patch('/api/orders/:id', (req: express.Request, res: express.Response) => {
+app.patch('/api/orders/:id', async (req: express.Request, res: express.Response) => {
   try {
     const { status, trackingNumber, courierName } = req.body;
-    const updated = updateOrderStatus(req.params.id, status, trackingNumber, courierName);
+    const updated = await updateOrderStatus(req.params.id, status, trackingNumber, courierName);
     if (!updated) {
       res.status(404).json({ error: 'Active Order not spotted.' });
       return;
@@ -495,29 +502,33 @@ app.get('/api/admin/designs', (_req: express.Request, res: express.Response) => 
   res.json(designs);
 });
 
-app.patch('/api/admin/designs/:designId/approve', (req: express.Request, res: express.Response) => {
+app.patch('/api/admin/designs/:designId/approve', async (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.params.designId);
   if (!design) {
     res.status(404).json({ error: 'Design not found.' });
     return;
   }
-  design.workflowStatus = 'ADMIN_APPROVED';
-  design.adminReviewedAt = new Date().toISOString();
-  design.adminReviewedBy = req.body?.adminId || 'admin';
-  design.adminNotes = req.body?.notes || design.adminNotes;
+  await updateDesign(design.id, {
+    workflowStatus: 'ADMIN_APPROVED',
+    adminReviewedAt: new Date().toISOString(),
+    adminReviewedBy: req.body?.adminId || 'admin',
+    adminNotes: req.body?.notes || design.adminNotes,
+  });
   res.json({ design });
 });
 
-app.patch('/api/admin/designs/:designId/reject', (req: express.Request, res: express.Response) => {
+app.patch('/api/admin/designs/:designId/reject', async (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.params.designId);
   if (!design) {
     res.status(404).json({ error: 'Design not found.' });
     return;
   }
-  design.workflowStatus = 'REJECTED';
-  design.adminReviewedAt = new Date().toISOString();
-  design.adminReviewedBy = req.body?.adminId || 'admin';
-  design.adminNotes = req.body?.notes || design.adminNotes;
+  await updateDesign(design.id, {
+    workflowStatus: 'REJECTED',
+    adminReviewedAt: new Date().toISOString(),
+    adminReviewedBy: req.body?.adminId || 'admin',
+    adminNotes: req.body?.notes || design.adminNotes,
+  });
   res.json({ design });
 });
 
@@ -528,7 +539,7 @@ app.get('/api/designs/:designId/bids', (req: express.Request, res: express.Respo
   res.json(bids);
 });
 
-app.post('/api/designs/:designId/bids', (req: express.Request, res: express.Response) => {
+app.post('/api/designs/:designId/bids', async (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.params.designId);
   if (!design) {
     res.status(404).json({ error: 'Design not found.' });
@@ -550,7 +561,7 @@ app.post('/api/designs/:designId/bids', (req: express.Request, res: express.Resp
     return;
   }
 
-  const bid = createDesignBid({
+  const bid = await createDesignBid({
     designId: design.id,
     manufacturerId,
     manufacturerName: manufacturerName || 'Manufacturer',
@@ -558,12 +569,14 @@ app.post('/api/designs/:designId/bids', (req: express.Request, res: express.Resp
     turnAroundDays: typeof turnAroundDays === 'number' ? turnAroundDays : 7,
   });
 
-  design.workflowStatus = 'BIDDING_OPEN';
-  const ranked = recalculateBidStatuses(design.id);
+  await updateDesign(design.id, {
+    workflowStatus: 'BIDDING_OPEN',
+  });
+  const ranked = await recalculateBidStatuses(design.id);
   res.status(201).json({ bid, bids: ranked });
 });
 
-app.post('/api/designs/:designId/samples', (req: express.Request, res: express.Response) => {
+app.post('/api/designs/:designId/samples', async (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.params.designId);
   if (!design) {
     res.status(404).json({ error: 'Design not found.' });
@@ -577,7 +590,7 @@ app.post('/api/designs/:designId/samples', (req: express.Request, res: express.R
     return;
   }
 
-  const sample = createDesignSample({
+  const sample = await createDesignSample({
     designId: design.id,
     bidId,
     manufacturerId: manufacturerId || bid.manufacturerId,
@@ -588,14 +601,17 @@ app.post('/api/designs/:designId/samples', (req: express.Request, res: express.R
     notes,
   });
 
-  bid.sampleStatus = 'IN_PROGRESS';
-  bid.updatedAt = new Date().toISOString();
-  design.workflowStatus = 'SAMPLE_IN_PROGRESS';
+  await updateDesignBid(bid.id, {
+    sampleStatus: 'IN_PROGRESS',
+  });
+  await updateDesign(design.id, {
+    workflowStatus: 'SAMPLE_IN_PROGRESS',
+  });
 
   res.status(201).json({ sample, design });
 });
 
-app.patch('/api/designs/:designId/samples/:sampleId/decision', (req: express.Request, res: express.Response) => {
+app.patch('/api/designs/:designId/samples/:sampleId/decision', async (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.params.designId);
   const sample = designSamples.find((item) => item.id === req.params.sampleId && item.designId === req.params.designId);
   if (!design || !sample) {
@@ -605,48 +621,42 @@ app.patch('/api/designs/:designId/samples/:sampleId/decision', (req: express.Req
 
   const { status } = req.body ?? {};
   if (status === 'APPROVED') {
-    attachWinningSample(design.id, sample.bidId, sample.id, sample.manufacturerId);
-    const product = createLiveProductFromDesign(design.id, sample.bidId);
-    const bid = designBids.find((item) => item.id === sample.bidId);
-    if (bid) {
-      bid.status = 'WINNING';
-      bid.sampleStatus = 'APPROVED';
-      bid.updatedAt = new Date().toISOString();
-    }
-    design.workflowStatus = 'LIVE';
+    await attachWinningSample(design.id, sample.bidId, sample.id, sample.manufacturerId);
+    const product = await createLiveProductFromDesign(design.id, sample.bidId);
     res.json({ design, product, sample });
     return;
   }
 
-  sample.status = 'REJECTED';
-  sample.reviewedAt = new Date().toISOString();
-  sample.updatedAt = sample.reviewedAt;
-  const rejectedBid = designBids.find((item) => item.id === sample.bidId);
-  if (rejectedBid) {
-    rejectedBid.status = 'REJECTED';
-    rejectedBid.sampleStatus = 'REJECTED';
-    rejectedBid.updatedAt = new Date().toISOString();
-  }
+  await updateDesignSample(sample.id, {
+    status: 'REJECTED',
+    reviewedAt: new Date().toISOString(),
+    reviewedBy: 'admin',
+  } as any);
+  await updateDesignBid(sample.bidId, {
+    status: 'REJECTED',
+    sampleStatus: 'REJECTED',
+  });
 
-  const promotedBid = promoteNextHeldBid(design.id);
+  const promotedBid = await promoteNextHeldBid(design.id);
   if (promotedBid) {
-    design.workflowStatus = 'SHORTLISTED';
     res.json({ design, sample, promotedBid });
     return;
   }
 
-  design.workflowStatus = 'BIDDING_OPEN';
+  await updateDesign(design.id, {
+    workflowStatus: 'BIDDING_OPEN',
+  });
   res.json({ design, sample, promotedBid: null });
 });
 
-app.patch('/api/admin/users/:userId/status', (req: express.Request, res: express.Response) => {
+app.patch('/api/admin/users/:userId/status', async (req: express.Request, res: express.Response) => {
   const { status, reason, role, adminId } = req.body ?? {};
   if (!status || !['ACTIVE', 'PAUSED', 'BLOCKED'].includes(status)) {
     res.status(400).json({ error: 'Valid status is required.' });
     return;
   }
 
-  const record = setModerationStatus({
+  const record = await setModerationStatus({
     userId: req.params.userId,
     role: role || 'MANUFACTURER',
     status,
@@ -654,21 +664,19 @@ app.patch('/api/admin/users/:userId/status', (req: express.Request, res: express
     updatedBy: adminId || 'admin',
   });
 
-  designs.forEach((design) => {
-    if (design.designerId === req.params.userId || design.winningManufacturerId === req.params.userId) {
-      design.moderationStatus = status;
-      if (status === 'BLOCKED') design.workflowStatus = 'BLOCKED';
-      if (status === 'PAUSED') design.workflowStatus = 'PAUSED';
-    }
-  });
+  await Promise.all(designs
+    .filter((design) => design.designerId === req.params.userId || design.winningManufacturerId === req.params.userId)
+    .map((design) => updateDesign(design.id, {
+      moderationStatus: status,
+      workflowStatus: status === 'BLOCKED' ? 'BLOCKED' : status === 'PAUSED' ? 'PAUSED' : design.workflowStatus,
+    })));
 
-  designBids.forEach((bid) => {
-    if (bid.manufacturerId === req.params.userId && status !== 'ACTIVE') {
-      bid.status = status === 'BLOCKED' ? 'REJECTED' : bid.status;
-      bid.heldReason = status === 'BLOCKED' ? 'Manufacturer blocked by admin' : bid.heldReason;
-      bid.updatedAt = new Date().toISOString();
-    }
-  });
+  await Promise.all(designBids
+    .filter((bid) => bid.manufacturerId === req.params.userId && status !== 'ACTIVE')
+    .map((bid) => updateDesignBid(bid.id, {
+      status: status === 'BLOCKED' ? 'REJECTED' : bid.status,
+      heldReason: status === 'BLOCKED' ? 'Manufacturer blocked by admin' : bid.heldReason,
+    })));
 
   res.json({ record });
 });
@@ -713,16 +721,20 @@ app.get('/api/designs/:designId/workflow', (req: express.Request, res: express.R
   res.json({ design, bids, samples });
 });
 
-app.patch('/api/products/:id/publish-from-design', (req: express.Request, res: express.Response) => {
+app.patch('/api/products/:id/publish-from-design', async (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.body?.designId);
   const product = products.find((item) => item.id === req.params.id);
   if (!design || !product) {
     res.status(404).json({ error: 'Design or product not found.' });
     return;
   }
-  design.liveProductId = product.id;
-  design.workflowStatus = 'LIVE';
-  product.active = true;
+  await updateDesign(design.id, {
+    liveProductId: product.id,
+    workflowStatus: 'LIVE',
+  });
+  await updateProduct(product.id, {
+    active: true,
+  });
   res.json({ design, product });
 });
 
@@ -889,7 +901,7 @@ app.post('/api/designs/publish', async (req: express.Request, res: express.Respo
       return;
     }
 
-    const design = createDesign({
+    const design = await createDesign({
       designerId,
       designerName: designerName || 'Unknown Designer',
       title: title.trim(),
@@ -975,6 +987,7 @@ app.get('/api/designers/:id', async (req: express.Request, res: express.Response
 async function startServer() {
   // Initialize Neon PostgreSQL database
   await initDb();
+  await reloadStore();
 
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');

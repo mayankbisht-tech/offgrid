@@ -17,3 +17,115 @@ model User {
 
   @@map("offgrid_users")
 }
+
+model Design {
+  id                    String   @id
+  designerId            String   @map("designer_id")
+  designerName          String   @map("designer_name")
+  title                 String
+  description           String?
+  fileUrl               String   @map("file_url")
+  fileType              String   @map("file_type")
+  tags                  Json
+  preferredProductType  String?  @map("preferred_product_type")
+  workflowStatus        String   @map("workflow_status")
+  moderationStatus      String   @map("moderation_status")
+  adminReviewedBy       String?  @map("admin_reviewed_by")
+  adminReviewedAt       DateTime? @map("admin_reviewed_at")
+  adminNotes            String?  @map("admin_notes")
+  winningBidId          String?  @map("winning_bid_id")
+  winningManufacturerId String?  @map("winning_manufacturer_id")
+  liveProductId         String?  @map("live_product_id")
+  currentRound          Int      @default(0) @map("current_round")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  @@map("offgrid_designs")
+}
+
+model Product {
+  id               String   @id
+  designId         String   @map("design_id")
+  designerId       String   @map("designer_id")
+  designerName     String   @map("designer_name")
+  manufacturerId   String?  @map("manufacturer_id")
+  slug             String
+  title            String
+  description      String?
+  productType      String   @map("product_type")
+  image            String
+  baseCostINR      Int      @map("base_cost_inr")
+  designerPriceINR  Int      @map("designer_price_inr")
+  active           Boolean
+  featured         Boolean
+  totalSold        Int      @map("total_sold")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("offgrid_products")
+}
+
+model Order {
+  id              String   @id
+  consumerId      String   @map("consumer_id")
+  consumerName    String   @map("consumer_name")
+  consumerEmail   String   @map("consumer_email")
+  status          String
+  items           Json
+  shippingAddress Json    @map("shipping_address")
+  subtotalINR     Int      @map("subtotal_inr")
+  shippingINR     Int      @map("shipping_inr")
+  totalINR        Int      @map("total_inr")
+  paymentMethod   String   @map("payment_method")
+  paymentId       String?  @map("payment_id")
+  trackingNumber  String?  @map("tracking_number")
+  courierName     String?  @map("courier_name")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("offgrid_orders")
+}
+
+model DesignBid {
+  id              String   @id
+  designId        String   @map("design_id")
+  manufacturerId  String   @map("manufacturer_id")
+  manufacturerName String  @map("manufacturer_name")
+  bidAmountINR    Int      @map("bid_amount_inr")
+  turnAroundDays  Int      @map("turn_around_days")
+  status          String
+  sampleStatus    String?  @map("sample_status")
+  sampleImageUrl  String?  @map("sample_image_url")
+  sampleNotes     String?  @map("sample_notes")
+  heldReason      String?  @map("held_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("offgrid_design_bids")
+}
+
+model DesignSample {
+  id              String   @id
+  designId        String   @map("design_id")
+  bidId           String   @map("bid_id")
+  manufacturerId  String   @map("manufacturer_id")
+  designerId      String   @map("designer_id")
+  status          String
+  sampleCostSplit String?  @map("sample_cost_split")
+  imageUrl        String?  @map("image_url")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  reviewedAt      DateTime? @map("reviewed_at")
+  reviewedBy      String?   @map("reviewed_by")
+
+  @@map("offgrid_design_samples")
+}
+
+model ModerationRecord {
+  userId      String   @id @map("user_id")
+  role        String
+  status      String
+  reason      String?
+  updatedAt   DateTime @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@map("offgrid_moderation_records")
+}
