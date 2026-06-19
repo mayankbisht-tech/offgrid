@@ -24,6 +24,7 @@ import {
   createDesign,
   createDesignBid,
   createDesignSample,
+  createNotification,
   createLiveProductFromDesign,
   promoteNextHeldBid,
   reloadStore,
@@ -37,6 +38,7 @@ import {
   upsertManufacturerPaymentProfile,
   setModerationStatus,
   getModerationStatus,
+  listNotificationsForUser,
   recalculateBidStatuses,
   attachWinningSample,
 } from './server_db.js';
@@ -508,13 +510,13 @@ app.patch('/api/admin/designs/:designId/approve', async (req: express.Request, r
     res.status(404).json({ error: 'Design not found.' });
     return;
   }
-  await updateDesign(design.id, {
+  const updated = await updateDesign(design.id, {
     workflowStatus: 'ADMIN_APPROVED',
     adminReviewedAt: new Date().toISOString(),
     adminReviewedBy: req.body?.adminId || 'admin',
     adminNotes: req.body?.notes || design.adminNotes,
   });
-  res.json({ design });
+  res.json({ design: updated ?? design });
 });
 
 app.patch('/api/admin/designs/:designId/reject', async (req: express.Request, res: express.Response) => {
@@ -523,13 +525,25 @@ app.patch('/api/admin/designs/:designId/reject', async (req: express.Request, re
     res.status(404).json({ error: 'Design not found.' });
     return;
   }
-  await updateDesign(design.id, {
+  const updated = await updateDesign(design.id, {
     workflowStatus: 'REJECTED',
     adminReviewedAt: new Date().toISOString(),
     adminReviewedBy: req.body?.adminId || 'admin',
     adminNotes: req.body?.notes || design.adminNotes,
   });
-  res.json({ design });
+  await createNotification({
+    userId: design.designerId,
+    role: 'DESIGNER',
+    title: 'Design rejected',
+    message: `Your design "${design.title}" was rejected by the admin review team.`,
+    category: 'DESIGN_REJECTED',
+    link: '/dashboard',
+  });
+  res.json({ design: updated ?? design });
+});
+
+app.get('/api/users/:userId/notifications', (req: express.Request, res: express.Response) => {
+  res.json(listNotificationsForUser(req.params.userId));
 });
 
 app.get('/api/designs/:designId/bids', (req: express.Request, res: express.Response) => {

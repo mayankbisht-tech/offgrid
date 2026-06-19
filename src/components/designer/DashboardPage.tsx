@@ -15,6 +15,7 @@ export const CreatorDashboard = () => {
   const [designs, setDesigns] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
@@ -26,17 +27,19 @@ export const CreatorDashboard = () => {
     Promise.all([
       apiJson<any[]>('/api/products').catch(() => []),
       apiJson<any[]>('/api/orders').catch(() => []),
+      designerId ? apiJson<any[]>(`/api/users/${designerId}/notifications`).catch(() => []) : Promise.resolve([]),
       // Fetch real designs for this designer if logged in
       designerId
         ? apiJson<any[]>(`/api/designers/${designerId}/designs`).catch(() => [])
         : Promise.resolve([]),
-    ]).then(([p, o, d]) => {
+    ]).then(([p, o, n, d]) => {
       setProducts(Array.isArray(p) ? p : []);
       setOrders(Array.isArray(o) ? o : []);
+      setNotifications(Array.isArray(n) ? n : []);
       setDesigns(Array.isArray(d) ? d : []);
       setLoading(false);
     });
-  }, []);
+  }, [loggedUser?.id]);
 
   const designerProducts = products.filter((p: any) => p.designerId === loggedUser?.id);
   const designerOrders = orders.filter((o: any) =>
@@ -156,16 +159,34 @@ export const CreatorDashboard = () => {
                 <h2 className="text-[#aa3000] text-[32px] md:text-[48px]" style={{ ...syne, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>Creator Studio</h2>
                 <p className="text-[18px] text-[#5c4037] max-w-xl pl-6 mt-2" style={{ ...font, lineHeight: 1.6, borderLeft: '4px solid #bdf200' }}>
                   {designerProducts.length > 0
-                    ? `${designerProducts.length} product${designerProducts.length !== 1 ? 's' : ''} published ┬╖ ${totalSold} units sold`
+                    ? `${designerProducts.length} product${designerProducts.length !== 1 ? 's' : ''} published · ${totalSold} units sold`
                     : 'Upload your first design to get started. Your dashboard will update automatically as you sell.'}
                 </p>
+              </div>
+              <div className="md:w-[360px] rounded-xl border border-[#e6beb2] bg-white/80 p-4" style={{ backdropFilter: 'blur(12px)' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[14px] font-semibold uppercase tracking-widest text-[#5c4037]" style={font}>Notifications</h3>
+                  <span className="text-[11px] font-bold text-[#aa3000]" style={font}>{notifications.length}</span>
+                </div>
+                {notifications.length === 0 ? (
+                  <p className="text-[13px] text-[#5c4037]" style={font}>No updates yet. Rejections and approvals will show up here.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notifications.slice(0, 3).map((note: any) => (
+                      <div key={note.id} className={`rounded-lg border p-3 ${note.category === 'DESIGN_REJECTED' ? 'border-[#ba1a1a] bg-[#fff1f1]' : 'border-[#e6beb2] bg-[#fff8f5]'}`}>
+                        <div className="text-[11px] uppercase tracking-widest font-bold" style={font}>{note.title}</div>
+                        <div className="text-[13px] text-[#5c4037] mt-1" style={font}>{note.message}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Stats bento */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-16">
               {[
-                { label: 'Total Revenue', value: `Γé╣${totalRevenue.toLocaleString('en-IN')}`, subIcon: 'trending_up', bgIcon: 'payments', color: '#4f6600', sub: `${designerOrders.length} order${designerOrders.length !== 1 ? 's' : ''}` },
+                { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString('en-IN')}`, subIcon: 'trending_up', bgIcon: 'payments', color: '#4f6600', sub: `${designerOrders.length} order${designerOrders.length !== 1 ? 's' : ''}` },
                 { label: 'Active Designs', value: String(designerProducts.length), sub: `${designs.length} design${designs.length !== 1 ? 's' : ''} uploaded`, subIcon: null, bgIcon: 'auto_awesome', color: null },
                 { label: 'Units Sold', value: String(totalSold), sub: 'across your products', subIcon: null, bgIcon: null, color: null },
               ].map(s => (
@@ -232,7 +253,7 @@ export const CreatorDashboard = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="text-[14px] font-semibold text-[#241910] truncate max-w-[140px]" style={font}>{d.title}</h4>
-                      <p className="text-[12px] text-[#5c4037]" style={font}>{d.totalSold ?? 0} sold ┬╖ Γé╣{(d.baseCostINR + d.designerPriceINR).toLocaleString('en-IN')}</p>
+                      <p className="text-[12px] text-[#5c4037]" style={font}>{d.totalSold ?? 0} sold · ₹{(d.baseCostINR + d.designerPriceINR).toLocaleString('en-IN')}</p>
                     </div>
                     <Icon name="more_vert" size={20} className="text-[#5c4037] cursor-pointer hover:text-[#aa3000]" />
                   </div>
@@ -267,10 +288,10 @@ export const CreatorDashboard = () => {
                         </div>
                         <div>
                           <p className="text-[14px] font-semibold" style={font}>{o.items?.[0]?.productTitle ?? 'Order'}</p>
-                          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{o.status} ┬╖ {o.consumerName}</p>
+                          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{o.status} · {o.consumerName}</p>
                         </div>
                       </div>
-                      <p className="text-[20px] font-semibold text-[#aa3000]" style={syne}>Γé╣{o.subtotalINR?.toLocaleString('en-IN')}</p>
+                      <p className="text-[20px] font-semibold text-[#aa3000]" style={syne}>₹{o.subtotalINR?.toLocaleString('en-IN')}</p>
                     </div>
                   ))}
                 </div>
@@ -312,12 +333,12 @@ export const CreatorDashboard = () => {
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-10">
               {[
-                ['Revenue', `Γé╣${totalRevenue.toLocaleString('en-IN')}`, 'payments'],
+                ['Revenue', `₹${totalRevenue.toLocaleString('en-IN')}`, 'payments'],
                 ['Orders', String(designerOrders.length), 'shopping_bag'],
                 ['Products', String(designerProducts.length), 'palette'],
                 ['Units Sold', String(totalSold), 'inventory_2'],
-                ['Avg. Order', `Γé╣${revenuePerOrder.toLocaleString('en-IN')}`, 'bar_chart'],
-                ['Payouts', `Γé╣${availablePayout.toLocaleString('en-IN')}`, 'account_balance_wallet'],
+                ['Avg. Order', `₹${revenuePerOrder.toLocaleString('en-IN')}`, 'bar_chart'],
+                ['Payouts', `₹${availablePayout.toLocaleString('en-IN')}`, 'account_balance_wallet'],
               ].map(([l, v, ic]) => (
                 <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2] flex flex-col gap-3">
                   <Icon name={ic} size={24} className="text-[#aa3000]" />
@@ -351,10 +372,10 @@ export const CreatorDashboard = () => {
             <h2 className="text-[32px] font-bold mb-8 text-[#241910]" style={{ fontFamily: 'Syne, sans-serif' }}>Payouts</h2>
             <div className="grid grid-cols-2 gap-3 md:gap-6 mb-10">
               {[
-                ['Available Balance', `Γé╣${availablePayout.toLocaleString('en-IN')}`, '#aa3000'],
-                ['Pending', `Γé╣${pendingPayout.toLocaleString('en-IN')}`, '#5c4037'],
+                ['Available Balance', `₹${availablePayout.toLocaleString('en-IN')}`, '#aa3000'],
+                ['Pending', `₹${pendingPayout.toLocaleString('en-IN')}`, '#5c4037'],
                 ['Orders Paid', String(designerOrders.length), '#4f6600'],
-                ['Total Lifetime', `Γé╣${totalRevenue.toLocaleString('en-IN')}`, '#241910'],
+                ['Total Lifetime', `₹${totalRevenue.toLocaleString('en-IN')}`, '#241910'],
               ].map(([l, v, c]) => (
                 <div key={l} className="p-8 rounded-xl bg-white border border-[#e6beb2]">
                   <p className="text-[12px] uppercase tracking-widest text-[#5c4037] font-bold mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>{l}</p>
@@ -382,7 +403,7 @@ export const CreatorDashboard = () => {
                   return (
                     <div key={order.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 px-6 py-4 border-b border-[#e6beb2]/50">
                       <span className="text-[14px] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>{new Date(order.createdAt).toLocaleDateString('en-IN')}</span>
-                      <span className="text-[14px] font-bold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>Γé╣{payout.toLocaleString('en-IN')}</span>
+                      <span className="text-[14px] font-bold text-[#241910]" style={{ fontFamily: 'Inter, sans-serif' }}>₹{payout.toLocaleString('en-IN')}</span>
                       <span className="px-3 py-1 bg-[#bdf200] text-[#526b00] text-[11px] font-bold rounded uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{order.status}</span>
                     </div>
                   );

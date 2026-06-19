@@ -186,6 +186,18 @@ export interface ModerationRecord {
   updatedBy?: string;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  role: UserRole;
+  title: string;
+  message: string;
+  category: 'DESIGN_REJECTED' | 'DESIGN_APPROVED' | 'SYSTEM';
+  link?: string;
+  readAt?: string;
+  createdAt: string;
+}
+
 export interface Variant {
   id: string;
   productId: string;

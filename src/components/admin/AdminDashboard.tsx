@@ -58,6 +58,8 @@ export const AdminDashboard = () => {
 
   const font = { fontFamily: 'Inter, sans-serif' };
   const syne = { fontFamily: 'Syne, sans-serif' };
+  const activeDesigns = designs.filter((design) => design.workflowStatus !== 'REJECTED');
+  const rejectedDesigns = designs.filter((design) => design.workflowStatus === 'REJECTED');
 
   const loadData = async () => {
     const [designData, analyticsData] = await Promise.all([
@@ -66,9 +68,11 @@ export const AdminDashboard = () => {
     ]);
     setDesigns(Array.isArray(designData) ? designData : []);
     setAnalytics(analyticsData);
-    if (!selectedDesign && designData[0]?.id) {
-      setSelectedDesign(designData[0].id);
-    }
+    const nextSelected =
+      designData.find((design) => design.id === selectedDesign && design.workflowStatus !== 'REJECTED')
+      ?? designData.find((design) => design.workflowStatus !== 'REJECTED')
+      ?? designData[0];
+    if (nextSelected?.id) setSelectedDesign(nextSelected.id);
   };
 
   useEffect(() => {
@@ -152,10 +156,10 @@ export const AdminDashboard = () => {
               <button onClick={loadData} className="text-[13px] font-semibold text-[#aa3000]" style={font}>Refresh</button>
             </div>
             <div className="divide-y divide-[#e6beb2]">
-              {designs.length === 0 && (
+              {activeDesigns.length === 0 && rejectedDesigns.length === 0 && (
                 <div className="p-8 text-[#5c4037]" style={font}>No designs submitted yet.</div>
               )}
-              {designs.map((design) => (
+              {activeDesigns.map((design) => (
                 <div key={design.id} className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="min-w-0">
                     <div className="w-20 h-20 mb-3 rounded-lg overflow-hidden border border-[#e6beb2] bg-[#fff8f5]">
@@ -259,6 +263,31 @@ export const AdminDashboard = () => {
               </select>
               <input value={moderationReason} onChange={(e) => setModerationReason(e.target.value)} placeholder="Reason" className="border border-[#e6beb2] rounded px-3 py-2 md:col-span-1" style={font} />
               <button onClick={applyModeration} className="rounded bg-[#aa3000] text-white px-4 py-2 font-semibold" style={font}>Apply</button>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-[#e6beb2] bg-white overflow-hidden xl:col-span-3">
+            <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5] flex items-center justify-between">
+              <h2 className="font-semibold text-[18px]" style={syne}>Rejected Shelf</h2>
+              <span className="text-[12px] text-[#5c4037]" style={font}>{rejectedDesigns.length} saved for later review</span>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {rejectedDesigns.length === 0 ? (
+                <div className="text-[13px] text-[#5c4037] p-2" style={font}>Rejected designs will appear here after review.</div>
+              ) : (
+                rejectedDesigns.map((design) => (
+                  <button
+                    key={design.id}
+                    onClick={() => setSelectedDesign(design.id)}
+                    className="text-left rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3 hover:border-[#aa3000] transition-colors"
+                  >
+                    <div className="text-[11px] uppercase tracking-widest text-[#ba1a1a]" style={font}>Rejected</div>
+                    <div className="font-semibold truncate" style={syne}>{design.title}</div>
+                    <div className="text-[12px] text-[#5c4037] truncate" style={font}>by {design.designerName}</div>
+                    {design.adminNotes && <div className="text-[12px] text-[#5c4037] mt-1 line-clamp-2" style={font}>{design.adminNotes}</div>}
+                  </button>
+                ))
+              )}
             </div>
           </section>
 

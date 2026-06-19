@@ -11,6 +11,7 @@ import type {
   Manufacturer,
   ManufacturerPaymentProfile,
   ModerationRecord,
+  Notification,
   Order,
   OrderStatus,
   Product,
@@ -28,6 +29,7 @@ export let manufacturerPaymentProfiles: Record<string, ManufacturerPaymentProfil
 export let designBids: DesignBid[] = [];
 export let designSamples: DesignSample[] = [];
 export let moderationRecords: Record<string, ModerationRecord> = {};
+export let notifications: Notification[] = [];
 
 function slugify(value: string): string {
   return value
@@ -100,6 +102,14 @@ function moderationFromRow(row: any): ModerationRecord {
   };
 }
 
+function notificationFromRow(row: any): Notification {
+  return {
+    ...row,
+    readAt: row.readAt ? toIso(row.readAt) : undefined,
+    createdAt: toIso(row.createdAt),
+  };
+}
+
 export async function reloadStore() {
   const [
     designRows,
@@ -108,6 +118,7 @@ export async function reloadStore() {
     bidRows,
     sampleRows,
     moderationRows,
+    notificationRows,
   ] = await Promise.all([
     prisma.design.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.product.findMany({ orderBy: { createdAt: 'desc' } }),
@@ -115,6 +126,7 @@ export async function reloadStore() {
     prisma.designBid.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.designSample.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.moderationRecord.findMany({ orderBy: { updatedAt: 'desc' } }),
+    prisma.notification.findMany({ orderBy: { createdAt: 'desc' } }),
   ]);
 
   designs = designRows.map(designFromRow);
@@ -123,6 +135,7 @@ export async function reloadStore() {
   designBids = bidRows.map(bidFromRow);
   designSamples = sampleRows.map(sampleFromRow);
   moderationRecords = Object.fromEntries(moderationRows.map((record) => [record.userId, moderationFromRow(record)]));
+  notifications = notificationRows.map(notificationFromRow);
 }
 
 export function getModerationStatus(userId: string): AccountStatus {
@@ -150,6 +163,30 @@ export async function setModerationStatus(record: Omit<ModerationRecord, 'update
   });
   moderationRecords[next.userId] = moderationFromRow(next);
   return moderationRecords[next.userId];
+}
+
+export async function createNotification(
+  data: Omit<Notification, 'id' | 'createdAt' | 'readAt'> & { readAt?: string | null }
+): Promise<Notification> {
+  const notification = await prisma.notification.create({
+    data: {
+      id: `ntf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      userId: data.userId,
+      role: data.role,
+      title: data.title,
+      message: data.message,
+      category: data.category,
+      link: data.link ?? null,
+      readAt: data.readAt ? new Date(data.readAt) : null,
+    },
+  });
+  const next = notificationFromRow(notification);
+  notifications.unshift(next);
+  return next;
+}
+
+export function listNotificationsForUser(userId: string): Notification[] {
+  return notifications.filter((notification) => notification.userId === userId);
 }
 
 export function matchManufacturerForProduct(productType: string): string {

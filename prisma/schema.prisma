@@ -129,3 +129,17 @@ model ModerationRecord {
 
   @@map("offgrid_moderation_records")
 }
+
+model Notification {
+  id         String    @id
+  userId     String    @map("user_id")
+  role       String
+  title      String
+  message    String
+  category   String
+  link       String?
+  readAt     DateTime? @map("read_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@map("offgrid_notifications")
+}

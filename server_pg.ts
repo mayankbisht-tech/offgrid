@@ -126,6 +126,18 @@ export async function initDb() {
         updated_by VARCHAR(80)
       );
 
+      CREATE TABLE IF NOT EXISTS offgrid_notifications (
+        id VARCHAR(80) PRIMARY KEY,
+        user_id VARCHAR(80) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        link TEXT,
+        read_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       ALTER TABLE IF EXISTS offgrid_designs ADD COLUMN IF NOT EXISTS admin_notes TEXT;
       ALTER TABLE IF EXISTS offgrid_designs ADD COLUMN IF NOT EXISTS admin_reviewed_by VARCHAR(80);
       ALTER TABLE IF EXISTS offgrid_designs ADD COLUMN IF NOT EXISTS admin_reviewed_at TIMESTAMP;
@@ -200,6 +212,15 @@ export async function initDb() {
       ALTER TABLE IF EXISTS offgrid_moderation_records ADD COLUMN IF NOT EXISTS reason TEXT;
       ALTER TABLE IF EXISTS offgrid_moderation_records ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
       ALTER TABLE IF EXISTS offgrid_moderation_records ADD COLUMN IF NOT EXISTS updated_by VARCHAR(80);
+
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS user_id VARCHAR(80);
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS role VARCHAR(50);
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS title VARCHAR(255);
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS message TEXT;
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS category VARCHAR(50);
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS link TEXT;
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;
+      ALTER TABLE IF EXISTS offgrid_notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     `);
     console.log('Persistent tables checked/created.');
   } catch (error) {
