@@ -14,6 +14,41 @@ out/
 .env.production
 .env.staging
 .env.example
+.envrc
+*.env
+*.env.*
+*.secret
+*.secrets
+secrets/
+secrets.*
+credentials/
+credentials.*
+*.credentials
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+*.kdb
+*.ps1.xml
+*.clixml
+
+# Local data / dumps that often contain personal or sensitive info
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.bak
+*.backup
+*.tar.gz
+*.zip
+*.7z
+*.rar
 
 # Logs
 *.log
@@ -30,9 +65,19 @@ Thumbs.db
 .idea/
 
 # Keys / certs — never commit
-*.pem
-*.key
-*.p12
+.credentials.json
+service-account*.json
+firebase-adminsdk*.json
+client_secret*.json
+private*.json
+secret*.json
+
+# Local tooling / IDE secrets
+.codex/
+.cursor/
+.roo/
+.windsurf/
+.vscode/*.code-workspace
 
 # Prisma dev migrations (keep schema, not dev migrations)
 prisma/migrations/dev/

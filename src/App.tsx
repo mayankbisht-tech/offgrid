@@ -10,6 +10,8 @@ import RootLayout, {
   CreatorPage,
   CheckoutPage,
   PaymentPlaceholderPage,
+  PaymentPage,
+  AdminDashboard,
 } from './components/ReferenceApp';
 
 export default function App() {
@@ -28,7 +30,8 @@ export default function App() {
         <Route path="studio/review" element={<Navigate to="/studio/upload" replace />} />
         <Route path="creator/:id" element={<CreatorPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
-        <Route path="payment" element={<PaymentPlaceholderPage />} />
+        <Route path="payment" element={<PaymentPage />} />
+        <Route path="admin" element={<AdminDashboard />} />
         {/* Catch-all → home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

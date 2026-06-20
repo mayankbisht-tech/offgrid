@@ -93,14 +93,13 @@ export const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) =
     setUploadError('');
 
     try {
-      // 1. Publish the first active product (creates Design + Product)
       const firstType = activeKeys[0];
       const firstDef = productDefinitions.find(d => d.id === firstType)!;
       const firstMargin = margins[firstType];
       const firstBase = firstDef.base;
       const firstEarn = Math.round(firstBase * (firstMargin / 100));
 
-      const data = await apiJson<{ design: { id: string } }>('/api/designs/publish', {
+      await apiJson<{ design: { id: string } }>('/api/designs/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -116,33 +115,6 @@ export const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) =
           designerPriceINR: firstEarn,
         }),
       });
-
-      const designId = data.design.id;
-
-      // 2. Publish other active products linked to this design ID
-      for (let i = 1; i < activeKeys.length; i++) {
-        const nextType = activeKeys[i];
-        const nextDef = productDefinitions.find(d => d.id === nextType)!;
-        const nextMargin = margins[nextType];
-        const nextBase = nextDef.base;
-        const nextEarn = Math.round(nextBase * (nextMargin / 100));
-
-        await apiJson('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            designId,
-            designerId: loggedUser?.id ?? 'dsg-guest',
-            designerName: loggedUser?.name ?? 'Guest Designer',
-            title: `${title.trim()} (${nextDef.name})`,
-            description: description.trim(),
-            productType: nextType,
-            image: uploadedUrl,
-            baseCostINR: nextBase,
-            designerPriceINR: nextEarn,
-          }),
-        }).catch(() => console.warn(`Failed to launch additional product: ${nextType}`));
-      }
 
       setSaved(true);
       setTimeout(() => rNavigate('/dashboard'), 1500);
@@ -241,7 +213,7 @@ export const StudioPublishWizard = ({ onSignOut }: { onSignOut?: () => void }) =
                   {uploading ? (
                     <>
                       <div className="w-12 h-12 border-4 border-[#aa3000] border-t-transparent rounded-full animate-spin mb-6" />
-                      <p className="text-[16px] text-[#5c4037] font-semibold" style={font}>Uploading to Cloudinary…</p>
+                      <p className="text-[16px] text-[#5c4037] font-semibold" style={font}>Uploading artwork…</p>
                     </>
                   ) : uploadedUrl ? (
                     <>

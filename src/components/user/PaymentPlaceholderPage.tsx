@@ -25,8 +25,8 @@ export const PaymentPlaceholderPage = () => {
           </svg>
         </div>
         
-        <h1 className="text-[32px] md:text-[48px] font-bold text-[#241910] mb-4 leading-tight" style={syne}>RazorPay Integration<br/><span className="text-[#aa3000]">Coming Soon</span></h1>
-        <p className="text-[18px] text-[#5c4037] mb-10 max-w-md" style={font}>We are currently building our secure payment infrastructure. Please check back later.</p>
+                <h1 className="text-[32px] md:text-[48px] font-bold text-[#241910] mb-4 leading-tight" style={syne}>UPI & Bank Transfer Integration<br/><span className="text-[#aa3000]">Coming Soon</span></h1>
+        <p className="text-[18px] text-[#5c4037] mb-10 max-w-md" style={font}>We are currently building our secure payment infrastructure for UPI and Indian bank transfers. Please check back later.</p>
         
         <div className="flex gap-4">
           <button onClick={() => navigate('/shop')} className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold uppercase tracking-wider rounded hover:bg-[#d43f00] transition-colors shadow-sm" style={font}>Return to Shop</button>

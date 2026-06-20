@@ -47,15 +47,15 @@ export const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Express Checkout */}
+                    {/* Express Checkout */}
           <div className="mb-8">
             <p className="text-center text-[12px] text-[#5c4037] mb-4" style={font}>Express checkout</p>
             <div className="flex gap-4 justify-center">
-              <button className="flex-1 h-12 rounded bg-black text-white flex items-center justify-center hover:opacity-80 transition-opacity">
-                <Icon name="apple" size={20} /> <span className="ml-1 font-bold">Pay</span>
-              </button>
               <button className="flex-1 h-12 rounded bg-[#5a31f4] text-white flex items-center justify-center hover:opacity-80 transition-opacity font-bold" style={font}>
-                Shop Pay
+                UPI Pay
+              </button>
+              <button className="flex-1 h-12 rounded bg-[#aa3000] text-white flex items-center justify-center hover:opacity-80 transition-opacity font-bold" style={font}>
+                Bank Transfer
               </button>
             </div>
           </div>

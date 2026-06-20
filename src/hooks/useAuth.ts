@@ -5,8 +5,9 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: 'CONSUMER' | 'DESIGNER' | 'MANUFACTURER';
+  role: 'CONSUMER' | 'DESIGNER' | 'MANUFACTURER' | 'ADMIN';
   username?: string;
+  accountStatus?: 'ACTIVE' | 'PAUSED' | 'BLOCKED';
 }
 
 export function useAuth() {

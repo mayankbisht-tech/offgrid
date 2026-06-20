@@ -16,6 +16,22 @@ export type OrderStatus =
   | 'CANCELLED';
 
 export type PayoutStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED';
+export type AccountStatus = 'ACTIVE' | 'PAUSED' | 'BLOCKED';
+export type DesignWorkflowStatus =
+  | 'SUBMITTED'
+  | 'ADMIN_APPROVED'
+  | 'BIDDING_OPEN'
+  | 'SHORTLISTED'
+  | 'HELD'
+  | 'SAMPLE_IN_PROGRESS'
+  | 'SAMPLE_REJECTED'
+  | 'SAMPLE_APPROVED'
+  | 'LIVE'
+  | 'PAUSED'
+  | 'BLOCKED'
+  | 'REJECTED';
+export type BidStatus = 'ACTIVE' | 'SHORTLISTED' | 'HELD' | 'REJECTED' | 'WINNING' | 'LOST';
+export type SampleStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 
 export interface User {
   id: string;
@@ -64,6 +80,18 @@ export interface Manufacturer {
   maxCapacity: number; // e.g. 100 designs per week
 }
 
+export interface ManufacturerPaymentProfile {
+  userId: string;
+  businessName: string;
+  preferredPayoutMethod: 'upi' | 'bank_transfer';
+  accountHolderName?: string;
+  upiId?: string;
+  bankName?: string;
+  bankAccount?: string;
+  bankIFSC?: string;
+  updatedAt: string;
+}
+
 export interface Capability {
   id: string;
   manufacturerId: string;
@@ -85,6 +113,16 @@ export interface Design {
   fileUrl: string; // Mock or actual Cloudinary URL
   fileType: string; // "PNG" | "SVG" | "PDF"
   tags: string[];
+  preferredProductType?: 'tshirt' | 'hoodie' | 'tote' | 'poster' | 'phone_case';
+  workflowStatus: DesignWorkflowStatus;
+  moderationStatus: AccountStatus;
+  adminReviewedBy?: string;
+  adminReviewedAt?: string;
+  adminNotes?: string;
+  winningBidId?: string;
+  winningManufacturerId?: string;
+  liveProductId?: string;
+  currentRound: number;
   createdAt: string;
 }
 
@@ -93,6 +131,7 @@ export interface Product {
   designId: string;
   designerId: string;
   designerName: string;
+  manufacturerId?: string;
   slug: string;
   title: string;
   description?: string;
@@ -103,6 +142,59 @@ export interface Product {
   active: boolean;
   featured: boolean;
   totalSold: number;
+  createdAt: string;
+}
+
+export interface DesignBid {
+  id: string;
+  designId: string;
+  manufacturerId: string;
+  manufacturerName: string;
+  bidAmountINR: number;
+  turnAroundDays: number;
+  status: BidStatus;
+  sampleStatus: SampleStatus | null;
+  sampleImageUrl?: string;
+  sampleNotes?: string;
+  heldReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DesignSample {
+  id: string;
+  designId: string;
+  bidId: string;
+  manufacturerId: string;
+  designerId: string;
+  status: SampleStatus;
+  sampleCostSplit?: string;
+  imageUrl?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface ModerationRecord {
+  userId: string;
+  role: UserRole;
+  status: AccountStatus;
+  reason?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  role: UserRole;
+  title: string;
+  message: string;
+  category: 'DESIGN_REJECTED' | 'DESIGN_APPROVED' | 'SYSTEM';
+  link?: string;
+  readAt?: string;
   createdAt: string;
 }
 
@@ -146,7 +238,7 @@ export interface Order {
   subtotalINR: number;
   shippingINR: number;
   totalINR: number;
-  paymentMethod: 'razorpay' | 'stripe';
+  paymentMethod: 'upi' | 'bank_transfer';
   paymentId?: string;
   trackingNumber?: string;
   courierName?: string;
