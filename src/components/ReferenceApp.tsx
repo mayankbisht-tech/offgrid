@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate, useNavigate, Outlet } from 'react-router-dom';
+import { Navigate, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthUser } from '../hooks/useAuth';
 import {
   AppContext,
@@ -11,6 +11,7 @@ import {
 } from '../context/AppContext';
 
 import { TopNav } from './shared/TopNav';
+import { SignedInNav } from './shared/SignedInNav';
 import { CartDrawer } from './shared/CartDrawer';
 import { AuthModal } from './shared/AuthModal';
 import { SearchOverlay } from './shared/SearchOverlay';
@@ -37,6 +38,7 @@ export function LogoutPage() {
 
 export default function RootLayout() {
   const rNavigate = useNavigate();
+  const location = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -96,7 +98,7 @@ export default function RootLayout() {
     };
   }, []);
 
-  const isConsumerPage = !window.location.pathname.startsWith('/studio') && !window.location.pathname.startsWith('/dashboard');
+  const isConsumerPage = !location.pathname.startsWith('/studio') && !location.pathname.startsWith('/dashboard');
 
   const ctx: AppCtx = {
     user, cartItems, cartOpen, authOpen, searchOpen, mobileMenuOpen, setMobileMenuOpen,
@@ -107,7 +109,7 @@ export default function RootLayout() {
 
   return (
     <AppContext.Provider value={ctx}>
-      <div className="min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
+      <div className={`min-h-screen ${user ? 'pb-28 md:pb-32' : ''}`} style={{ fontFamily: 'Inter, sans-serif' }}>
         <style>{`
           @keyframes ticker {
             0% { transform: translateX(0); }
@@ -173,10 +175,12 @@ export default function RootLayout() {
           <TopNav
             cartCount={cartItems.reduce((s, i) => s + i.qty, 0)}
             onCartClick={() => setCartOpen(true)}
-            onAuthClick={() => user ? rNavigate('/dashboard') : setAuthOpen(true)}
+            onAuthClick={() => user ? rNavigate('/dashboard#settings') : setAuthOpen(true)}
             onSearchClick={() => setSearchOpen(true)}
           />
         )}
+
+        <SignedInNav topNavVisible={isConsumerPage} />
 
         {/* All page components are rendered here by react-router */}
         <Outlet context={ctx} />

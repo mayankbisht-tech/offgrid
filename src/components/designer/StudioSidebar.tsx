@@ -53,7 +53,12 @@ export const StudioSidebar = ({ activeItem = 'overview', onSignOut }: { activeIt
         })}
       </nav>
       <div className="mt-auto flex flex-col gap-1 pt-4 border-t border-[#e6beb2]/30">
-        <button className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] transition-all rounded-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <button
+          type="button"
+          className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] transition-all rounded-lg"
+          style={{ fontFamily: 'Inter, sans-serif' }}
+          onClick={() => window.location.href = 'mailto:support@offgrid.com'}
+        >
           <Icon name="help_outline" size={20} /> Help
         </button>
         <button

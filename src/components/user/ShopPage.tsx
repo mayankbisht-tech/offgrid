@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext, toPath } from '../../context/AppContext';
 import { apiJson } from '../../lib/api';
 import { Icon, GradientImg, GRADIENTS } from '../shared/UI';
@@ -26,6 +26,7 @@ const getProductTags = (p: any): string[] => {
 
 export const ShopPage = () => {
   const rNavigate = useNavigate();
+  const location = useLocation();
   const navigate = (p: string) => rNavigate(toPath(p));
   const { addToCart } = useContext(AppContext);
   const onAddToCart = addToCart;
@@ -37,6 +38,20 @@ export const ShopPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]); // empty default to show all
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]); // empty default to show all
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const category = params.get('category');
+    if (!category) {
+      setSelectedCategory('All');
+      return;
+    }
+
+    const validCategories = ['All', 'T-Shirts', 'Hoodies', 'Accessories', 'Art Prints', 'Collectibles'];
+    if (validCategories.includes(category)) {
+      setSelectedCategory(category);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     apiJson<any[]>('/api/catalog')

@@ -8,10 +8,11 @@ import { Footer } from '../shared/Footer';
 export const HomePage = () => {
   const rNavigate = useNavigate();
   const navigate = (p: string) => rNavigate(toPath(p));
-  const { addToCart, setAuthOpen } = useContext(AppContext);
+  const { addToCart, setAuthOpen, user } = useContext(AppContext);
   const onAddToCart = addToCart;
   const onAuthClick = () => setAuthOpen(true);
   const [designsFeed, setDesignsFeed] = useState<any[]>([]);
+  const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
     apiJson<any[]>('/api/catalog')
@@ -26,33 +27,153 @@ export const HomePage = () => {
       .catch(() => { });
   }, []);
 
+  const heroSlides = [
+    {
+      eyebrow: 'Marketplace / Home / Creator-led drops',
+      title: 'Designs with a point of view.',
+      subtitle: 'Discover experimental streetwear, creator stories, and limited pieces from the OFFGRID marketplace.',
+      image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1600&auto=format&fit=crop',
+      tag: 'New drop',
+      primaryLabel: user ? 'Go to Dashboard' : 'Sign In',
+      primaryAction: () => (user ? navigate('/dashboard') : onAuthClick()),
+      secondaryLabel: 'Explore Marketplace',
+      secondaryAction: () => navigate('shop'),
+    },
+    {
+      eyebrow: 'Creator / Studio / Publish',
+      title: 'Make it your own.',
+      subtitle: 'Start a new collection, publish artwork, and shape the next release with your own direction.',
+      image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1600&auto=format&fit=crop',
+      tag: 'Creator tools',
+      primaryLabel: user?.role === 'DESIGNER' ? 'Open Studio' : 'Browse Creators',
+      primaryAction: () => (user?.role === 'DESIGNER' ? navigate('/studio/upload') : navigate('/shop')),
+      secondaryLabel: 'See featured work',
+      secondaryAction: () => navigate('/shop'),
+    },
+    {
+      eyebrow: 'Personalized / Saved / Suggested',
+      title: 'Suggestions based on what you like.',
+      subtitle: 'Your account powers a cleaner path to the pieces and creators that match your taste.',
+      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop',
+      tag: 'Personalized',
+      primaryLabel: user ? 'Your Dashboard' : 'Create Account',
+      primaryAction: () => (user ? navigate('/dashboard') : onAuthClick()),
+      secondaryLabel: 'Shop the edit',
+      secondaryAction: () => navigate('shop'),
+    },
+  ];
+
+  const activeHero = heroSlides[heroIndex % heroSlides.length];
+  const nextHero = () => setHeroIndex((idx) => (idx + 1) % heroSlides.length);
+  const prevHero = () => setHeroIndex((idx) => (idx - 1 + heroSlides.length) % heroSlides.length);
+
   return (
     <div className="bg-[#fff8f5] text-[#241910] overflow-x-hidden">
       {/* Hero */}
-      <section className="relative min-h-[600px] md:min-h-[870px] flex items-center overflow-hidden px-4 md:px-12" style={{ background: 'linear-gradient(180deg, #aa3000 0%, #fff8f5 100%)' }}>
-        <div className="max-w-[1200px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center z-10 py-12 md:py-0">
-          <div className="flex flex-col gap-6">
-            <span className="uppercase tracking-[0.2em] text-[#852400] text-[10px] font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>New Season / 2024</span>
-            <h2 className="text-white drop-shadow-sm leading-none text-[40px] md:text-[64px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>Art That Lives Nowhere Else</h2>
-            <p className="text-white/90 max-w-md text-[14px] md:text-[18px]" style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>Discover the vanguard of streetwear and digital collectibles. Exclusive drops from the world's most reclusive creators, curated for the bold.</p>
-            <div className="flex flex-col md:flex-row gap-4 mt-4">
+      <section className="relative overflow-hidden border-t border-[#d07a55] bg-[#f58a0b] px-4 md:px-12 py-6 md:py-10">
+        <div className="max-w-[1440px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 items-stretch">
+            <div className="relative min-h-[520px] md:min-h-[700px] overflow-hidden border border-[#f2c3a8] bg-[#241910] shadow-[0_28px_80px_rgba(60,25,8,0.18)]">
+              <img
+                key={activeHero.image}
+                src={activeHero.image}
+                alt={activeHero.title}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/35" />
+              <div className="absolute left-4 top-4 md:left-6 md:top-6 rounded-full border border-white/25 bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-md">
+                {activeHero.tag}
+              </div>
               <button
-                onClick={() => navigate('shop')}
-                className="bg-[#aa3000] text-white font-semibold px-6 py-4 md:px-10 md:py-6 rounded text-[14px] uppercase tracking-wider hover:bg-[#d43f00] transition-all"
-                style={{ boxShadow: '4px 4px 0px 0px #3a0b00', fontFamily: 'Inter, sans-serif' }}
+                type="button"
+                onClick={prevHero}
+                className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-[#e6beb2] bg-white text-[#241910] shadow-lg transition-transform hover:scale-105"
+                aria-label="Previous hero"
               >
-                EXPLORE SHOP
+                <Icon name="arrow_back" size={24} />
               </button>
+              <button
+                type="button"
+                onClick={nextHero}
+                className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-[#e6beb2] bg-white text-[#241910] shadow-lg transition-transform hover:scale-105"
+                aria-label="Next hero"
+              >
+                <Icon name="arrow_forward" size={24} />
+              </button>
+
+              <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
+                <div className="max-w-xl">
+                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#fff1e8]/90" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {activeHero.eyebrow}
+                  </p>
+                  <h2 className="text-white text-[42px] md:text-[68px] leading-[0.95] tracking-[-0.04em]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800 }}>
+                    {activeHero.title}
+                  </h2>
+                  <p className="mt-4 max-w-lg text-[15px] md:text-[18px] leading-[1.6] text-[#fff8f5]/90" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {activeHero.subtitle}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="relative group hidden lg:block">
-            <div className="absolute inset-0 bg-[#bdf200]/20 -rotate-3 scale-105 rounded-xl z-0" />
-            <div className="relative z-10 w-full h-[600px] rounded shadow-2xl border-4 border-white overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=800&auto=format&fit=crop" alt="Streetwear Hero Model" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+
+            <div className="flex flex-col justify-between gap-6 text-[#241910] py-2 md:py-8 lg:py-10">
+              <div className="space-y-5">
+                <div className="flex items-center gap-3 text-[#241910]">
+                  <Icon name="favorite" size={28} />
+                  <Icon name="navigation" size={28} />
+                  <Icon name="shopping_bag" size={28} />
+                  <Icon name="trending_up" size={28} />
+                </div>
+                <div className="max-w-lg">
+                  <p className="text-[14px] md:text-[16px] font-semibold uppercase tracking-[0.22em] text-[#5c4037]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {activeHero.eyebrow}
+                  </p>
+                  <h3 className="mt-4 text-[34px] md:text-[56px] leading-[0.98] font-semibold tracking-[-0.04em]" style={{ fontFamily: 'Syne, sans-serif' }}>
+                    {activeHero.title}
+                  </h3>
+                  <p className="mt-5 text-[17px] md:text-[22px] leading-[1.35] max-w-xl" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {activeHero.subtitle}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-[15px] md:text-[17px] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Where would you like to start?
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                  <button
+                    type="button"
+                    onClick={activeHero.primaryAction}
+                    className="bg-[#241910] text-[#fff8f5] px-6 py-4 md:py-5 text-[13px] md:text-[15px] font-semibold uppercase tracking-[0.18em] transition-transform hover:-translate-y-0.5"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {activeHero.primaryLabel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={activeHero.secondaryAction}
+                    className="border border-[#241910] bg-transparent px-6 py-4 md:py-5 text-[13px] md:text-[15px] font-semibold uppercase tracking-[0.18em] text-[#241910] transition-colors hover:bg-[#241910] hover:text-[#fff8f5]"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {activeHero.secondaryLabel}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  {heroSlides.map((slide, idx) => (
+                    <button
+                      key={slide.tag}
+                      type="button"
+                      onClick={() => setHeroIndex(idx)}
+                      className={`h-2.5 rounded-full transition-all ${idx === heroIndex ? 'w-12 bg-[#241910]' : 'w-2.5 bg-[#241910]/35 hover:bg-[#241910]/60'}`}
+                      aria-label={`Go to hero ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-[#bdf200] rounded-full blur-[120px] opacity-30" />
       </section>
 
       {/* Category ticker */}

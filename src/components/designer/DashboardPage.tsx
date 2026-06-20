@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext, toPath } from '../../context/AppContext';
 import { apiJson } from '../../lib/api';
 import { Icon, GradientImg, GRADIENTS } from '../shared/UI';
@@ -9,6 +9,7 @@ import { UserDashboard } from '../user/UserDashboard';
 
 export const CreatorDashboard = () => {
   const rNavigate = useNavigate();
+  const location = useLocation();
   const navigate = (p: string) => rNavigate(toPath(p));
   const { handleLogout, handleLogin, user } = useContext(AppContext);
   const [tab, setTab] = useState<'overview' | 'analytics' | 'payouts' | 'settings'>('overview');
@@ -40,6 +41,19 @@ export const CreatorDashboard = () => {
       setLoading(false);
     });
   }, [loggedUser?.id]);
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash === 'settings') {
+      setTab('settings');
+    } else if (hash === 'analytics') {
+      setTab('analytics');
+    } else if (hash === 'payouts') {
+      setTab('payouts');
+    } else if (hash === 'overview' || hash === 'notifications') {
+      setTab('overview');
+    }
+  }, [location.hash]);
 
   const designerProducts = products.filter((p: any) => p.designerId === loggedUser?.id);
   const designerOrders = orders.filter((o: any) =>
@@ -140,7 +154,12 @@ export const CreatorDashboard = () => {
           })}
         </nav>
         <div className="mt-auto flex flex-col gap-1 pt-4 border-t border-[#e6beb2]/30">
-          <button className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] rounded-lg" style={font}>
+          <button
+            type="button"
+            className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:bg-[#f4dfcf] rounded-lg"
+            style={font}
+            onClick={() => window.location.href = 'mailto:support@offgrid.com'}
+          >
             <Icon name="help_outline" size={20} /> Help
           </button>
               <button onClick={() => navigate('/logout')} className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] rounded-lg" style={font}>
@@ -455,19 +474,6 @@ export const CreatorDashboard = () => {
         )}
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#f4dfcf] border-t border-[#e6beb2] flex items-center justify-around px-4 z-50">
-        {([['dashboard', 'Overview', 'overview'], ['palette', 'Designs', 'designs'], ['add', '', 'designs'], ['insights', 'Stats', 'analytics'], ['settings', 'Settings', 'settings']] as [string, string, string][]).map(([icon, label, t]) => (
-          <button key={icon}
-            onClick={() => t === 'designs' ? navigate('studio-upload') : setTab(t as any)}
-            className={`flex flex-col items-center gap-1 transition-colors ${tab === t ? 'text-[#aa3000]' : 'text-[#5c4037]'}`}>
-            {icon === 'add'
-              ? <div className="-mt-8 w-14 h-14 bg-[#aa3000] rounded-full flex items-center justify-center shadow-lg"><Icon name="add" size={28} className="text-white" /></div>
-              : <><Icon name={icon} size={22} /><span className="text-[10px] font-bold uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>{label}</span></>
-            }
-          </button>
-        ))}
-      </nav>
     </div>
   );
 };

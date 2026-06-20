@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext, toPath } from '../../context/AppContext';
 import { apiJson } from '../../lib/api';
 import { Icon } from '../shared/UI';
 
 export const UserDashboard = () => {
   const rNavigate = useNavigate();
+  const location = useLocation();
   const navigate = (p: string) => rNavigate(toPath(p));
   const { handleLogout, user, handleLogin } = useContext(AppContext);
   const [tab, setTab] = useState<'overview' | 'orders' | 'wishlist' | 'settings'>('overview');
@@ -29,6 +30,19 @@ export const UserDashboard = () => {
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash === 'settings') {
+      setTab('settings');
+    } else if (hash === 'orders') {
+      setTab('orders');
+    } else if (hash === 'wishlist') {
+      setTab('wishlist');
+    } else if (hash === 'overview' || hash === 'notifications') {
+      setTab('overview');
+    }
+  }, [location.hash]);
 
   const displayName = loggedUser?.name?.trim() || 'Shopper';
   const displayEmail = loggedUser?.email?.trim() || 'No email on file';
@@ -262,17 +276,6 @@ export const UserDashboard = () => {
         </section>
       </main>
 
-      {/* Mobile nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#f4dfcf] border-t border-[#e6beb2] flex items-center justify-around px-4 z-50">
-        {sidebarItems.map(item => (
-          <button key={item.key}
-            onClick={() => setTab(item.key)}
-            className={`flex flex-col items-center gap-1 transition-colors ${tab === item.key ? 'text-[#aa3000]' : 'text-[#5c4037]'}`}>
-            <Icon name={item.icon} size={22} fill={tab === item.key ? 1 : 0} />
-            <span className="text-[10px] font-bold uppercase" style={font}>{item.label}</span>
-          </button>
-        ))}
-      </nav>
     </div>
   );
 };
