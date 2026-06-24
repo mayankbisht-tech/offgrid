@@ -1,9 +1,356 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext, toPath } from '../../context/AppContext';
 import { apiJson } from '../../lib/api';
 import { Icon, GradientImg, GRADIENTS } from '../shared/UI';
 import { Footer } from '../shared/Footer';
+
+// Sleek, brutalist lock screen wrapper for unpatented ideas
+const LockScreen = ({ onUnlock }: { onUnlock: () => void }) => {
+  const [code, setCode] = useState<string[]>(['', '', '', '', '']);
+  const [error, setError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  
+  const inputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null)
+  ];
+
+  useEffect(() => {
+    // Focus first input on load
+    inputRefs[0].current?.focus();
+  }, []);
+
+  const handleChange = (index: number, val: string) => {
+    // Only numeric input
+    const numVal = val.replace(/[^0-9]/g, '');
+    if (!numVal) return;
+
+    const newCode = [...code];
+    newCode[index] = numVal[numVal.length - 1];
+    setCode(newCode);
+    setError(null);
+
+    if (index < 4) {
+      inputRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (code[index] === '') {
+        if (index > 0) {
+          const newCode = [...code];
+          newCode[index - 1] = '';
+          setCode(newCode);
+          inputRefs[index - 1].current?.focus();
+        }
+      } else {
+        const newCode = [...code];
+        newCode[index] = '';
+        setCode(newCode);
+      }
+      setError(null);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 5);
+    if (paste) {
+      const newCode = [...code];
+      for (let i = 0; i < paste.length; i++) {
+        newCode[i] = paste[i];
+      }
+      setCode(newCode);
+      const nextIdx = Math.min(paste.length, 4);
+      inputRefs[nextIdx].current?.focus();
+    }
+  };
+
+  const handleVirtualKey = (key: string) => {
+    setError(null);
+    
+    if (key === 'CLEAR') {
+      setCode(['', '', '', '', '']);
+      inputRefs[0].current?.focus();
+      return;
+    }
+
+    if (key === 'BACK') {
+      // Find last filled index
+      let lastFilled = -1;
+      for (let i = 4; i >= 0; i--) {
+        if (code[i] !== '') {
+          lastFilled = i;
+          break;
+        }
+      }
+      if (lastFilled !== -1) {
+        const newCode = [...code];
+        newCode[lastFilled] = '';
+        setCode(newCode);
+        inputRefs[lastFilled].current?.focus();
+      }
+      return;
+    }
+
+    // Number key
+    const firstEmpty = code.findIndex(c => c === '');
+    if (firstEmpty !== -1) {
+      const newCode = [...code];
+      newCode[firstEmpty] = key;
+      setCode(newCode);
+      if (firstEmpty < 4) {
+        inputRefs[firstEmpty + 1].current?.focus();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fullCode = code.join('');
+    if (fullCode.length === 5) {
+      if (fullCode === '58656') {
+        setIsSuccess(true);
+        setError(null);
+        // Play quick transition, then unlock
+        const timer = setTimeout(() => {
+          localStorage.setItem('offgrid_unlocked', 'true');
+          onUnlock();
+        }, 900);
+        return () => clearTimeout(timer);
+      } else {
+        setIsShaking(true);
+        setError('ACCESS DENIED // INCORRECT KEY');
+        const timer = setTimeout(() => {
+          setIsShaking(false);
+          setCode(['', '', '', '', '']);
+          inputRefs[0].current?.focus();
+        }, 650);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [code]);
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0f0907] text-[#fff8f5] select-none grid-mesh overflow-y-auto px-4 py-8">
+      {/* Stylesheet for custom styling and animations */}
+      <style>{`
+        @keyframes spinSlow {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 0.7; transform: scale(1); filter: drop-shadow(0 0 5px rgba(189,242,0,0.3)); }
+          50% { opacity: 1; transform: scale(1.03); filter: drop-shadow(0 0 15px rgba(189,242,0,0.7)); }
+        }
+        @keyframes lockShake {
+          0%, 100% { transform: translateX(0); }
+          15%, 45%, 75% { transform: translateX(-8px); }
+          30%, 60%, 90% { transform: translateX(8px); }
+        }
+        @keyframes subtlePulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+        .animate-spin-slow {
+          animation: spinSlow 15s linear infinite;
+        }
+        .animate-pulse-glow {
+          animation: pulseGlow 3.5s ease-in-out infinite;
+        }
+        .animate-shake {
+          animation: lockShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        .grid-mesh {
+          background-size: 32px 32px;
+          background-image: 
+            linear-gradient(to right, rgba(170, 48, 0, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(170, 48, 0, 0.04) 1px, transparent 1px);
+        }
+        .diagonal-stripes {
+          background: repeating-linear-gradient(
+            45deg,
+            #aa3000,
+            #aa3000 12px,
+            #0f0907 12px,
+            #0f0907 24px
+          );
+        }
+      `}</style>
+
+      {/* Cyber ambient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[600px] h-[350px] md:h-[600px] bg-[#aa3000]/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none z-0" />
+
+      {/* Main vault container */}
+      <div 
+        className={`relative z-10 w-full max-w-[440px] bg-[#140c08]/90 backdrop-blur-md border border-[#aa3000]/30 shadow-[0_30px_70px_rgba(0,0,0,0.8)] overflow-hidden rounded-2xl transition-all duration-300 ${
+          isShaking ? 'animate-shake border-red-600/80 shadow-[0_0_40px_rgba(239,68,68,0.25)]' : ''
+        } ${isSuccess ? 'border-[#bdf200]/80 shadow-[0_0_40px_rgba(189,242,0,0.3)] scale-98 opacity-90' : ''}`}
+      >
+        {/* Top Hazard Bar */}
+        <div className="w-full h-3.5 diagonal-stripes border-b border-[#aa3000]/30" />
+
+        <div className="p-6 md:p-8 flex flex-col items-center">
+          
+          {/* Animated Construct SVG Graphic */}
+          <div className="mb-6 flex justify-center items-center relative">
+            {/* Ambient indicator lines */}
+            <div className="absolute -left-12 text-[10px] text-[#aa3000]/60 font-mono tracking-widest hidden sm:block animate-pulse">
+              [SYS_RESTRICTED]
+            </div>
+            <div className="absolute -right-12 text-[10px] text-[#bdf200]/60 font-mono tracking-widest hidden sm:block animate-pulse">
+              [BYPASS_LOCK]
+            </div>
+
+            <div className="relative p-2 rounded-full border border-dashed border-[#aa3000]/20 bg-[#100906]">
+              <svg 
+                className="w-24 h-24 md:w-28 md:h-28 text-[#aa3000]" 
+                viewBox="0 0 100 100" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Outmost target circle */}
+                <circle cx="50" cy="50" r="46" stroke="rgba(170, 48, 0, 0.15)" strokeWidth="1" />
+                
+                {/* Rotating gear/ticks */}
+                <g className="animate-spin-slow origin-center">
+                  <circle cx="50" cy="50" r="39" stroke="#aa3000" strokeWidth="2" strokeDasharray="12 6 4 6" opacity="0.8" />
+                  <circle cx="50" cy="50" r="43" stroke="#bdf200" strokeWidth="1" strokeDasharray="2 12" opacity="0.9" />
+                </g>
+
+                {/* Pulsing inner glow circle */}
+                <circle cx="50" cy="50" r="31" fill="rgba(170, 48, 0, 0.05)" stroke="rgba(189, 242, 0, 0.1)" strokeWidth="1" />
+                
+                {/* Dynamic warning sign */}
+                <g className="animate-pulse-glow origin-center">
+                  <path 
+                    d="M50 22 L76 68 H24 Z" 
+                    stroke="#aa3000" 
+                    strokeWidth="3.5" 
+                    strokeLinejoin="round" 
+                    fill="rgba(170, 48, 0, 0.25)" 
+                  />
+                  {/* Under Construction warning symbol inside triangle (Barricade stripes / Exclamation) */}
+                  <line x1="50" y1="36" x2="50" y2="52" stroke="#bdf200" strokeWidth="3" strokeLinecap="round" />
+                  <circle cx="50" cy="60" r="2.5" fill="#bdf200" />
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          {/* Heading */}
+          <h2 className="text-[22px] md:text-[26px] font-extrabold uppercase tracking-tight text-center font-display text-white leading-none">
+            OFFGRID <span className="text-[#bdf200]">//</span> SECURITY LOCK
+          </h2>
+          
+          <p className="text-[12px] md:text-[13px] text-[#916f65] text-center font-mono mt-3 leading-relaxed max-w-[320px]">
+            This design concept is protected under pre-patent confidentiality. Enter passkey to decrypt.
+          </p>
+
+          {/* Numeric digit box inputs */}
+          <div className="flex gap-2.5 my-6 justify-center">
+            {code.map((digit, idx) => (
+              <input
+                key={idx}
+                ref={inputRefs[idx]}
+                type="text"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(idx, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(idx, e)}
+                onPaste={handlePaste}
+                onFocus={(e) => e.target.select()}
+                disabled={isSuccess}
+                className={`w-12 h-14 md:w-14 md:h-16 text-center text-2xl font-bold font-mono rounded-lg bg-[#19100c] text-[#fff8f5] transition-all focus:outline-none border-2 ${
+                  isSuccess 
+                    ? 'border-[#bdf200] text-[#bdf200] shadow-[0_0_15px_rgba(189,242,0,0.3)]' 
+                    : error 
+                      ? 'border-red-600 text-red-500' 
+                      : 'border-[#aa3000]/40 focus:border-[#bdf200] focus:shadow-[0_0_12px_rgba(189,242,0,0.45)]'
+                }`}
+                aria-label={`Digit ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Feedback Status Readout */}
+          <div className="min-h-[22px] flex items-center justify-center">
+            {isSuccess ? (
+              <span className="text-[#bdf200] text-[11px] font-mono tracking-widest animate-pulse">
+                [ACCESS GRANTED // INITIALIZING]
+              </span>
+            ) : error ? (
+              <span className="text-red-500 text-[11px] font-mono tracking-widest">
+                [{error}]
+              </span>
+            ) : (
+              <span className="text-[#916f65]/60 text-[11px] font-mono tracking-widest">
+                [ENTER SYSTEM ACCESS KEY]
+              </span>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-px bg-[#aa3000]/20 my-5" />
+
+          {/* On-Screen Virtual Numpad */}
+          <div className="grid grid-cols-3 gap-3 w-full max-w-[280px]">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => handleVirtualKey(num)}
+                disabled={isSuccess}
+                className="h-11 md:h-12 flex items-center justify-center border border-[#aa3000]/25 rounded-md bg-[#130c08] text-[#fff8f5] hover:bg-[#aa3000]/20 hover:border-[#aa3000]/60 active:scale-95 transition-all text-[16px] font-bold font-mono"
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => handleVirtualKey('CLEAR')}
+              disabled={isSuccess}
+              className="h-11 md:h-12 flex items-center justify-center border border-red-900/30 rounded-md bg-[#180e0c] text-red-400 hover:bg-red-900/20 active:scale-95 transition-all text-[11px] font-semibold tracking-wider font-mono uppercase"
+            >
+              CLEAR
+            </button>
+            <button
+              type="button"
+              onClick={() => handleVirtualKey('0')}
+              disabled={isSuccess}
+              className="h-11 md:h-12 flex items-center justify-center border border-[#aa3000]/25 rounded-md bg-[#130c08] text-[#fff8f5] hover:bg-[#aa3000]/20 active:scale-95 transition-all text-[16px] font-bold font-mono"
+            >
+              0
+            </button>
+            <button
+              type="button"
+              onClick={() => handleVirtualKey('BACK')}
+              disabled={isSuccess}
+              className="h-11 md:h-12 flex items-center justify-center border border-[#aa3000]/25 rounded-md bg-[#130c08] text-[#fff8f5] hover:bg-[#aa3000]/20 active:scale-95 transition-all text-[16px]"
+              aria-label="Backspace"
+            >
+              <Icon name="backspace" size={18} className="text-[#aa3000]" />
+            </button>
+          </div>
+
+        </div>
+
+        {/* Bottom decorative bar */}
+        <div className="w-full h-1 bg-[#aa3000]/20 flex justify-between px-6 font-mono text-[8px] text-[#aa3000]/40 py-1 select-none">
+          <span>SECURE_SHELL v1.0.4</span>
+          <span>SYSTEM_READY</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const HomePage = () => {
   const rNavigate = useNavigate();
@@ -13,6 +360,13 @@ export const HomePage = () => {
   const onAuthClick = () => setAuthOpen(true);
   const [designsFeed, setDesignsFeed] = useState<any[]>([]);
   const [heroIndex, setHeroIndex] = useState(0);
+
+  const [isLocked, setIsLocked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('offgrid_unlocked') !== 'true';
+    }
+    return true;
+  });
 
   useEffect(() => {
     apiJson<any[]>('/api/catalog')
@@ -26,6 +380,10 @@ export const HomePage = () => {
       })
       .catch(() => { });
   }, []);
+
+  if (isLocked) {
+    return <LockScreen onUnlock={() => setIsLocked(false)} />;
+  }
 
   const heroSlides = [
     {
