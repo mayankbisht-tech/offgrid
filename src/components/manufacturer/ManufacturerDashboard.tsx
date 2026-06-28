@@ -154,7 +154,7 @@ export const ManufacturerDashboard = () => {
   const liveCapabilities = capabilities.filter((cap) => cap.manufacturerId === loggedUser?.id);
   const totalUnits = assignedOrders.reduce((sum, order) =>
     sum + (order.items?.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0) || 0),
-  0);
+    0);
 
   const sidebarItems = [
     { icon: 'dashboard', label: 'Overview', key: 'overview' as const },
@@ -271,29 +271,29 @@ export const ManufacturerDashboard = () => {
 
   return (
     <div
-      className="flex min-h-screen text-[#241910]"
+      className="flex min-h-screen text-[#1A1A1A]"
       style={{
-        backgroundColor: '#fff8f5',
-        backgroundImage: 'radial-gradient(at 0% 0%, #ffeadb 0px, transparent 50%), radial-gradient(at 100% 100%, #f4dfcf 0px, transparent 50%)',
+        backgroundColor: '#F7F3EF',
+        backgroundImage: 'radial-gradient(at 0% 0%, #F1E7DE 0px, transparent 50%), radial-gradient(at 100% 100%, #E8DFD6 0px, transparent 50%)',
         backgroundAttachment: 'fixed',
       }}
     >
-      <aside className="hidden md:flex flex-col h-screen sticky top-0 p-4 bg-[#fff1e8] border-r border-[#e6beb2] w-64 shrink-0">
+      <aside className="hidden md:flex flex-col h-screen sticky top-0 p-4 bg-[#F1E7DE] border-r border-[rgba(109,15,49,0.15)] w-64 shrink-0">
         <div className="mb-6 px-2">
-          <button onClick={() => navigate('/')} className="text-[24px] font-semibold text-[#aa3000]" style={syne}>
-            OffGrid
+          <button onClick={() => navigate('/')} className="text-[24px] font-semibold" style={syne}>
+            <span className="text-[#1A1A1A]">Re</span><span className="text-[#950606]">OG</span>
           </button>
-          <p className="text-[12px] text-[#5c4037] opacity-70 uppercase tracking-widest font-medium mt-1" style={font}>
+          <p className="text-[12px] text-[#5C5C5C] opacity-70 uppercase tracking-widest font-medium mt-1" style={font}>
             Partner Hub
           </p>
         </div>
         <div className="mb-4 px-4">
-          <div className="w-10 h-10 rounded-full bg-[#ffdbd0] flex items-center justify-center text-[#aa3000] font-bold text-sm mb-2">
+          <div className="w-10 h-10 rounded-full bg-[#F1E7DE] flex items-center justify-center text-[#950606] font-bold text-sm mb-2">
             {initialInitials}
           </div>
-          <p className="text-[14px] font-semibold text-[#241910]" style={font}>{displayName}</p>
-          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{displayEmail}</p>
-          <p className="text-[10px] uppercase text-[#5c4037]" style={font}>{roleLabel}</p>
+          <p className="text-[14px] font-semibold text-[#1A1A1A]" style={font}>{displayName}</p>
+          <p className="text-[10px] uppercase text-[#5C5C5C]" style={font}>{displayEmail}</p>
+          <p className="text-[10px] uppercase text-[#5C5C5C]" style={font}>{roleLabel}</p>
         </div>
         <nav className="flex-1 flex flex-col gap-1">
           {sidebarItems.map((item) => {
@@ -302,10 +302,9 @@ export const ManufacturerDashboard = () => {
               <button
                 key={item.label}
                 onClick={() => setTab(item.key)}
-                className={`flex items-center gap-4 px-4 py-2 text-[14px] font-semibold rounded-lg transition-all ${
-                  isActive ? 'bg-[#aa3000] text-white translate-x-1' : 'text-[#5c4037] hover:bg-[#f4dfcf]'
-                }`}
-                style={{ ...font, ...(isActive ? { boxShadow: '4px 4px 0px 0px #aa3000' } : {}) }}
+                className={`flex items-center gap-4 px-4 py-2 text-[14px] font-semibold rounded-lg transition-all ${isActive ? 'bg-[#950606] text-white translate-x-1' : 'text-[#5C5C5C] hover:bg-[#E8DFD6]'
+                  }`}
+                style={{ ...font, ...(isActive ? { boxShadow: '4px 4px 0px 0px #950606' } : {}) }}
               >
                 <Icon name={item.icon} size={20} fill={isActive ? 1 : 0} className={isActive ? 'text-white' : ''} />
                 {item.label}
@@ -313,10 +312,10 @@ export const ManufacturerDashboard = () => {
             );
           })}
         </nav>
-        <div className="mt-auto flex flex-col gap-1 pt-4 border-t border-[#e6beb2]/30">
+        <div className="mt-auto flex flex-col gap-1 pt-4 border-t border-[rgba(109,15,49,0.15)]/30">
           <button
             onClick={() => handleLogout()}
-            className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5c4037] hover:text-[#ba1a1a] rounded-lg"
+            className="w-full flex items-center gap-4 px-4 py-2 text-[14px] font-semibold text-[#5C5C5C] hover:text-[#ba1a1a] rounded-lg"
             style={font}
           >
             <Icon name="logout" size={20} /> Sign Out
@@ -330,24 +329,24 @@ export const ManufacturerDashboard = () => {
           {tab === 'overview' && (
             <>
               <div className="mb-12">
-                <h2 className="text-[#aa3000] text-[32px] md:text-[48px]" style={{ ...syne, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>
+                <h2 className="text-[#950606] text-[32px] md:text-[48px]" style={{ ...syne, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em' }}>
                   Manufacturer Hub
                 </h2>
-                <p className="text-[18px] text-[#5c4037] max-w-xl pl-6 mt-4" style={{ ...font, lineHeight: 1.6, borderLeft: '4px solid #bdf200' }}>
+                <p className="text-[18px] text-[#5C5C5C] max-w-xl pl-6 mt-4" style={{ ...font, lineHeight: 1.6, borderLeft: '4px solid #C6FF00' }}>
                   Manage your production queue, track printing fulfillment, and keep payout details up to date.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
                 {[
-                  { label: 'Assigned Orders', value: loading ? '...' : assignedOrders.length, subIcon: 'inventory_2', color: '#aa3000', sub: 'Orders matched to you' },
-                  { label: 'Completed Orders', value: loading ? '...' : shippedOrders.length, subIcon: 'check_circle', color: '#4f6600', sub: 'Shipped or delivered' },
-                  { label: 'Active Capabilities', value: loading ? '...' : liveCapabilities.length, subIcon: 'precision_manufacturing', color: '#241910', sub: 'Production methods listed' },
+                  { label: 'Assigned Orders', value: loading ? '...' : assignedOrders.length, subIcon: 'inventory_2', color: '#950606', sub: 'Orders matched to you' },
+                  { label: 'Completed Orders', value: loading ? '...' : shippedOrders.length, subIcon: 'check_circle', color: '#3D5A00', sub: 'Shipped or delivered' },
+                  { label: 'Active Capabilities', value: loading ? '...' : liveCapabilities.length, subIcon: 'precision_manufacturing', color: '#1A1A1A', sub: 'Production methods listed' },
                 ].map((s) => (
-                  <div key={s.label} className="p-8 rounded-xl relative overflow-hidden flex flex-col justify-between h-40" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid #e6beb2' }}>
+                  <div key={s.label} className="p-8 rounded-xl relative overflow-hidden flex flex-col justify-between h-40" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(109,15,49,0.15)' }}>
                     <div className="z-10">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037]" style={font}>{s.label}</span>
-                      <h3 className="text-[#241910] mt-2 text-[40px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, lineHeight: 1.1 }}>{s.value}</h3>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#5C5C5C]" style={font}>{s.label}</span>
+                      <h3 className="text-[#1A1A1A] mt-2 text-[40px]" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, lineHeight: 1.1 }}>{s.value}</h3>
                     </div>
                     <div className="z-10 mt-auto">
                       <div className="flex items-center gap-1 font-semibold text-[13px]" style={{ color: s.color, ...font }}>
@@ -358,34 +357,34 @@ export const ManufacturerDashboard = () => {
                 ))}
               </div>
 
-              <div className="bg-white border border-[#e6beb2] rounded-xl overflow-hidden">
-                <div className="px-6 py-5 border-b border-[#e6beb2] flex justify-between items-center bg-[#fff8f5]">
-                  <h3 className="text-[18px] font-semibold text-[#241910]" style={syne}>Assigned Orders</h3>
-                  <button onClick={() => setTab('orders')} className="text-[13px] text-[#aa3000] font-semibold hover:underline" style={font}>
+              <div className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl overflow-hidden">
+                <div className="px-6 py-5 border-b border-[rgba(109,15,49,0.15)] flex justify-between items-center bg-[#F7F3EF]">
+                  <h3 className="text-[18px] font-semibold text-[#1A1A1A]" style={syne}>Assigned Orders</h3>
+                  <button onClick={() => setTab('orders')} className="text-[13px] text-[#950606] font-semibold hover:underline" style={font}>
                     View All
                   </button>
                 </div>
                 {pendingOrders.length === 0 && !loading ? (
                   <div className="p-10 text-center flex flex-col items-center">
-                    <Icon name="check_circle_outline" size={48} className="text-[#e6beb2] mb-4" />
-                    <p className="text-[15px] text-[#5c4037] font-medium" style={font}>No assigned orders yet.</p>
+                    <Icon name="check_circle_outline" size={48} className="text-[rgba(109,15,49,0.15)] mb-4" />
+                    <p className="text-[15px] text-[#5C5C5C] font-medium" style={font}>No assigned orders yet.</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-[#e6beb2]">
+                  <div className="divide-y divide-[rgba(109,15,49,0.15)]">
                     {pendingOrders.slice(0, 5).map((order) => (
-                      <div key={order.id} className="p-6 flex items-center justify-between hover:bg-[#fff8f5] transition-colors">
+                      <div key={order.id} className="p-6 flex items-center justify-between hover:bg-[#F7F3EF] transition-colors">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded bg-[#ffeadb] text-[#aa3000] flex items-center justify-center">
+                          <div className="w-12 h-12 rounded bg-[#F1E7DE] text-[#950606] flex items-center justify-center">
                             <Icon name="receipt" size={24} />
                           </div>
                           <div>
-                            <p className="text-[14px] font-bold text-[#241910]" style={font}>Order #{order.id.split('-')[0]}</p>
-                            <p className="text-[12px] text-[#5c4037]" style={font}>
-                              {order.items?.[0]?.productTitle || 'Custom Print'} • Qty: {order.items?.[0]?.quantity || 1}
+                            <p className="text-[14px] font-bold text-[#1A1A1A]" style={font}>Order #{order.id.split('-')[0]}</p>
+                            <p className="text-[12px] text-[#5C5C5C]" style={font}>
+                              {order.items?.[0]?.productTitle || 'Custom Print'} â€¢ Qty: {order.items?.[0]?.quantity || 1}
                             </p>
                           </div>
                         </div>
-                        <button className="px-4 py-2 bg-[#241910] text-white text-[12px] font-bold rounded uppercase hover:bg-[#4a3b32] transition-colors" style={font}>
+                        <button className="px-4 py-2 bg-[#1A1A1A] text-white text-[12px] font-bold rounded uppercase hover:bg-[#4a3b32] transition-colors" style={font}>
                           Start Print
                         </button>
                       </div>
@@ -399,61 +398,61 @@ export const ManufacturerDashboard = () => {
           {tab === 'designs' && (
             <>
               <div className="mb-8">
-                <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Approved Designs</h2>
-                <p className="text-[14px] text-[#5c4037] mt-2" style={font}>
+                <h2 className="text-[32px] font-bold text-[#1A1A1A]" style={syne}>Approved Designs</h2>
+                <p className="text-[14px] text-[#5C5C5C] mt-2" style={font}>
                   Designs approved by admin are visible here before they move into live product publishing.
                 </p>
               </div>
 
               {approvedDesigns.length === 0 && !loading ? (
-                <div className="bg-white border border-[#e6beb2] rounded-xl p-10 text-center text-[#5c4037]">
-                  <Icon name="verified" size={44} className="text-[#e6beb2] mx-auto mb-4" />
+                <div className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl p-10 text-center text-[#5C5C5C]">
+                  <Icon name="verified" size={44} className="text-[rgba(109,15,49,0.15)] mx-auto mb-4" />
                   <p style={font}>No approved designs are available yet.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {approvedDesigns.map((design) => (
-                    <div key={design.id} className="bg-white border border-[#e6beb2] rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="aspect-[4/5] bg-[#fff8f5]">
+                    <div key={design.id} className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="aspect-[4/5] bg-[#F7F3EF]">
                         {design.fileUrl ? (
                           <img src={design.fileUrl} alt={design.title} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full grid place-items-center text-[#5c4037]" style={font}>No preview</div>
+                          <div className="w-full h-full grid place-items-center text-[#5C5C5C]" style={font}>No preview</div>
                         )}
                       </div>
                       <div className="p-4 space-y-2">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-[11px] uppercase tracking-widest text-[#aa3000]" style={font}>{design.workflowStatus}</span>
-                          <span className="text-[11px] uppercase tracking-widest text-[#5c4037]" style={font}>{design.productType || 'hoodie'}</span>
+                          <span className="text-[11px] uppercase tracking-widest text-[#950606]" style={font}>{design.workflowStatus}</span>
+                          <span className="text-[11px] uppercase tracking-widest text-[#5C5C5C]" style={font}>{design.productType || 'hoodie'}</span>
                         </div>
-                        <h3 className="text-[18px] font-semibold text-[#241910]" style={syne}>{design.title}</h3>
-                        <p className="text-[13px] text-[#5c4037]" style={font}>by {design.designerName}</p>
-                        <p className="text-[12px] text-[#5c4037]" style={font}>
+                        <h3 className="text-[18px] font-semibold text-[#1A1A1A]" style={syne}>{design.title}</h3>
+                        <p className="text-[13px] text-[#5C5C5C]" style={font}>by {design.designerName}</p>
+                        <p className="text-[12px] text-[#5C5C5C]" style={font}>
                           {design.liveProductId ? 'Live product generated' : 'Ready for manufacturer bids'}
                         </p>
                         <div className="flex flex-wrap gap-2 pt-1">
-                          <span className="px-2.5 py-1 rounded-full bg-[#ffeadb] text-[#aa3000] text-[10px] font-bold uppercase" style={font}>
+                          <span className="px-2.5 py-1 rounded-full bg-[#F1E7DE] text-[#950606] text-[10px] font-bold uppercase" style={font}>
                             {design.bidSummary?.total ?? 0} bids
                           </span>
-                          <span className="px-2.5 py-1 rounded-full bg-[#fff1e8] text-[#5c4037] text-[10px] font-bold uppercase" style={font}>
+                          <span className="px-2.5 py-1 rounded-full bg-[#F1E7DE] text-[#5C5C5C] text-[10px] font-bold uppercase" style={font}>
                             {design.bidSummary?.shortlisted ?? 0} shortlisted
                           </span>
-                          <span className="px-2.5 py-1 rounded-full bg-[#f4dfcf] text-[#241910] text-[10px] font-bold uppercase" style={font}>
+                          <span className="px-2.5 py-1 rounded-full bg-[#E8DFD6] text-[#1A1A1A] text-[10px] font-bold uppercase" style={font}>
                             Lowest {design.bidSummary?.lowestBidINR ? `INR ${design.bidSummary.lowestBidINR.toLocaleString('en-IN')}` : 'N/A'}
                           </span>
                           {design.bidSummary?.winningBidAmountINR ? (
-                            <span className="px-2.5 py-1 rounded-full bg-[#bdf200]/20 text-[#4f6600] text-[10px] font-bold uppercase" style={font}>
+                            <span className="px-2.5 py-1 rounded-full bg-[#C6FF00]/20 text-[#3D5A00] text-[10px] font-bold uppercase" style={font}>
                               Winning INR {design.bidSummary.winningBidAmountINR.toLocaleString('en-IN')}
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-full bg-[#fff8f5] text-[#5c4037] text-[10px] font-bold uppercase" style={font}>
+                            <span className="px-2.5 py-1 rounded-full bg-[#F7F3EF] text-[#5C5C5C] text-[10px] font-bold uppercase" style={font}>
                               No winner yet
                             </span>
                           )}
                         </div>
                         <button
                           onClick={() => openBidForm(design)}
-                          className="mt-2 w-full px-4 py-2 rounded bg-[#aa3000] text-white text-[13px] font-semibold hover:bg-[#d43f00] transition-colors"
+                          className="mt-2 w-full px-4 py-2 rounded bg-[#950606] text-white text-[13px] font-semibold hover:bg-[#950606] transition-colors"
                           style={font}
                         >
                           Place Bid
@@ -468,70 +467,70 @@ export const ManufacturerDashboard = () => {
 
           {bidDesign && (
             <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
-              <div className="w-full max-w-lg rounded-2xl border border-[#e6beb2] bg-white shadow-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-[#e6beb2] bg-[#fff8f5] flex items-center justify-between">
+              <div className="w-full max-w-lg rounded-2xl border border-[rgba(109,15,49,0.15)] bg-white shadow-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-[rgba(109,15,49,0.15)] bg-[#F7F3EF] flex items-center justify-between">
                   <div>
-                    <h3 className="text-[18px] font-semibold text-[#241910]" style={syne}>Place Bid</h3>
-                    <p className="text-[12px] text-[#5c4037] mt-1" style={font}>{bidDesign.title}</p>
+                    <h3 className="text-[18px] font-semibold text-[#1A1A1A]" style={syne}>Place Bid</h3>
+                    <p className="text-[12px] text-[#5C5C5C] mt-1" style={font}>{bidDesign.title}</p>
                   </div>
-                  <button onClick={closeBidForm} className="text-[#5c4037] text-[22px] leading-none" aria-label="Close bid form">
+                  <button onClick={closeBidForm} className="text-[#5C5C5C] text-[22px] leading-none" aria-label="Close bid form">
                     X
                   </button>
                 </div>
                 <form onSubmit={submitBid} className="p-6 space-y-4">
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
-                      <div className="text-[10px] uppercase tracking-wider text-[#5c4037]" style={font}>Bids</div>
-                      <div className="text-[18px] font-semibold text-[#241910]" style={syne}>{bidDesign.bidSummary?.total ?? 0}</div>
+                    <div className="rounded-lg border border-[rgba(109,15,49,0.15)] bg-[#F7F3EF] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[#5C5C5C]" style={font}>Bids</div>
+                      <div className="text-[18px] font-semibold text-[#1A1A1A]" style={syne}>{bidDesign.bidSummary?.total ?? 0}</div>
                     </div>
-                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
-                      <div className="text-[10px] uppercase tracking-wider text-[#5c4037]" style={font}>Lowest</div>
-                      <div className="text-[18px] font-semibold text-[#241910]" style={syne}>
+                    <div className="rounded-lg border border-[rgba(109,15,49,0.15)] bg-[#F7F3EF] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[#5C5C5C]" style={font}>Lowest</div>
+                      <div className="text-[18px] font-semibold text-[#1A1A1A]" style={syne}>
                         {bidDesign.bidSummary?.lowestBidINR ? `INR ${bidDesign.bidSummary.lowestBidINR.toLocaleString('en-IN')}` : 'N/A'}
                       </div>
                     </div>
-                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-3">
-                      <div className="text-[10px] uppercase tracking-wider text-[#5c4037]" style={font}>Winner</div>
-                      <div className="text-[18px] font-semibold text-[#241910]" style={syne}>
+                    <div className="rounded-lg border border-[rgba(109,15,49,0.15)] bg-[#F7F3EF] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[#5C5C5C]" style={font}>Winner</div>
+                      <div className="text-[18px] font-semibold text-[#1A1A1A]" style={syne}>
                         {bidDesign.bidSummary?.winningBidAmountINR ? `INR ${bidDesign.bidSummary.winningBidAmountINR.toLocaleString('en-IN')}` : 'None'}
                       </div>
                     </div>
                   </div>
                   {actionMessage && (
-                    <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] px-4 py-3 text-[13px]" style={font}>
+                    <div className="rounded-lg border border-[rgba(109,15,49,0.15)] bg-[#F7F3EF] px-4 py-3 text-[13px]" style={font}>
                       {actionMessage}
                     </div>
                   )}
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#5c4037] mb-1 block" style={font}>Bid Amount INR</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#5C5C5C] mb-1 block" style={font}>Bid Amount INR</label>
                     <input
                       value={bidAmountINR}
                       onChange={(e) => setBidAmountINR(e.target.value)}
                       inputMode="numeric"
                       placeholder="e.g. 850"
-                      className="w-full border border-[#e6beb2] rounded px-3 py-2"
+                      className="w-full border border-[rgba(109,15,49,0.15)] rounded px-3 py-2"
                       style={font}
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#5c4037] mb-1 block" style={font}>Turnaround Days</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#5C5C5C] mb-1 block" style={font}>Turnaround Days</label>
                     <input
                       value={turnAroundDays}
                       onChange={(e) => setTurnAroundDays(e.target.value)}
                       inputMode="numeric"
                       placeholder="7"
-                      className="w-full border border-[#e6beb2] rounded px-3 py-2"
+                      className="w-full border border-[rgba(109,15,49,0.15)] rounded px-3 py-2"
                       style={font}
                     />
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <button type="button" onClick={closeBidForm} className="px-4 py-2 rounded border border-[#e6beb2] text-[#5c4037] text-[13px]" style={font}>
+                    <button type="button" onClick={closeBidForm} className="px-4 py-2 rounded border border-[rgba(109,15,49,0.15)] text-[#5C5C5C] text-[13px]" style={font}>
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={placingBid}
-                      className="px-4 py-2 rounded bg-[#aa3000] text-white text-[13px] font-semibold disabled:opacity-60"
+                      className="px-4 py-2 rounded bg-[#950606] text-white text-[13px] font-semibold disabled:opacity-60"
                       style={font}
                     >
                       {placingBid ? 'Submitting...' : 'Submit Bid'}
@@ -546,15 +545,15 @@ export const ManufacturerDashboard = () => {
             <>
               <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Production Queue</h2>
-                  <p className="text-[14px] text-[#5c4037] mt-2" style={font}>Orders matched to your account.</p>
+                  <h2 className="text-[32px] font-bold text-[#1A1A1A]" style={syne}>Production Queue</h2>
+                  <p className="text-[14px] text-[#5C5C5C] mt-2" style={font}>Orders matched to your account.</p>
                 </div>
                 <div className="flex gap-2">
                   {['ALL', 'PENDING', 'SHIPPED'].map((f) => (
                     <button
                       key={f}
                       onClick={() => setOrderFilter(f as any)}
-                      className={`px-4 py-2 rounded text-[12px] font-bold uppercase transition-colors ${orderFilter === f ? 'bg-[#aa3000] text-white' : 'bg-white text-[#5c4037] border border-[#e6beb2] hover:bg-[#fff8f5]'}`}
+                      className={`px-4 py-2 rounded text-[12px] font-bold uppercase transition-colors ${orderFilter === f ? 'bg-[#950606] text-white' : 'bg-white text-[#5C5C5C] border border-[rgba(109,15,49,0.15)] hover:bg-[#F7F3EF]'}`}
                       style={font}
                     >
                       {f}
@@ -563,22 +562,22 @@ export const ManufacturerDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-[#e6beb2] rounded-xl overflow-hidden">
+              <div className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left" style={font}>
-                    <thead className="bg-[#fff8f5] border-b border-[#e6beb2]">
+                    <thead className="bg-[#F7F3EF] border-b border-[rgba(109,15,49,0.15)]">
                       <tr>
-                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5c4037]">Order ID</th>
-                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5c4037]">Product</th>
-                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5c4037]">Date</th>
-                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5c4037]">Status</th>
-                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5c4037] text-right">Action</th>
+                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5C5C5C]">Order ID</th>
+                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5C5C5C]">Product</th>
+                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5C5C5C]">Date</th>
+                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5C5C5C]">Status</th>
+                        <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-[#5C5C5C] text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#e6beb2]">
+                    <tbody className="divide-y divide-[rgba(109,15,49,0.15)]">
                       {assignedOrders.length === 0 && !loading && (
                         <tr>
-                          <td colSpan={5} className="px-6 py-10 text-center text-[#5c4037]">
+                          <td colSpan={5} className="px-6 py-10 text-center text-[#5C5C5C]">
                             No orders matched to this manufacturer yet.
                           </td>
                         </tr>
@@ -592,21 +591,20 @@ export const ManufacturerDashboard = () => {
                               : ['SHIPPED', 'FULFILLED', 'DELIVERED'].includes(order.status)
                         )
                         .map((order) => (
-                          <tr key={order.id} className="hover:bg-[#fff8f5] transition-colors">
-                            <td className="px-6 py-4 text-[13px] font-medium text-[#241910]">#{order.id.split('-')[0]}</td>
-                            <td className="px-6 py-4 text-[13px] text-[#5c4037]">{order.items?.[0]?.productTitle || 'Product'} (x{order.items?.[0]?.quantity || 1})</td>
-                            <td className="px-6 py-4 text-[13px] text-[#5c4037]">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : '-'}</td>
+                          <tr key={order.id} className="hover:bg-[#F7F3EF] transition-colors">
+                            <td className="px-6 py-4 text-[13px] font-medium text-[#1A1A1A]">#{order.id.split('-')[0]}</td>
+                            <td className="px-6 py-4 text-[13px] text-[#5C5C5C]">{order.items?.[0]?.productTitle || 'Product'} (x{order.items?.[0]?.quantity || 1})</td>
+                            <td className="px-6 py-4 text-[13px] text-[#5C5C5C]">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : '-'}</td>
                             <td className="px-6 py-4">
-                              <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full ${
-                                ['PENDING', 'PAID', 'PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'MATCHED_TO_MANUFACTURER', 'IN_PRODUCTION', 'QUALITY_CHECK'].includes(order.status)
-                                  ? 'bg-[#ffeadb] text-[#aa3000]'
-                                  : 'bg-[#bdf200] text-[#4f6600]'
-                              }`}>
+                              <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full ${['PENDING', 'PAID', 'PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'MATCHED_TO_MANUFACTURER', 'IN_PRODUCTION', 'QUALITY_CHECK'].includes(order.status)
+                                  ? 'bg-[#F1E7DE] text-[#950606]'
+                                  : 'bg-[#C6FF00] text-[#3D5A00]'
+                                }`}>
                                 {order.status}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <button className="text-[12px] font-bold text-[#aa3000] hover:underline uppercase tracking-wide">View</button>
+                              <button className="text-[12px] font-bold text-[#950606] hover:underline uppercase tracking-wide">View</button>
                             </td>
                           </tr>
                         ))}
@@ -620,37 +618,37 @@ export const ManufacturerDashboard = () => {
           {tab === 'bids' && (
             <>
               <div className="mb-8">
-                <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Bids & Samples</h2>
-                <p className="text-[14px] text-[#5c4037] mt-2" style={font}>Track which bids are shortlisted, held, rejected, or moved into sample review.</p>
+                <h2 className="text-[32px] font-bold text-[#1A1A1A]" style={syne}>Bids & Samples</h2>
+                <p className="text-[14px] text-[#5C5C5C] mt-2" style={font}>Track which bids are shortlisted, held, rejected, or moved into sample review.</p>
               </div>
 
-              <div className="bg-white border border-[#e6beb2] rounded-xl overflow-hidden">
-                <div className="divide-y divide-[#e6beb2]">
+              <div className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl overflow-hidden">
+                <div className="divide-y divide-[rgba(109,15,49,0.15)]">
                   {bids.length === 0 && (
-                    <div className="p-8 text-[#5c4037]" style={font}>No bids have been placed by this manufacturer yet.</div>
+                    <div className="p-8 text-[#5C5C5C]" style={font}>No bids have been placed by this manufacturer yet.</div>
                   )}
                   {bids.map((bid) => (
                     <div key={bid.id} className="p-6 flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-[15px] font-semibold text-[#241910]" style={font}>{bid.design?.title || 'Untitled design'}</p>
-                          <p className="text-[12px] text-[#5c4037]" style={font}>Design ID: {bid.designId}</p>
+                          <p className="text-[15px] font-semibold text-[#1A1A1A]" style={font}>{bid.design?.title || 'Untitled design'}</p>
+                          <p className="text-[12px] text-[#5C5C5C]" style={font}>Design ID: {bid.designId}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[18px] font-bold text-[#aa3000]" style={syne}>INR {bid.bidAmountINR.toLocaleString('en-IN')}</p>
-                          <p className="text-[12px] text-[#5c4037]" style={font}>{bid.turnAroundDays} day turnaround</p>
+                          <p className="text-[18px] font-bold text-[#950606]" style={syne}>INR {bid.bidAmountINR.toLocaleString('en-IN')}</p>
+                          <p className="text-[12px] text-[#5C5C5C]" style={font}>{bid.turnAroundDays} day turnaround</p>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-[#ffeadb] text-[#aa3000]" style={font}>{bid.status}</span>
-                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-[#fff1e8] text-[#5c4037]" style={font}>{bid.sampleStatus || 'NO SAMPLE'}</span>
+                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-[#F1E7DE] text-[#950606]" style={font}>{bid.status}</span>
+                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-[#F1E7DE] text-[#5C5C5C]" style={font}>{bid.sampleStatus || 'NO SAMPLE'}</span>
                         {bid.sample?.status && (
-                          <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-[#bdf200] text-[#4f6600]" style={font}>
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-[#C6FF00] text-[#3D5A00]" style={font}>
                             Sample {bid.sample.status}
                           </span>
                         )}
                       </div>
-                      {bid.heldReason && <p className="text-[12px] text-[#5c4037]" style={font}>{bid.heldReason}</p>}
+                      {bid.heldReason && <p className="text-[12px] text-[#5C5C5C]" style={font}>{bid.heldReason}</p>}
                     </div>
                   ))}
                 </div>
@@ -662,42 +660,42 @@ export const ManufacturerDashboard = () => {
             <>
               <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Production Capabilities</h2>
-                  <p className="text-[14px] text-[#5c4037] mt-2" style={font}>These are the live capabilities linked to your manufacturer account.</p>
+                  <h2 className="text-[32px] font-bold text-[#1A1A1A]" style={syne}>Production Capabilities</h2>
+                  <p className="text-[14px] text-[#5C5C5C] mt-2" style={font}>These are the live capabilities linked to your manufacturer account.</p>
                 </div>
               </div>
 
               {liveCapabilities.length === 0 && !loading ? (
-                <div className="bg-white border border-[#e6beb2] rounded-xl p-10 text-center text-[#5c4037]">
-                  <Icon name="inventory_2" size={44} className="text-[#e6beb2] mx-auto mb-4" />
+                <div className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl p-10 text-center text-[#5C5C5C]">
+                  <Icon name="inventory_2" size={44} className="text-[rgba(109,15,49,0.15)] mx-auto mb-4" />
                   <p style={font}>No capabilities have been linked to this manufacturer yet.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {liveCapabilities.map((item) => (
-                    <div key={item.id} className="p-6 bg-white border border-[#e6beb2] rounded-xl flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div key={item.id} className="p-6 bg-white border border-[rgba(109,15,49,0.15)] rounded-xl flex flex-col justify-between hover:shadow-md transition-shadow">
                       <div>
                         <div className="flex justify-between items-start mb-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c4037]" style={font}>{item.printType}</span>
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${item.active ? 'bg-[#bdf200]/20 text-[#4f6600]' : 'bg-[#e6beb2]/40 text-[#5c4037]'}`} style={font}>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-[#5C5C5C]" style={font}>{item.printType}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${item.active ? 'bg-[#C6FF00]/20 text-[#3D5A00]' : 'bg-[rgba(109,15,49,0.15)]/40 text-[#5C5C5C]'}`} style={font}>
                             {item.active ? 'Active' : 'Inactive'}
                           </span>
                         </div>
-                        <h3 className="text-[18px] font-semibold text-[#241910] leading-tight" style={font}>
+                        <h3 className="text-[18px] font-semibold text-[#1A1A1A] leading-tight" style={font}>
                           {item.productTypes?.join(', ') || 'General production'}
                         </h3>
-                        <p className="text-[12px] text-[#5c4037] mt-2" style={font}>
+                        <p className="text-[12px] text-[#5C5C5C] mt-2" style={font}>
                           Materials: {item.materials?.join(', ') || 'Not listed'}
                         </p>
                       </div>
                       <div className="mt-6 flex items-end justify-between">
                         <div>
-                          <p className="text-[28px] font-bold text-[#241910] leading-none" style={syne}>
+                          <p className="text-[28px] font-bold text-[#1A1A1A] leading-none" style={syne}>
                             {item.turnaroundDays ?? '-'}
                           </p>
-                          <p className="text-[12px] text-[#5c4037] mt-1" style={font}>Turnaround days</p>
+                          <p className="text-[12px] text-[#5C5C5C] mt-1" style={font}>Turnaround days</p>
                         </div>
-                        <button className="text-[13px] text-[#aa3000] font-semibold hover:underline" style={font}>Edit</button>
+                        <button className="text-[13px] text-[#950606] font-semibold hover:underline" style={font}>Edit</button>
                       </div>
                     </div>
                   ))}
@@ -709,46 +707,45 @@ export const ManufacturerDashboard = () => {
           {tab === 'payouts' && (
             <>
               <div className="mb-8">
-                <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Payout Setup</h2>
-                <p className="text-[14px] text-[#5c4037] mt-2" style={font}>Save the payout details you want the platform to use for your manufacturer account.</p>
+                <h2 className="text-[32px] font-bold text-[#1A1A1A]" style={syne}>Payout Setup</h2>
+                <p className="text-[14px] text-[#5C5C5C] mt-2" style={font}>Save the payout details you want the platform to use for your manufacturer account.</p>
               </div>
 
-              <div className="bg-white border border-[#e6beb2] rounded-xl p-8 max-w-3xl">
+              <div className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl p-8 max-w-3xl">
                 <form className="space-y-5" onSubmit={handlePaymentSave}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>Business Name</label>
+                      <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>Business Name</label>
                       <input
                         value={paymentProfile.businessName}
                         onChange={(e) => setPaymentProfile((prev) => ({ ...prev, businessName: e.target.value }))}
-                        className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                        className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                         style={font}
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>Account Holder Name</label>
+                      <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>Account Holder Name</label>
                       <input
                         value={paymentProfile.accountHolderName ?? ''}
                         onChange={(e) => setPaymentProfile((prev) => ({ ...prev, accountHolderName: e.target.value }))}
-                        className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                        className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                         style={font}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-2 block tracking-wider" style={font}>Preferred Payout Method</label>
+                    <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-2 block tracking-wider" style={font}>Preferred Payout Method</label>
                     <div className="flex gap-3">
                       {(['upi', 'bank_transfer'] as const).map((method) => (
                         <button
                           key={method}
                           type="button"
                           onClick={() => setPaymentProfile((prev) => ({ ...prev, preferredPayoutMethod: method }))}
-                          className={`px-4 py-2 rounded text-[12px] font-bold uppercase border transition-colors ${
-                            paymentProfile.preferredPayoutMethod === method
-                              ? 'bg-[#aa3000] text-white border-[#aa3000]'
-                              : 'bg-white text-[#5c4037] border-[#e6beb2] hover:bg-[#fff8f5]'
-                          }`}
+                          className={`px-4 py-2 rounded text-[12px] font-bold uppercase border transition-colors ${paymentProfile.preferredPayoutMethod === method
+                              ? 'bg-[#950606] text-white border-[#950606]'
+                              : 'bg-white text-[#5C5C5C] border-[rgba(109,15,49,0.15)] hover:bg-[#F7F3EF]'
+                            }`}
                           style={font}
                         >
                           {method === 'upi' ? 'UPI' : 'Bank Transfer'}
@@ -759,41 +756,41 @@ export const ManufacturerDashboard = () => {
 
                   {paymentProfile.preferredPayoutMethod === 'upi' ? (
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>UPI ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>UPI ID</label>
                       <input
                         value={paymentProfile.upiId ?? ''}
                         onChange={(e) => setPaymentProfile((prev) => ({ ...prev, upiId: e.target.value }))}
                         placeholder="name@bank"
-                        className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                        className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                         style={font}
                       />
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>Bank Name</label>
+                        <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>Bank Name</label>
                         <input
                           value={paymentProfile.bankName ?? ''}
                           onChange={(e) => setPaymentProfile((prev) => ({ ...prev, bankName: e.target.value }))}
-                          className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                          className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                           style={font}
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>Account Number</label>
+                        <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>Account Number</label>
                         <input
                           value={paymentProfile.bankAccount ?? ''}
                           onChange={(e) => setPaymentProfile((prev) => ({ ...prev, bankAccount: e.target.value }))}
-                          className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                          className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                           style={font}
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>IFSC Code</label>
+                        <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>IFSC Code</label>
                         <input
                           value={paymentProfile.bankIFSC ?? ''}
                           onChange={(e) => setPaymentProfile((prev) => ({ ...prev, bankIFSC: e.target.value }))}
-                          className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                          className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                           style={font}
                         />
                       </div>
@@ -804,13 +801,13 @@ export const ManufacturerDashboard = () => {
                     <button
                       type="submit"
                       disabled={savingPayment}
-                      className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#d43f00] transition-colors disabled:opacity-60"
+                      className="px-8 py-3 bg-[#950606] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#950606] transition-colors disabled:opacity-60"
                       style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}
                     >
                       {savingPayment ? 'Saving...' : 'Save Payment Info'}
                     </button>
                     {saveMessage && (
-                      <p className="text-[13px] text-[#5c4037] mt-3" style={font}>{saveMessage}</p>
+                      <p className="text-[13px] text-[#5C5C5C] mt-3" style={font}>{saveMessage}</p>
                     )}
                   </div>
                 </form>
@@ -821,12 +818,12 @@ export const ManufacturerDashboard = () => {
           {tab === 'settings' && (
             <>
               <div className="mb-8">
-                <h2 className="text-[32px] font-bold text-[#241910]" style={syne}>Business Settings</h2>
-                <p className="text-[14px] text-[#5c4037] mt-2" style={font}>Update your manufacturer profile and capabilities.</p>
+                <h2 className="text-[32px] font-bold text-[#1A1A1A]" style={syne}>Business Settings</h2>
+                <p className="text-[14px] text-[#5C5C5C] mt-2" style={font}>Update your manufacturer profile and capabilities.</p>
               </div>
 
               <form
-                className="bg-white border border-[#e6beb2] rounded-xl p-8 space-y-6 max-w-2xl"
+                className="bg-white border border-[rgba(109,15,49,0.15)] rounded-xl p-8 space-y-6 max-w-2xl"
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!loggedUser) return;
@@ -837,39 +834,39 @@ export const ManufacturerDashboard = () => {
                 }}
               >
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-1 block tracking-wider" style={font}>Business Name</label>
+                  <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-1 block tracking-wider" style={font}>Business Name</label>
                   <input
                     value={paymentProfile.businessName}
                     onChange={(e) => setPaymentProfile((prev) => ({ ...prev, businessName: e.target.value }))}
-                    className="w-full bg-[#fff1e8] border border-[#e6beb2] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#aa3000]"
+                    className="w-full bg-[#F1E7DE] border border-[rgba(109,15,49,0.15)] px-4 py-3 text-[14px] rounded focus:outline-none focus:border-[#950606]"
                     style={font}
                   />
                 </div>
-                <div className="rounded-lg border border-[#e6beb2] bg-[#fff8f5] p-4 text-[13px] text-[#5c4037]" style={font}>
-                  <p className="font-semibold text-[#241910] mb-1">Profile note</p>
+                <div className="rounded-lg border border-[rgba(109,15,49,0.15)] bg-[#F7F3EF] p-4 text-[13px] text-[#5C5C5C]" style={font}>
+                  <p className="font-semibold text-[#1A1A1A] mb-1">Profile note</p>
                   <p>
                     Keep your legal business details, city, and GST information in your onboarding profile or internal records.
-                    This page is used for the payout details that OffGrid will use when sending manufacturer payments.
+                    This page is used for the payout details that ReOG will use when sending manufacturer payments.
                   </p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-[#5c4037] mb-3 block tracking-wider" style={font}>Active Capabilities</label>
+                  <label className="text-[10px] font-bold uppercase text-[#5C5C5C] mb-3 block tracking-wider" style={font}>Active Capabilities</label>
                   <div className="flex flex-wrap gap-2">
                     {liveCapabilities.length > 0 ? (
                       liveCapabilities.map((cap) => (
-                        <span key={cap.id} className="px-4 py-2 bg-[#ffeadb] text-[#aa3000] border border-[#aa3000]/30 rounded text-[12px] font-bold" style={font}>
+                        <span key={cap.id} className="px-4 py-2 bg-[#F1E7DE] text-[#950606] border border-[#950606]/30 rounded text-[12px] font-bold" style={font}>
                           {cap.printType}
                         </span>
                       ))
                     ) : (
-                      <span className="text-[12px] text-[#5c4037]" style={font}>No capabilities linked yet.</span>
+                      <span className="text-[12px] text-[#5C5C5C]" style={font}>No capabilities linked yet.</span>
                     )}
                   </div>
                 </div>
-                <div className="pt-4 border-t border-[#e6beb2] flex gap-3">
+                <div className="pt-4 border-t border-[rgba(109,15,49,0.15)] flex gap-3">
                   <button
                     type="submit"
-                    className="px-8 py-3 bg-[#aa3000] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#d43f00] transition-colors"
+                    className="px-8 py-3 bg-[#950606] text-white text-[14px] font-semibold rounded uppercase tracking-wide hover:bg-[#950606] transition-colors"
                     style={{ boxShadow: '4px 4px 0px 0px #3a0b00', ...font }}
                   >
                     Save Profile

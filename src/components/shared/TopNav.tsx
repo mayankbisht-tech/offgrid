@@ -27,11 +27,6 @@ export const TopNav = ({
     { label: 'Collectibles', path: '/shop?category=Collectibles' },
   ];
 
-  const mainLinks = [
-    { label: 'Women', path: '/shop?segment=Women' },
-    { label: 'Men', path: '/shop?segment=Men' },
-    { label: 'Kids', path: '/shop?segment=Kids' },
-  ];
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -41,109 +36,97 @@ export const TopNav = ({
   };
 
   return (
-    <nav className="w-full sticky top-0 z-50 bg-[#fff8f5]/95 backdrop-blur-md border-b border-[#e6beb2] shadow-[0_2px_18px_rgba(92,64,55,0.04)]">
-      <div className="h-1 bg-[#aa3000]" />
-      <div className="mx-auto max-w-[1440px] px-4 md:px-12">
-        <div className="flex h-12 items-center justify-between gap-4 md:h-12">
-          <div className="hidden md:flex items-center gap-6 min-w-0">
-            {mainLinks.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => rNavigate(item.path)}
-                  className={`text-[13px] lg:text-[14px] font-semibold tracking-tight transition-colors whitespace-nowrap ${active ? 'text-[#aa3000]' : 'text-[#5c4037] hover:text-[#aa3000]'}`}
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
+    <nav className="w-full sticky top-0 z-50 bg-[#F7F3EF]/95 backdrop-blur-md border-b border-[rgba(149,6,6,0.15)] shadow-[0_2px_18px_rgba(92,64,55,0.04)]">
+      <div className="h-1 bg-[#950606]" />
+      <div className="mx-auto max-w-[1440px] px-4 md:px-12 flex items-stretch gap-6 md:gap-8">
+
+        {/* Left Column: ReOG Brand Logo spanning the full height (both rows) on desktop */}
+        <button
+          onClick={() => rNavigate('/')}
+          className="flex flex-col justify-center items-start select-none leading-none tracking-tight shrink-0 py-3 md:py-4"
+          aria-label="ReOG home"
+        >
+          <div className="text-[28px] md:text-[48px] flex items-baseline leading-none" style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500 }}>
+            <span className="text-[#1A1A1A]">Re</span>
+            <span className="text-[#950606] relative">
+              OG<span className="absolute text-[8px] top-1 right-[-9px] font-sans font-normal uppercase">TM</span>
+            </span>
           </div>
+          <span className="text-[7.5px] md:text-[9.5px] font-sans tracking-[0.18em] text-[#5C5C5C] uppercase mt-1 whitespace-nowrap">
+            REBIRTH OF THE ORIGINAL GENERATION
+          </span>
+        </button>
 
-          <button
-            onClick={() => rNavigate('/')}
-            className="flex items-center justify-center shrink-0"
-            aria-label="OffGrid home"
-          >
-            <img
-              src="/offgrid-logo.jpeg"
-              alt="OFFGRID"
-              className="h-8 w-auto object-contain md:h-9 lg:h-10"
-              loading="eager"
-            />
-          </button>
+        {/* Right Column: Two stacked rows on desktop */}
+        <div className="flex-1 flex flex-col justify-between py-1 md:py-2">
 
-          <div className="hidden md:flex items-center gap-2">
-            <button onClick={onSearchClick} className="grid h-9 w-9 place-items-center rounded-full text-[#241910] hover:bg-[#ffeadb] transition-colors" aria-label="Search">
+          {/* Top Row: Right side icons on desktop */}
+          <div className="hidden md:flex justify-end items-center h-10 gap-2">
+            <button onClick={onSearchClick} className="grid h-9 w-9 place-items-center rounded-full text-[#1A1A1A] hover:bg-[#F1E7DE] transition-colors" aria-label="Search">
               <Icon name="search" size={20} />
             </button>
-            <button onClick={onCartClick} className="relative grid h-9 w-9 place-items-center rounded-full text-[#241910] hover:bg-[#ffeadb] transition-colors" aria-label="Cart">
+            <button onClick={onCartClick} className="relative grid h-9 w-9 place-items-center rounded-full text-[#1A1A1A] hover:bg-[#F1E7DE] transition-colors" aria-label="Cart">
               <Icon name="shopping_cart" size={20} />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#aa3000] text-white text-[10px] font-bold">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#950606] text-white text-[10px] font-bold">
                   {cartCount}
                 </span>
               )}
             </button>
-            <button onClick={onAuthClick} className="grid h-9 w-9 place-items-center rounded-full text-[#241910] hover:bg-[#ffeadb] transition-colors" aria-label="Profile">
+            <button onClick={onAuthClick} className="grid h-9 w-9 place-items-center rounded-full text-[#1A1A1A] hover:bg-[#F1E7DE] transition-colors" aria-label="Profile">
               <Icon name="person" size={20} />
             </button>
           </div>
 
-          <div className="flex md:hidden items-center gap-2">
-            <button onClick={onCartClick} className="relative grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Cart">
+          {/* Mobile Right Icons (Unchanged) */}
+          <div className="flex md:hidden h-full items-center justify-end gap-2">
+            <button onClick={onCartClick} className="relative grid h-9 w-9 place-items-center rounded-full text-[#950606] hover:bg-[#F1E7DE] transition-colors" aria-label="Cart">
               <Icon name="shopping_cart" size={20} />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#aa3000] text-white text-[8px] font-bold">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#950606] text-white text-[8px] font-bold">
                   {cartCount}
                 </span>
               )}
             </button>
-            <button onClick={() => setMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors" aria-label="Menu">
+            <button onClick={() => setMobileMenuOpen(true)} className="grid h-9 w-9 place-items-center rounded-full text-[#950606] hover:bg-[#F1E7DE] transition-colors" aria-label="Menu">
               <Icon name="menu" size={24} />
             </button>
           </div>
-        </div>
 
-        <div className="hidden md:flex items-center justify-between gap-3 border-t border-[#e6beb2] py-3">
-          <div className="flex flex-wrap items-center gap-1 lg:gap-1">
-            {categoryLinks.map((item) => {
-              const active = location.pathname.startsWith('/shop') && (item.path === '/shop' ? location.search === '' : location.search.includes(`category=${encodeURIComponent(item.label)}`));
-              return (
-                <button
-  key={item.label}
-  onClick={() => rNavigate(item.path)}
-  /* Removed text-[4px] and lg:text-[8px] from className */
-  className={`rounded-full px-2 py-1.5 font-semibold uppercase tracking-[0.14em] transition-all ${
-    active 
-      ? 'bg-[#241910] text-[#fff8f5]' 
-      : 'text-[#5c4037] hover:bg-[#ffeadb] hover:text-[#aa3000]'
-  }`}
-  /* Explicitly setting font sizes in the style tag */
-  style={{ 
-    fontFamily: 'Inter, sans-serif',
-    fontSize: window.innerWidth >= 1024 ? '13px' : '11px' 
-  }}
->
-  {item.label}
-</button>
+          {/* Bottom Row: Category Links in the middle, Search Bar on the right */}
+          <div className="hidden md:flex items-center justify-between gap-2 border-t border-[rgba(149,6,6,0.08)] pt-2 mt-1">
+            <div className="pl-5 flex flex-wrap items-center gap-1">
+              {categoryLinks.map((item) => {
+                const active = location.pathname.startsWith('/shop') && (item.path === '/shop' ? location.search === '' : location.search.includes(`category=${encodeURIComponent(item.label)}`));
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => rNavigate(item.path)}
+                    className={`rounded-full px-2 py-0.5 font-semibold uppercase tracking-[0.10em] transition-all ${active
+                      ? 'bg-[#950606] text-white'
+                      : 'text-[#5C5C5C] hover:bg-[#F1E7DE] hover:text-[#950606]'
+                      }`}
+                    style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
 
-              );
-            })}
+            <button
+              type="button"
+              onClick={onSearchClick}
+              className="flex w-[260px] items-center gap-3 rounded-full border border-[rgba(149,6,6,0.15)] bg-white px-4 py-1.5 text-left text-[#5C5C5C] transition-all hover:border-[#950606] hover:shadow-[0_8px_24px_rgba(149,6,6,0.08)]"
+              aria-label="Search"
+            >
+              <Icon name="search" size={16} className="text-[#950606]" />
+              <span className="text-[11px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Search products, creators, drops...
+              </span>
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onSearchClick}
-            className="flex w-[280px] items-center gap-3 rounded-full border border-[#e6beb2] bg-white px-4 py-2 text-left text-[#5c4037] transition-all hover:border-[#aa3000] hover:shadow-[0_8px_24px_rgba(170,48,0,0.08)]"
-            aria-label="Search"
-          >
-            <Icon name="search" size={18} className="text-[#aa3000]" />
-            <span className="text-[12px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Search products, creators, drops...
-            </span>
-          </button>
         </div>
       </div>
     </nav>

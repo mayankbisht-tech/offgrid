@@ -53,7 +53,7 @@ export const ProductMockup = ({ type, url }: { type: 'hoodie' | 'tshirt' | 'prin
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/20 pointer-events-none" />
                 </div>
               ) : (
-                <span className="text-[10px] uppercase font-bold text-[#5c4037]/40 tracking-wider">No Artwork</span>
+                <span className="text-[10px] uppercase font-bold text-[#5C5C5C]/40 tracking-wider">No Artwork</span>
               )}
             </div>
           </div>

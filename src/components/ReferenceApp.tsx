@@ -131,7 +131,7 @@ export default function RootLayout() {
           /* Webkit browsers */
           input[type='range']::-webkit-slider-runnable-track {
             height: 6px;
-            background: #f4dfcf;
+            background: #E8DFD6;
             border-radius: 3px;
           }
           input[type='range']::-webkit-slider-thumb {
@@ -139,7 +139,7 @@ export default function RootLayout() {
             appearance: none;
             width: 18px;
             height: 18px;
-            background: #aa3000;
+            background: #950606;
             border: 3px solid #ffffff;
             box-shadow: 0px 4px 10px rgba(170, 48, 0, 0.4);
             border-radius: 50%;
@@ -153,13 +153,13 @@ export default function RootLayout() {
           /* Mozilla browsers */
           input[type='range']::-moz-range-track {
             height: 6px;
-            background: #f4dfcf;
+            background: #E8DFD6;
             border-radius: 3px;
           }
           input[type='range']::-moz-range-thumb {
             width: 18px;
             height: 18px;
-            background: #aa3000;
+            background: #950606;
             border: 3px solid #ffffff;
             box-shadow: 0px 4px 10px rgba(170, 48, 0, 0.4);
             border-radius: 50%;
@@ -202,14 +202,14 @@ export default function RootLayout() {
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             {/* Sidebar Panel */}
             <div
-              className="absolute top-0 right-0 h-full w-72 bg-[#fff8f5] shadow-2xl flex flex-col"
+              className="absolute top-0 right-0 h-full w-72 bg-[#F7F3EF] shadow-2xl flex flex-col"
               onClick={e => e.stopPropagation()}
               style={{ animation: 'slideInRight 0.25s ease-out' }}
             >
               {/* Close Button */}
-              <div className="flex items-center justify-between px-5 h-16 border-b border-[#e6beb2]">
-                <img src="/offgrid-logo.jpeg" alt="OFFGRID" className="h-9 w-auto object-contain" />
-                <button onClick={() => setMobileMenuOpen(false)} className="grid h-9 w-9 place-items-center rounded-full text-[#aa3000] hover:bg-[#ffeadb] transition-colors">
+              <div className="flex items-center justify-between px-5 h-16 border-b border-[rgba(109,15,49,0.15)]">
+                <img src="/offgrid-logo.jpeg" alt="ReOG" className="h-9 w-auto object-contain" />
+                <button onClick={() => setMobileMenuOpen(false)} className="grid h-9 w-9 place-items-center rounded-full text-[#950606] hover:bg-[#F1E7DE] transition-colors">
                   <Icon name="close" size={22} />
                 </button>
               </div>
@@ -223,26 +223,26 @@ export default function RootLayout() {
                   <button
                     key={item.label}
                     onClick={() => { rNavigate(item.path); setMobileMenuOpen(false); }}
-                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#241910] rounded-lg hover:bg-[#ffeadb] transition-colors"
+                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#1A1A1A] rounded-lg hover:bg-[#F1E7DE] transition-colors"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    <Icon name={item.icon} size={20} className="text-[#aa3000]" /> {item.label}
+                    <Icon name={item.icon} size={20} className="text-[#950606]" /> {item.label}
                   </button>
                 ))}
                 <button
                   onClick={() => { setSearchOpen(true); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#241910] rounded-lg hover:bg-[#ffeadb] transition-colors"
+                  className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#1A1A1A] rounded-lg hover:bg-[#F1E7DE] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  <Icon name="search" size={20} className="text-[#aa3000]" /> Search
+                  <Icon name="search" size={20} className="text-[#950606]" /> Search
                 </button>
               </nav>
               {/* Bottom Actions */}
-              <div className="border-t border-[#e6beb2] px-4 py-4 flex flex-col gap-1">
+              <div className="border-t border-[rgba(109,15,49,0.15)] px-4 py-4 flex flex-col gap-1">
                 {user ? (
                   <button
                     onClick={() => { setMobileMenuOpen(false); rNavigate('/logout'); }}
-                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5c4037] rounded-lg hover:text-[#ba1a1a] hover:bg-[#ffeadb] transition-colors"
+                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5C5C5C] rounded-lg hover:text-[#ba1a1a] hover:bg-[#F1E7DE] transition-colors"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     <Icon name="logout" size={20} /> Sign Out
@@ -250,7 +250,7 @@ export default function RootLayout() {
                 ) : (
                   <button
                     onClick={() => { setAuthOpen(true); setMobileMenuOpen(false); }}
-                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5c4037] rounded-lg hover:text-[#aa3000] hover:bg-[#ffeadb] transition-colors"
+                    className="flex items-center gap-4 px-4 py-3 text-[15px] font-semibold text-[#5C5C5C] rounded-lg hover:text-[#950606] hover:bg-[#F1E7DE] transition-colors"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     <Icon name="login" size={20} /> Sign In
