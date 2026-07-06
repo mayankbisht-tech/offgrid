@@ -27,7 +27,7 @@ import { PaymentPage } from './user/PaymentPage';
 import { DashboardPage } from './designer/DashboardPage';
 import { StudioPublishWizard } from './designer/StudioPublishWizard';
 import { CreatorPage } from './designer/CreatorPage';
-import { AdminDashboard } from './admin/AdminDashboard';
+// AdminDashboard removed — admin functionality lives in CRM-offgrid (/admin/offgrid)
 
 export function LogoutPage() {
   useEffect(() => {
@@ -273,7 +273,6 @@ export {
   DashboardPage,
   StudioPublishWizard,
   CreatorPage,
-  AdminDashboard,
   CheckoutPage,
   PaymentPlaceholderPage,
   PaymentPage,

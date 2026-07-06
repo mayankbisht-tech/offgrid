@@ -11,8 +11,10 @@ import RootLayout, {
   CheckoutPage,
   PaymentPlaceholderPage,
   PaymentPage,
-  AdminDashboard,
 } from './components/ReferenceApp';
+
+// Admin dashboard has been removed from this app.
+// All admin functionality now lives in CRM-offgrid at /admin/offgrid/*
 
 export default function App() {
   return (
@@ -31,8 +33,7 @@ export default function App() {
         <Route path="creator/:id" element={<CreatorPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="payment" element={<PaymentPage />} />
-        <Route path="admin" element={<AdminDashboard />} />
-        {/* Catch-all → home */}
+        {/* /admin is intentionally gone — managed in CRM-offgrid */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

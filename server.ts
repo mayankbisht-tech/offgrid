@@ -10,16 +10,15 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
+import { adminRouter } from './server/routes/adminRouter.js';
 import {
   products, 
   designs, 
   orders, 
   capabilities, 
-  manufacturers, 
   manufacturerPaymentProfiles,
   designBids,
   designSamples,
-  moderationRecords,
   createProduct, 
   createDesign,
   createDesignBid,
@@ -36,7 +35,6 @@ import {
   updateDesignSample,
   updateProduct,
   upsertManufacturerPaymentProfile,
-  setModerationStatus,
   getModerationStatus,
   listNotificationsForUser,
   recalculateBidStatuses,
@@ -543,56 +541,12 @@ app.get('/api/payments/details', (req: express.Request, res: express.Response) =
   }
 });
 
-// Workflow APIs for design approval, bidding, samples, and moderation
-app.get('/api/admin/designs', (_req: express.Request, res: express.Response) => {
-  res.json(designs);
-});
-
-app.patch('/api/admin/designs/:designId/approve', async (req: express.Request, res: express.Response) => {
-  const design = designs.find((item) => item.id === req.params.designId);
-  if (!design) {
-    res.status(404).json({ error: 'Design not found.' });
-    return;
-  }
-  const updated = await updateDesign(design.id, {
-    workflowStatus: 'ADMIN_APPROVED',
-    adminReviewedAt: new Date().toISOString(),
-    adminReviewedBy: req.body?.adminId || 'admin',
-    adminNotes: req.body?.notes || design.adminNotes,
-  });
-  await createNotification({
-    userId: design.designerId,
-    role: 'DESIGNER',
-    title: 'Design approved',
-    message: `Your design "${design.title}" was approved by the admin review team.`,
-    category: 'DESIGN_APPROVED',
-    link: '/dashboard',
-  });
-  res.json({ design: updated ?? design });
-});
-
-app.patch('/api/admin/designs/:designId/reject', async (req: express.Request, res: express.Response) => {
-  const design = designs.find((item) => item.id === req.params.designId);
-  if (!design) {
-    res.status(404).json({ error: 'Design not found.' });
-    return;
-  }
-  const updated = await updateDesign(design.id, {
-    workflowStatus: 'REJECTED',
-    adminReviewedAt: new Date().toISOString(),
-    adminReviewedBy: req.body?.adminId || 'admin',
-    adminNotes: req.body?.notes || design.adminNotes,
-  });
-  await createNotification({
-    userId: design.designerId,
-    role: 'DESIGNER',
-    title: 'Design rejected',
-    message: `Your design "${design.title}" was rejected by the admin review team.`,
-    category: 'DESIGN_REJECTED',
-    link: '/dashboard',
-  });
-  res.json({ design: updated ?? design });
-});
+// -----------------------------------------------------------------------
+// ADMIN API (service-to-service, CRM-offgrid only)
+// Secured by x-admin-api-key header + CORS origin restriction.
+// See server/routes/adminRouter.ts for all sub-routes.
+// -----------------------------------------------------------------------
+app.use('/api/admin', adminRouter);
 
 app.get('/api/users/:userId/notifications', (req: express.Request, res: express.Response) => {
   res.json(listNotificationsForUser(req.params.userId));
@@ -715,66 +669,7 @@ app.patch('/api/designs/:designId/samples/:sampleId/decision', async (req: expre
   res.json({ design, sample, promotedBid: null });
 });
 
-app.patch('/api/admin/users/:userId/status', async (req: express.Request, res: express.Response) => {
-  const { status, reason, role, adminId } = req.body ?? {};
-  if (!status || !['ACTIVE', 'PAUSED', 'BLOCKED'].includes(status)) {
-    res.status(400).json({ error: 'Valid status is required.' });
-    return;
-  }
-
-  const record = await setModerationStatus({
-    userId: req.params.userId,
-    role: role || 'MANUFACTURER',
-    status,
-    reason,
-    updatedBy: adminId || 'admin',
-  });
-
-  await Promise.all(designs
-    .filter((design) => design.designerId === req.params.userId || design.winningManufacturerId === req.params.userId)
-    .map((design) => updateDesign(design.id, {
-      moderationStatus: status,
-      workflowStatus: status === 'BLOCKED' ? 'BLOCKED' : status === 'PAUSED' ? 'PAUSED' : design.workflowStatus,
-    })));
-
-  await Promise.all(designBids
-    .filter((bid) => bid.manufacturerId === req.params.userId && status !== 'ACTIVE')
-    .map((bid) => updateDesignBid(bid.id, {
-      status: status === 'BLOCKED' ? 'REJECTED' : bid.status,
-      heldReason: status === 'BLOCKED' ? 'Manufacturer blocked by admin' : bid.heldReason,
-    })));
-
-  res.json({ record });
-});
-
-app.get('/api/admin/analytics', (_req: express.Request, res: express.Response) => {
-  const designerAnalytics = designs.reduce<Record<string, { designerId: string; designs: number; liveProducts: number; bids: number; }>>((acc, design) => {
-    acc[design.designerId] ||= { designerId: design.designerId, designs: 0, liveProducts: 0, bids: 0 };
-    acc[design.designerId].designs += 1;
-    if (design.liveProductId) acc[design.designerId].liveProducts += 1;
-    acc[design.designerId].bids += designBids.filter((bid) => bid.designId === design.id).length;
-    return acc;
-  }, {});
-
-  const manufacturerAnalytics = designBids.reduce<Record<string, { manufacturerId: string; bids: number; shortlisted: number; winning: number; samples: number; }>>((acc, bid) => {
-    acc[bid.manufacturerId] ||= { manufacturerId: bid.manufacturerId, bids: 0, shortlisted: 0, winning: 0, samples: 0 };
-    acc[bid.manufacturerId].bids += 1;
-    if (bid.status === 'SHORTLISTED') acc[bid.manufacturerId].shortlisted += 1;
-    if (bid.status === 'WINNING') acc[bid.manufacturerId].winning += 1;
-    acc[bid.manufacturerId].samples += designSamples.filter((sample) => sample.bidId === bid.id).length;
-    return acc;
-  }, {});
-
-  res.json({
-    designs: designs.length,
-    products: products.length,
-    bids: designBids.length,
-    samples: designSamples.length,
-    designerAnalytics: Object.values(designerAnalytics),
-    manufacturerAnalytics: Object.values(manufacturerAnalytics),
-    moderationRecords: Object.values(moderationRecords),
-  });
-});
+// (Admin routes moved to /api/admin — see server/routes/adminRouter.ts)
 
 app.get('/api/designs/:designId/workflow', (req: express.Request, res: express.Response) => {
   const design = designs.find((item) => item.id === req.params.designId);
